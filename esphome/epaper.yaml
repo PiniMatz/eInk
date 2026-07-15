@@ -5,7 +5,8 @@ esphome:
     board_build.flash_mode: dio
 
 esp32:
-  board: esp32-c3
+  board: seeed_xiao_esp32c3
+  variant: esp32c3
   framework:
     type: arduino
 
@@ -52,9 +53,7 @@ display:
     cs_pin: GPIO3
     dc_pin: GPIO5
     reset_pin: GPIO2
-    busy_pin:
-      number: GPIO4
-      inverted: true
+    busy_pin: GPIO4
     update_interval: 30min
     pages:
       - id: main_page
