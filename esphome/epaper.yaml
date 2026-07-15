@@ -3,6 +3,10 @@ esphome:
   friendly_name: ePaper Hebrew Calendar
   platformio_options:
     board_build.flash_mode: dio
+  on_boot:
+    priority: -100
+    then:
+      - component.update: screen_image
 
 esp32:
   board: seeed_xiao_esp32c3
