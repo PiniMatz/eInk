@@ -66,15 +66,14 @@ display:
             // Fallback screen if image is not downloaded yet
             it.fill(Color::WHITE);
             it.rectangle(10, 10, 780, 460, Color::BLACK);
-            it.print(400, 240, id(fallback_font), TextAlign::CENTER, "טוען נתונים...");
+            it.print(400, 240, id(fallback_font), TextAlign::CENTER, "Loading...");
           }
 
 # Font for the initial fallback screen
 font:
-  - file: "gfonts://Heebo@700"
+  - file: "gfonts://Roboto@700"
     id: fallback_font
     size: 32
-    glyphs: "טוען נתימ."
 
 # Online Image component that fetches pre-rendered PNG from the Vercel app
 online_image:
