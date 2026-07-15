@@ -71,7 +71,7 @@ font:
 online_image:
   - id: screen_image
     # REPLACE with your deployed Vercel URL
-    url: "https://your-vercel-app-url.vercel.app/api/screen"
+    url: "https://e-ink-pini.vercel.app/api/screen"
     format: png
     type: BINARY
     update_interval: 30min
