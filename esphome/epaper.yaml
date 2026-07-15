@@ -36,7 +36,7 @@ web_server:
 
 # HTTP Request client (bypass TLS check to avoid memory crash on HTTPS fetches)
 http_request:
-  user_agent: esphome/device
+  useragent: esphome/device
   timeout: 15s
   verify_ssl: false
 
@@ -53,7 +53,9 @@ display:
     cs_pin: GPIO3
     dc_pin: GPIO5
     reset_pin: GPIO2
-    busy_pin: GPIO4
+    busy_pin:
+      number: GPIO4
+      inverted: true
     update_interval: 30min
     pages:
       - id: main_page
@@ -72,7 +74,7 @@ font:
   - file: "gfonts://Heebo@700"
     id: fallback_font
     size: 32
-    glyphs: "טוען נתונים."
+    glyphs: "טוען נתימ."
 
 # Online Image component that fetches pre-rendered PNG from the Vercel app
 online_image:
