@@ -57,28 +57,15 @@ display:
       number: GPIO4
       inverted: true
     update_interval: 30min
-    pages:
-      - id: main_page
-        lambda: |-
-          if (id(screen_image).is_ready()) {
-            it.image(0, 0, id(screen_image));
-          } else {
-            // Fallback screen if image is not downloaded yet
-            it.fill(Color::WHITE);
-            it.rectangle(10, 10, 780, 460, Color::BLACK);
-            it.print(400, 240, id(fallback_font), TextAlign::CENTER, "Loading...");
-          }
+    lambda: |-
+      if (id(screen_image).is_ready()) {
+        it.image(0, 0, id(screen_image));
+      }
 
-# Font for the initial fallback screen
-font:
-  - file: "gfonts://Roboto@700"
-    id: fallback_font
-    size: 32
-
-# Online Image component that fetches pre-rendered PNG from the Vercel app
-online_image:
-  - id: screen_image
-    # REPLACE with your deployed Vercel URL
+# Official ESPHome Image Component with online_image platform
+image:
+  - platform: online_image
+    id: screen_image
     url: "https://e-ink-pini.vercel.app/api/screen"
     format: png
     type: BINARY
