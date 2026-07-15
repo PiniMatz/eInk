@@ -30,10 +30,6 @@ wifi:
 # Enable captive portal for dynamic Wi-Fi setup
 captive_portal:
 
-# Web Server (port 80) for status page and logs
-web_server:
-  port: 80
-
 # HTTP Request client (bypass TLS check to avoid memory crash on HTTPS fetches)
 http_request:
   useragent: esphome/device
@@ -68,13 +64,3 @@ online_image:
     update_interval: 30min
     on_download_finished:
       - component.update: my_display
-
-# Add manual trigger button in Web UI to force image fetch
-button:
-  - platform: template
-    name: "Fetch Calendar"
-    id: fetch_calendar_btn
-    on_press:
-      - online_image.set_url:
-          id: screen_image
-          url: "https://e-ink-pini.vercel.app/api/screen"
