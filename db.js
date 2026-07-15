@@ -1,25 +1,36 @@
 const fs = require('fs');
 const path = require('path');
-const { createClient } = require('@vercel/kv');
 
 // Local fallback database file
 const LOCAL_DB_PATH = path.join(__dirname, 'db.json');
 
-// Initialize Vercel KV client if environment variables are set
-let kvClient = null;
-if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+// Initialize Firebase Admin if environment variables are set
+let firestore = null;
+
+if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
   try {
-    kvClient = createClient({
-      url: process.env.KV_REST_API_URL,
-      token: process.env.KV_REST_API_TOKEN,
-    });
-    console.log('Database: Using Vercel KV (Cloud Redis)');
+    const admin = require('firebase-admin');
+    
+    // Prevent double initialization if serverless function hot-reloads
+    if (admin.apps.length === 0) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          // Handle escaped newline strings common in environment configurations
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        })
+      });
+    }
+    
+    firestore = admin.firestore();
+    console.log('Database: Using Google Firebase Firestore');
   } catch (err) {
-    console.error('Failed to initialize Vercel KV client:', err.message);
+    console.error('Failed to initialize Firebase Admin SDK:', err.message);
   }
 }
 
-if (!kvClient) {
+if (!firestore) {
   console.log('Database: Using local JSON file storage (db.json)');
   if (!fs.existsSync(LOCAL_DB_PATH)) {
     fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify({ events: [], tasks: [] }, null, 2));
@@ -45,39 +56,48 @@ const db = {
   // --- EVENTS (Calendar) ---
   async getEvents(year, month) {
     const monthStr = String(month).padStart(2, '0');
-    const prefix = `${year}-${monthStr}`;
+    const startRange = `${year}-${monthStr}-01`;
+    // Standard calendar grid could display dates up to 31st
+    const endRange = `${year}-${monthStr}-31`;
 
-    if (kvClient) {
+    if (firestore) {
       try {
-        const events = await kvClient.get(`epaper:events:${prefix}`) || [];
+        const snapshot = await firestore.collection('events')
+          .where('date', '>=', startRange)
+          .where('date', '<=', endRange)
+          .get();
+        
+        const events = [];
+        snapshot.forEach(doc => {
+          events.push({ id: doc.id, ...doc.data() });
+        });
         return events;
       } catch (err) {
-        console.error('KV getEvents failed:', err);
+        console.error('Firestore getEvents failed:', err);
         return [];
       }
     } else {
       const data = readLocal();
+      const prefix = `${year}-${monthStr}`;
       return data.events.filter(e => e.date.startsWith(prefix));
     }
   },
 
   async addEvent(event) {
-    // event: { id, date ("YYYY-MM-DD"), title (Hebrew string) }
-    event.id = event.id || Math.random().toString(36).substring(2, 9);
-    
-    if (kvClient) {
+    // event: { date ("YYYY-MM-DD"), title (Hebrew string) }
+    if (firestore) {
       try {
-        const prefix = event.date.substring(0, 7); // "YYYY-MM"
-        const key = `epaper:events:${prefix}`;
-        const events = await kvClient.get(key) || [];
-        events.push(event);
-        await kvClient.set(key, events);
-        return event;
+        const docRef = await firestore.collection('events').add({
+          title: event.title,
+          date: event.date
+        });
+        return { id: docRef.id, ...event };
       } catch (err) {
-        console.error('KV addEvent failed:', err);
+        console.error('Firestore addEvent failed:', err);
         throw err;
       }
     } else {
+      event.id = Math.random().toString(36).substring(2, 9);
       const data = readLocal();
       data.events.push(event);
       writeLocal(data);
@@ -85,16 +105,12 @@ const db = {
     }
   },
 
-  async deleteEvent(id, date) {
-    if (kvClient) {
+  async deleteEvent(id) {
+    if (firestore) {
       try {
-        const prefix = date.substring(0, 7); // "YYYY-MM"
-        const key = `epaper:events:${prefix}`;
-        let events = await kvClient.get(key) || [];
-        events = events.filter(e => e.id !== id);
-        await kvClient.set(key, events);
+        await firestore.collection('events').doc(id).delete();
       } catch (err) {
-        console.error('KV deleteEvent failed:', err);
+        console.error('Firestore deleteEvent failed:', err);
         throw err;
       }
     } else {
@@ -107,13 +123,20 @@ const db = {
   // --- TASKS (Daily Schedule) ---
   async getTasks(date) {
     // date: "YYYY-MM-DD"
-    if (kvClient) {
+    if (firestore) {
       try {
-        const tasks = await kvClient.get(`epaper:tasks:${date}`) || [];
+        const snapshot = await firestore.collection('tasks')
+          .where('date', '==', date)
+          .get();
+        
+        const tasks = [];
+        snapshot.forEach(doc => {
+          tasks.push({ id: doc.id, ...doc.data() });
+        });
         // Sort tasks by time
         return tasks.sort((a, b) => a.time.localeCompare(b.time));
       } catch (err) {
-        console.error('KV getTasks failed:', err);
+        console.error('Firestore getTasks failed:', err);
         return [];
       }
     } else {
@@ -124,21 +147,21 @@ const db = {
   },
 
   async addTask(task) {
-    // task: { id, date ("YYYY-MM-DD"), time ("HH:MM"), description (Hebrew string) }
-    task.id = task.id || Math.random().toString(36).substring(2, 9);
-
-    if (kvClient) {
+    // task: { date ("YYYY-MM-DD"), time ("HH:MM"), description (Hebrew string) }
+    if (firestore) {
       try {
-        const key = `epaper:tasks:${task.date}`;
-        const tasks = await kvClient.get(key) || [];
-        tasks.push(task);
-        await kvClient.set(key, tasks);
-        return task;
+        const docRef = await firestore.collection('tasks').add({
+          description: task.description,
+          time: task.time,
+          date: task.date
+        });
+        return { id: docRef.id, ...task };
       } catch (err) {
-        console.error('KV addTask failed:', err);
+        console.error('Firestore addTask failed:', err);
         throw err;
       }
     } else {
+      task.id = Math.random().toString(36).substring(2, 9);
       const data = readLocal();
       data.tasks.push(task);
       writeLocal(data);
@@ -146,15 +169,12 @@ const db = {
     }
   },
 
-  async deleteTask(id, date) {
-    if (kvClient) {
+  async deleteTask(id) {
+    if (firestore) {
       try {
-        const key = `epaper:tasks:${date}`;
-        let tasks = await kvClient.get(key) || [];
-        tasks = tasks.filter(t => t.id !== id);
-        await kvClient.set(key, tasks);
+        await firestore.collection('tasks').doc(id).delete();
       } catch (err) {
-        console.error('KV deleteTask failed:', err);
+        console.error('Firestore deleteTask failed:', err);
         throw err;
       }
     } else {

@@ -54,12 +54,8 @@ app.post('/api/events', async (req, res) => {
 // API: Delete event
 app.delete('/api/events/:id', async (req, res) => {
   const { id } = req.params;
-  const { date } = req.query;
-  if (!date) {
-    return res.status(400).json({ error: 'Date is required to target KV deletion' });
-  }
   try {
-    await db.deleteEvent(id, date);
+    await db.deleteEvent(id);
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -94,12 +90,8 @@ app.post('/api/tasks', async (req, res) => {
 // API: Delete daily task
 app.delete('/api/tasks/:id', async (req, res) => {
   const { id } = req.params;
-  const { date } = req.query;
-  if (!date) {
-    return res.status(400).json({ error: 'Date is required to target KV deletion' });
-  }
   try {
-    await db.deleteTask(id, date);
+    await db.deleteTask(id);
     res.status(200).json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
