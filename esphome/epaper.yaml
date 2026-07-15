@@ -62,10 +62,9 @@ display:
         it.image(0, 0, id(screen_image));
       }
 
-# Official ESPHome Image Component with online_image platform
-image:
-  - platform: online_image
-    id: screen_image
+# Online Image component that fetches pre-rendered PNG from the Vercel app
+online_image:
+  - id: screen_image
     url: "https://e-ink-pini.vercel.app/api/screen"
     format: png
     type: BINARY
