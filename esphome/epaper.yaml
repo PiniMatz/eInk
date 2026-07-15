@@ -8,7 +8,7 @@ esp32:
   board: seeed_xiao_esp32c3
   variant: esp32c3
   framework:
-    type: arduino
+    type: esp-idf
 
 # Enable logging
 logger:
