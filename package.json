@@ -1,0 +1,19 @@
+{
+  "name": "epaper-hebrew-dashboard",
+  "version": "1.0.0",
+  "description": "Hebrew RTL Monthly Calendar, Weather, and Daily Schedule ePaper Dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "download-fonts": "node scripts/download-fonts.js"
+  },
+  "dependencies": {
+    "@hebcal/core": "^3.18.2",
+    "@resvg/resvg-js": "^2.6.0",
+    "@vercel/kv": "^1.0.1",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  }
+}

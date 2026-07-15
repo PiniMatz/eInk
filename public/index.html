@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>לוח בקרה - מסך דיו אלקטרוני</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --input-bg: #1e293b;
+      --input-border: #475569;
+    }
+
+    body {
+      font-family: 'Heebo', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to left, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      color: var(--text-sub);
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 8px 40px rgba(56, 189, 248, 0.1);
+    }
+
+    .card h2 {
+      font-size: 1.4rem;
+      margin: 0 0 8px 0;
+      font-weight: 700;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 8px;
+      width: fit-content;
+    }
+
+    .preview-card {
+      grid-column: 1 / -1;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .preview-card {
+        grid-column: 1;
+      }
+    }
+
+    .preview-container {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 800 / 480;
+      background: white;
+      border-radius: 8px;
+      border: 4px solid #000;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .preview-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .form-group label {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+    }
+
+    input, select, button {
+      font-family: inherit;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    button.btn-primary {
+      background-color: var(--accent);
+      color: #0f172a;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.btn-primary:hover {
+      background-color: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    button.btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .list-container {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.95rem;
+    }
+
+    .list-item:last-child {
+      border-bottom: none;
+    }
+
+    .list-item .details {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .list-item .time-badge {
+      background-color: var(--accent);
+      color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .list-item .date-badge {
+      color: var(--text-sub);
+      font-size: 0.8rem;
+    }
+
+    .list-item .desc {
+      font-weight: 400;
+    }
+
+    .list-item button.btn-delete {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    .list-item button.btn-delete:hover {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>לוח בקרה - מסך דיו אלקטרוני 7.5"</h1>
+    <p>ניהול לוח שנה חודשי ומערכת שעות יומית בעברית</p>
+  </header>
+
+  <main>
+    <!-- CARD 1: CALENDAR EVENTS -->
+    <div class="card">
+      <h2>אירועים בלוח השנה</h2>
+      
+      <!-- Add Event Form -->
+      <form id="event-form">
+        <div class="form-group" style="flex: 1.5;">
+          <label for="event-title">שם האירוע</label>
+          <input type="text" id="event-title" required placeholder="לדוגמה: יום הולדת לאבא">
+        </div>
+        <div class="form-group" style="flex: 1;">
+          <label for="event-date">תאריך</label>
+          <input type="date" id="event-date" required>
+        </div>
+        <button type="submit" class="btn-primary">הוסף אירוע</button>
+      </form>
+
+      <!-- Event List -->
+      <h3>רשימת אירועים לחודש הנוכחי</h3>
+      <div class="list-container">
+        <div id="events-list">
+          <p class="empty-msg">טוען אירועים...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: DAILY SCHEDULE -->
+    <div class="card">
+      <h2>סדר יום (לו"ז יומי)</h2>
+      
+      <!-- Add Task Form -->
+      <form id="task-form">
+        <div class="form-group" style="flex: 1.5;">
+          <label for="task-desc">תיאור הפעילות</label>
+          <input type="text" id="task-desc" required placeholder="לדוגמה: פגישת עבודה במשרד">
+        </div>
+        <div class="form-group" style="flex: 0.8;">
+          <label for="task-time">שעה</label>
+          <input type="time" id="task-time" required>
+        </div>
+        <div class="form-group" style="flex: 0.8;">
+          <label for="task-date">תאריך</label>
+          <input type="date" id="task-date" required>
+        </div>
+        <button type="submit" class="btn-primary">הוסף פעילות</button>
+      </form>
+
+      <!-- Task List -->
+      <h3>פעילויות ליום שנבחר</h3>
+      <div class="list-container">
+        <div id="tasks-list">
+          <p class="empty-msg">בחר תאריך לצפייה בפעילויות</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: LIVE SCREEN PREVIEW -->
+    <div class="card preview-card">
+      <h2>תצוגה מקדימה של המסך (800x480)</h2>
+      <p>כך נראית התמונה העדכנית ביותר שהמסך יוריד</p>
+      
+      <div class="preview-container">
+        <img id="screen-img" src="" alt="ePaper Screen Image">
+      </div>
+      
+      <button class="btn-primary" onclick="refreshPreview()" style="margin-top: 10px;">רענן תצוגה מקדימה</button>
+    </div>
+  </main>
+
+  <script>
+    // Set default dates in inputs to today
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    document.getElementById('event-date').value = todayStr;
+    document.getElementById('task-date').value = todayStr;
+    
+    let currentSelectedDate = todayStr;
+
+    // Load data on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadEvents();
+      loadTasks(todayStr);
+      refreshPreview();
+
+      // Listen to task date change to update task list
+      document.getElementById('task-date').addEventListener('change', (e) => {
+        currentSelectedDate = e.target.value;
+        loadTasks(currentSelectedDate);
+      });
+    });
+
+    // Refresh ePaper preview
+    function refreshPreview() {
+      const img = document.getElementById('screen-img');
+      img.src = `/api/screen?t=${Date.now()}`;
+    }
+
+    // --- EVENTS CRUD ---
+    async function loadEvents() {
+      const year = today.getFullYear();
+      const month = today.getMonth() + 1;
+      
+      try {
+        const response = await fetch(`/api/events?year=${year}&month=${month}`);
+        const events = await response.json();
+        
+        const container = document.getElementById('events-list');
+        if (events.length === 0) {
+          container.innerHTML = '<p class="empty-msg">אין אירועים רשומים לחודש זה</p>';
+          return;
+        }
+
+        // Sort events by date
+        events.sort((a, b) => a.date.localeCompare(b.date));
+
+        container.innerHTML = events.map(e => `
+          <div class="list-item">
+            <div class="details">
+              <span class="date-badge">${formatDate(e.date)}</span>
+              <span class="desc">${e.title}</span>
+            </div>
+            <button class="btn-delete" onclick="deleteEvent('${e.id}', '${e.date}')">מחק</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading events:', err);
+      }
+    }
+
+    document.getElementById('event-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('event-title').value;
+      const date = document.getElementById('event-date').value;
+
+      try {
+        const response = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, date })
+        });
+        
+        if (response.ok) {
+          document.getElementById('event-title').value = '';
+          loadEvents();
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error creating event:', err);
+      }
+    });
+
+    async function deleteEvent(id, date) {
+      if (!confirm('האם למחוק אירוע זה?')) return;
+      try {
+        const response = await fetch(`/api/events/${id}?date=${date}`, { method: 'DELETE' });
+        if (response.ok) {
+          loadEvents();
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error deleting event:', err);
+      }
+    }
+
+    // --- TASKS CRUD ---
+    async function loadTasks(date) {
+      try {
+        const response = await fetch(`/api/tasks?date=${date}`);
+        const tasks = await response.json();
+        
+        const container = document.getElementById('tasks-list');
+        if (tasks.length === 0) {
+          container.innerHTML = `<p class="empty-msg">אין פעילויות רשומות ליום זה (${formatDate(date)})</p>`;
+          return;
+        }
+
+        container.innerHTML = tasks.map(t => `
+          <div class="list-item">
+            <div class="details">
+              <span class="time-badge">${t.time}</span>
+              <span class="desc">${t.description}</span>
+            </div>
+            <button class="btn-delete" onclick="deleteTask('${t.id}', '${t.date}')">מחק</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+      }
+    }
+
+    document.getElementById('task-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const description = document.getElementById('task-desc').value;
+      const time = document.getElementById('task-time').value;
+      const date = document.getElementById('task-date').value;
+
+      try {
+        const response = await fetch('/api/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description, time, date })
+        });
+        
+        if (response.ok) {
+          document.getElementById('task-desc').value = '';
+          document.getElementById('task-time').value = '';
+          loadTasks(date);
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error creating task:', err);
+      }
+    });
+
+    async function deleteTask(id, date) {
+      if (!confirm('האם למחוק פעילות זו?')) return;
+      try {
+        const response = await fetch(`/api/tasks/${id}?date=${date}`, { method: 'DELETE' });
+        if (response.ok) {
+          loadTasks(date);
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error deleting task:', err);
+      }
+    }
+
+    // Utility date formatter: "YYYY-MM-DD" -> "DD/MM"
+    function formatDate(dateStr) {
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parts[2]}/${parts[1]}`;
+    }
+  </script>
+</body>
+</html>

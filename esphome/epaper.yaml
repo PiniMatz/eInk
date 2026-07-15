@@ -1,0 +1,79 @@
+esphome:
+  name: epaper-calendar
+  friendly_name: ePaper Hebrew Calendar
+
+esp32:
+  board: esp32-c3
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable native API for Home Assistant (optional)
+api:
+
+# Enable OTA updates (Over The Air)
+ota:
+  - platform: esphome
+
+# Wi-Fi Configuration
+wifi:
+  # Captive Portal fallback if connection fails
+  ap:
+    ssid: "E-Paper Setup"
+    ap_timeout: 1min
+
+# Enable captive portal for dynamic Wi-Fi setup
+captive_portal:
+
+# Web Server (port 80) for status page and logs
+web_server:
+  port: 80
+
+# SPI interface configuration for Seeed Studio XIAO ESP32-C3
+spi:
+  clk_pin: GPIO8
+  mosi_pin: GPIO10
+
+# Display configuration for the 7.5" Waveshare ePaper screen
+display:
+  - platform: waveshare_epaper
+    id: my_display
+    model: 7.50inv2
+    cs_pin: GPIO3
+    dc_pin: GPIO5
+    reset_pin: GPIO2
+    busy_pin:
+      number: GPIO4
+      inverted: true
+    update_interval: 30min
+    pages:
+      - id: main_page
+        lambda: |-
+          if (id(screen_image).is_ready()) {
+            it.image(0, 0, id(screen_image));
+          } else {
+            // Fallback screen if image is not downloaded yet
+            it.fill(Color::WHITE);
+            it.rectangle(10, 10, 780, 460, Color::BLACK);
+            it.print(400, 240, id(fallback_font), TextAlign::CENTER, "טוען נתונים...");
+          }
+
+# Font for the initial fallback screen
+font:
+  - file: "gfonts://Heebo@700"
+    id: fallback_font
+    size: 32
+    glyphs: "טוען נתונים."
+
+# Online Image component that fetches pre-rendered PNG from the Vercel app
+online_image:
+  - id: screen_image
+    # REPLACE with your deployed Vercel URL
+    url: "https://your-vercel-app-url.vercel.app/api/screen"
+    format: png
+    type: BINARY
+    update_interval: 30min
+    on_download_finished:
+      - component.update: my_display
