@@ -376,9 +376,9 @@ function generateSvg({ date, events, tasks, weather }) {
 }
 
 /**
- * Renders the dashboard data as a 1-bit monochrome PNG buffer
+ * Renders the dashboard data as a 1-bit monochrome BMP buffer
  */
-function renderPng(data) {
+function renderBmp(data) {
   const svgString = generateSvg(data);
 
   const resvg = new Resvg(svgString, {
@@ -393,11 +393,65 @@ function renderPng(data) {
     }
   });
 
-  const pngData = resvg.render();
-  return pngData.asPng();
+  const renderResult = resvg.render();
+  const width = renderResult.width;
+  const height = renderResult.height;
+  const pixels = renderResult.pixels;
+
+  const pixelDataSize = width * height / 8;
+  const headerSize = 62;
+  const fileSize = headerSize + pixelDataSize;
+
+  const bmpBuffer = Buffer.alloc(fileSize);
+
+  // File Header
+  bmpBuffer.write('BM', 0);
+  bmpBuffer.writeUInt32LE(fileSize, 2);
+  bmpBuffer.writeUInt16LE(0, 6);
+  bmpBuffer.writeUInt16LE(0, 8);
+  bmpBuffer.writeUInt32LE(headerSize, 10);
+
+  // DIB Header
+  bmpBuffer.writeUInt32LE(40, 14);
+  bmpBuffer.writeInt32LE(width, 18);
+  bmpBuffer.writeInt32LE(-height, 22);
+  bmpBuffer.writeUInt16LE(1, 26);
+  bmpBuffer.writeUInt16LE(1, 28);
+  bmpBuffer.writeUInt32LE(0, 30);
+  bmpBuffer.writeUInt32LE(pixelDataSize, 34);
+  bmpBuffer.writeInt32LE(2835, 38);
+  bmpBuffer.writeInt32LE(2835, 42);
+  bmpBuffer.writeUInt32LE(2, 46);
+  bmpBuffer.writeUInt32LE(2, 50);
+
+  // Palette
+  bmpBuffer.writeUInt32LE(0x00000000, 54);
+  bmpBuffer.writeUInt32LE(0x00FFFFFF, 58);
+
+  const destOffset = headerSize;
+  for (let y = 0; y < height; y++) {
+    const rowOffset = y * width;
+    const destRowOffset = destOffset + y * (width / 8);
+    for (let byteIdx = 0; byteIdx < width / 8; byteIdx++) {
+      let currentByte = 0;
+      for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+        const pixelIdx = rowOffset + byteIdx * 8 + bitIdx;
+        const r = pixels[pixelIdx * 4];
+        const g = pixels[pixelIdx * 4 + 1];
+        const b = pixels[pixelIdx * 4 + 2];
+        const a = pixels[pixelIdx * 4 + 3];
+        
+        const val = (a < 128 || (r + g + b) / 3 > 127) ? 1 : 0;
+        currentByte |= (val << (7 - bitIdx));
+      }
+      bmpBuffer[destRowOffset + byteIdx] = currentByte;
+    }
+  }
+
+  return bmpBuffer;
 }
 
 module.exports = {
-  renderPng,
+  renderBmp,
   generateSvg
 };

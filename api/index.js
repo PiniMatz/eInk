@@ -7,7 +7,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 const db = require('../db');
-const { renderPng } = require('../renderer');
+const { renderBmp } = require('../renderer');
 const { getWeather } = require('../weather');
 
 const app = express();
@@ -117,8 +117,8 @@ app.get('/api/screen', async (req, res) => {
       getWeather(req.query.location)
     ]);
 
-    // 3. Render dashboard to PNG buffer
-    const pngBuffer = renderPng({
+    // 3. Render dashboard to 1-bit BMP buffer
+    const bmpBuffer = renderBmp({
       date: reqDate,
       events,
       tasks,
@@ -126,12 +126,12 @@ app.get('/api/screen', async (req, res) => {
     });
 
     // 4. Send image headers and buffer
-    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Content-Type', 'image/bmp');
     // Ensure the ePaper doesn't cache stale images
     res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     res.setHeader('Expires', '-1');
     res.setHeader('Pragma', 'no-cache');
-    res.send(pngBuffer);
+    res.send(bmpBuffer);
 
   } catch (err) {
     console.error('Error rendering ePaper image:', err);
