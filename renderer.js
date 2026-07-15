@@ -414,7 +414,7 @@ function renderBmp(data) {
   // DIB Header
   bmpBuffer.writeUInt32LE(40, 14);
   bmpBuffer.writeInt32LE(width, 18);
-  bmpBuffer.writeInt32LE(-height, 22);
+  bmpBuffer.writeInt32LE(height, 22); // Positive height for bottom-to-top layout
   bmpBuffer.writeUInt16LE(1, 26);
   bmpBuffer.writeUInt16LE(1, 28);
   bmpBuffer.writeUInt32LE(0, 30);
@@ -429,9 +429,10 @@ function renderBmp(data) {
   bmpBuffer.writeUInt32LE(0x00FFFFFF, 58);
 
   const destOffset = headerSize;
-  for (let y = 0; y < height; y++) {
+  for (let y = height - 1; y >= 0; y--) {
     const rowOffset = y * width;
-    const destRowOffset = destOffset + y * (width / 8);
+    const destRowIdx = height - 1 - y;
+    const destRowOffset = destOffset + destRowIdx * (width / 8);
     for (let byteIdx = 0; byteIdx < width / 8; byteIdx++) {
       let currentByte = 0;
       for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
