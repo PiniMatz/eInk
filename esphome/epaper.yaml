@@ -29,6 +29,9 @@ ota:
 
 # Wi-Fi Configuration
 wifi:
+  ap:
+    ssid: "E-Paper Setup"
+    ap_timeout: 1min
 
 # HTTP Request client (bypass TLS check to avoid memory crash on HTTPS fetches)
 http_request:
