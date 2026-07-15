@@ -29,13 +29,6 @@ ota:
 
 # Wi-Fi Configuration
 wifi:
-  # Captive Portal fallback if connection fails
-  ap:
-    ssid: "E-Paper Setup"
-    ap_timeout: 1min
-
-# Enable captive portal for dynamic Wi-Fi setup
-captive_portal:
 
 # HTTP Request client (bypass TLS check to avoid memory crash on HTTPS fetches)
 http_request:
