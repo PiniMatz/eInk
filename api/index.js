@@ -25,6 +25,53 @@ app.get('/', (req, res) => {
   }
 });
 
+// Diagnostic API: Check font files and environment
+app.get('/api/diagnose', (req, res) => {
+  try {
+    const cwd = process.cwd();
+    const dirname = __dirname;
+    const fontsDir = path.join(cwd, 'fonts');
+    
+    let fontsDirExists = false;
+    let fontsList = [];
+    if (fs.existsSync(fontsDir)) {
+      fontsDirExists = true;
+      fontsList = fs.readdirSync(fontsDir);
+    }
+
+    const heeboBoldPath = path.join(cwd, 'fonts', 'Heebo-Bold.ttf');
+    const notoBoldPath = path.join(cwd, 'fonts', 'NotoSansHebrew-Bold.ttf');
+
+    const heeboExists = fs.existsSync(heeboBoldPath);
+    const notoExists = fs.existsSync(notoBoldPath);
+
+    let heeboSize = 0;
+    if (heeboExists) {
+      heeboSize = fs.statSync(heeboBoldPath).size;
+    }
+
+    let notoSize = 0;
+    if (notoExists) {
+      notoSize = fs.statSync(notoBoldPath).size;
+    }
+
+    res.json({
+      cwd,
+      dirname,
+      fontsDir,
+      fontsDirExists,
+      fontsList,
+      heeboExists,
+      heeboSize,
+      notoExists,
+      notoSize
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
+
 // API: Get monthly events
 app.get('/api/events', async (req, res) => {
   const year = req.query.year || new Date().getFullYear();
