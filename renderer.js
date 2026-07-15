@@ -4,8 +4,8 @@ const { Resvg } = require('@resvg/resvg-js');
 const { getJewishHolidays } = require('./holidays');
 
 // Load fonts
-const heeboBoldPath = path.join(__dirname, 'fonts', 'Heebo-Bold.ttf');
-const notoBoldPath = path.join(__dirname, 'fonts', 'NotoSansHebrew-Bold.ttf');
+const heeboBoldPath = path.join(process.cwd(), 'fonts', 'Heebo-Bold.ttf');
+const notoBoldPath = path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf');
 
 const fontBuffers = [];
 if (fs.existsSync(heeboBoldPath)) {
