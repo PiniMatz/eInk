@@ -6,6 +6,7 @@ esphome:
   on_boot:
     priority: 0.0
     then:
+      - delay: 10s
       - online_image.set_url:
           id: screen_image
           url: "https://e-ink-pini.vercel.app/api/screen"
