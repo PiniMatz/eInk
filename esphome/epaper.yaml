@@ -4,9 +4,11 @@ esphome:
   platformio_options:
     board_build.flash_mode: dio
   on_boot:
-    priority: 250.0
+    priority: 0.0
     then:
-      - component.update: screen_image
+      - online_image.set_url:
+          id: screen_image
+          url: "https://e-ink-pini.vercel.app/api/screen"
 
 esp32:
   board: seeed_xiao_esp32c3
