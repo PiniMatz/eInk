@@ -3,16 +3,20 @@ const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 const { getJewishHolidays } = require('./holidays');
 
-// Load fonts
-const heeboBoldPath = path.join(process.cwd(), 'fonts', 'Heebo-Bold.ttf');
-const notoBoldPath = path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf');
-
-const fontBuffers = [];
-if (fs.existsSync(heeboBoldPath)) {
-  fontBuffers.push(fs.readFileSync(heeboBoldPath));
-}
-if (fs.existsSync(notoBoldPath)) {
-  fontBuffers.push(fs.readFileSync(notoBoldPath));
+// Lazy-load fonts to ensure process.cwd() is resolved correctly during serverless execution
+let fontBuffersCache = null;
+function getFontBuffers() {
+  if (fontBuffersCache) return fontBuffersCache;
+  fontBuffersCache = [];
+  const heeboBoldPath = path.join(process.cwd(), 'fonts', 'Heebo-Bold.ttf');
+  const notoBoldPath = path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf');
+  if (fs.existsSync(heeboBoldPath)) {
+    fontBuffersCache.push(fs.readFileSync(heeboBoldPath));
+  }
+  if (fs.existsSync(notoBoldPath)) {
+    fontBuffersCache.push(fs.readFileSync(notoBoldPath));
+  }
+  return fontBuffersCache;
 }
 
 const MONTHS_HE = [
@@ -383,7 +387,7 @@ function renderBmp(data) {
 
   const resvg = new Resvg(svgString, {
     font: {
-      fontBuffers,
+      fontBuffers: getFontBuffers(),
       defaultFontFamily: 'Heebo',
       loadSystemFonts: false,
     },
