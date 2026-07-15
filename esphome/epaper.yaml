@@ -4,7 +4,7 @@ esphome:
   platformio_options:
     board_build.flash_mode: dio
   on_boot:
-    priority: -100
+    priority: 250.0
     then:
       - component.update: screen_image
 
