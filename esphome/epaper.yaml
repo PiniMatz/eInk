@@ -56,9 +56,6 @@ display:
     cs_pin: GPIO4
     dc_pin: GPIO5
     reset_pin: GPIO2
-    busy_pin:
-      number: GPIO3
-      inverted: true
     update_interval: 30min
     lambda: |-
       if (id(screen_image).is_ready()) {
