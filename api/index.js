@@ -164,7 +164,19 @@ app.get('/api/screen', async (req, res) => {
       getWeather(req.query.location)
     ]);
 
-    // 3. Render dashboard to 1-bit BMP buffer
+    // 3. Render dashboard
+    if (req.query.format === 'svg') {
+      const { generateSvg } = require('../renderer');
+      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+      res.send(generateSvg({
+        date: reqDate,
+        events,
+        tasks,
+        weather
+      }));
+      return;
+    }
+
     const bmpBuffer = renderBmp({
       date: reqDate,
       events,
