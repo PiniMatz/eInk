@@ -442,7 +442,7 @@ function renderBmp(data) {
         const b = pixels[pixelIdx * 4 + 2];
         const a = pixels[pixelIdx * 4 + 3];
         
-        const val = (a < 128 || (r + g + b) / 3 > 127) ? 1 : 0;
+        const val = (a < 128 || (r + g + b) / 3 > 127) ? 0 : 1;
         currentByte |= (val << (7 - bitIdx));
       }
       bmpBuffer[destRowOffset + byteIdx] = currentByte;
