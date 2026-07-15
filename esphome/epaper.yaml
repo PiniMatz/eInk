@@ -1,6 +1,8 @@
 esphome:
   name: epaper-calendar
   friendly_name: ePaper Hebrew Calendar
+  platformio_options:
+    board_build.flash_mode: dio
 
 esp32:
   board: esp32-c3
