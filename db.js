@@ -322,6 +322,21 @@ const db = {
           const ev = webEvents[k];
           if (ev.type !== 'VEVENT') continue;
 
+          // Filter out yearly birthday events for "אבא"
+          const isYearly = ev.rrule && (
+            ev.rrule.options.freq === 0 || 
+            ev.rrule.options.freq === 'YEARLY' || 
+            (typeof ev.rrule.toString === 'function' && ev.rrule.toString().includes('FREQ=YEARLY'))
+          );
+          const startsWithBirthday = ev.summary && (
+            ev.summary.trim().startsWith('יומולדת') || 
+            ev.summary.trim().startsWith('יום הולדת')
+          );
+          if (cal.name === 'אבא' && isYearly && startsWithBirthday) {
+            console.log(`Skipping yearly birthday event for אבא: ${ev.summary}`);
+            continue;
+          }
+
           // Collect occurrences
           const occurrences = [];
           if (ev.rrule) {
