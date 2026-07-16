@@ -136,6 +136,17 @@ app.get('/api/diagnose', (req, res) => {
       notoSize,
       notoBufferLength,
       usingFirestore: db.isUsingFirestore(),
+      firestoreConnectionTest: await (async () => {
+        if (!db.isUsingFirestore()) return "Disabled";
+        try {
+          const promise = db.getCalendars();
+          const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore query timed out after 3s")), 3000));
+          await Promise.race([promise, timeout]);
+          return "Connected successfully";
+        } catch (err) {
+          return `Failed: ${err.message}`;
+        }
+      })(),
       testResults
     });
   } catch (err) {
