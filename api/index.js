@@ -267,8 +267,8 @@ app.post('/api/calendars/sync', async (req, res) => {
 // API: Render ePaper Screen PNG Image
 app.get('/api/screen', async (req, res) => {
   try {
-    // 1. Trigger calendar sync
-    await db.syncCalendars().catch(err => console.error('Auto-sync during screen render failed:', err));
+    // 1. Trigger calendar sync in background (non-blocking)
+    db.syncCalendars().catch(err => console.error('Auto-sync during screen render failed:', err));
 
     // 2. Resolve date
     let reqDate = new Date();
