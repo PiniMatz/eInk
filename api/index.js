@@ -71,32 +71,50 @@ app.get('/api/diagnose', (req, res) => {
       fontBuffers.push(buf);
     }
 
-    // Try rendering a sample text SVG
-    const testSvg = `
-      <svg width="100" height="50" xmlns="http://www.w3.org/2000/svg">
-        <text x="10" y="30" font-family="Heebo" font-size="20" fill="black">Test</text>
-      </svg>
-    `;
+    const familiesToTest = [
+      'Heebo',
+      'Heebo Regular',
+      'Heebo-Regular',
+      'Noto Sans Hebrew',
+      'Noto Sans Hebrew Bold',
+      'NotoSansHebrew-Bold',
+      'sans-serif'
+    ];
 
+    const testResults = {};
     const { Resvg } = require('@resvg/resvg-js');
-    const resvg = new Resvg(testSvg, {
-      font: {
-        fontBuffers,
-        defaultFontFamily: 'Heebo',
-        loadSystemFonts: false,
-      },
-      fitTo: { mode: 'width', value: 100 }
-    });
 
-    const pixels = resvg.render().pixels;
-    let nonZeroPixels = 0;
-    for (let i = 0; i < pixels.length; i += 4) {
-      const r = pixels[i];
-      const g = pixels[i+1];
-      const b = pixels[i+2];
-      const a = pixels[i+3];
-      if (a > 0 && (r < 255 || g < 255 || b < 255)) {
-        nonZeroPixels++;
+    for (const family of familiesToTest) {
+      const testSvg = `
+        <svg width="100" height="50" xmlns="http://www.w3.org/2000/svg">
+          <text x="10" y="30" font-family="${family}" font-size="20" fill="black">Test</text>
+        </svg>
+      `;
+
+      try {
+        const resvg = new Resvg(testSvg, {
+          font: {
+            fontBuffers,
+            defaultFontFamily: family,
+            loadSystemFonts: false,
+          },
+          fitTo: { mode: 'width', value: 100 }
+        });
+
+        const pixels = resvg.render().pixels;
+        let nonZeroPixels = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          const r = pixels[i];
+          const g = pixels[i+1];
+          const b = pixels[i+2];
+          const a = pixels[i+3];
+          if (a > 0 && (r < 255 || g < 255 || b < 255)) {
+            nonZeroPixels++;
+          }
+        }
+        testResults[family] = nonZeroPixels;
+      } catch (err) {
+        testResults[family] = `Error: ${err.message}`;
       }
     }
 
@@ -113,7 +131,7 @@ app.get('/api/diagnose', (req, res) => {
       notoExists,
       notoSize,
       notoBufferLength,
-      testRenderNonZeroPixels: nonZeroPixels
+      testResults
     });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
