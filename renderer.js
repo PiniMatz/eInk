@@ -9,7 +9,7 @@ const MONTHS_HE = [
   "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"
 ];
 
-const WEEKDAYS_HE = ["א'", "ב'", "ג'", "ד'", "ה'", "ו'", "ש'"];
+const WEEKDAYS_HE = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"];
 
 // Helper to remove Hebrew vowel points (nikud) and accents
 function stripNikud(text) {
@@ -190,7 +190,7 @@ function generateSvg({ date, events, tasks, weather }) {
   const calendarHeight = 480 - 2 * pad; // 480 - 24 = 456
   
   const cellWidth = col2Width / 7;      // 514 / 7 = 73.43 px
-  const cellHeight = (calendarHeight - 82) / 6; // (456 - 82) / 6 = 62.33 px
+  const cellHeight = (calendarHeight - 82) / 5; // (456 - 82) / 5 = 74.8 px
 
   // Start constructing SVG string
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
@@ -226,18 +226,18 @@ function generateSvg({ date, events, tasks, weather }) {
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description under Icon -->
-      <text x="68" y="94" class="bold" font-size="13.5" text-anchor="middle" fill="black">${wDesc}</text>
+      <text x="68" y="95" class="bold" font-size="15" text-anchor="middle" fill="black">${wDesc}</text>
       <!-- Location under Description -->
-      <text x="68" y="112" class="bold" font-size="13.5" text-anchor="middle" fill="black">${wCity}</text>
+      <text x="68" y="115" class="bold" font-size="15" text-anchor="middle" fill="black">${wCity}</text>
       
       <!-- Temperature (Centered at x=175, y=52) -->
-      <text x="175" y="52" class="bold" font-size="40" text-anchor="middle" fill="black">${wTemp}</text>
-      <!-- Min/Max Temp Range under Temp (Centered at x=175, y=74) -->
-      <text x="175" y="74" class="regular" font-size="13" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
+      <text x="175" y="52" class="bold" font-size="44" text-anchor="middle" fill="black">${wTemp}</text>
+      <!-- Min/Max Temp Range under Temp (Centered at x=175, y=76) -->
+      <text x="175" y="76" class="regular" font-size="14.5" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Sunrise & Sunset on Bottom Right (x=230, relative) -->
-      <text x="230" y="104" class="regular" font-size="10.5" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
-      <text x="230" y="122" class="regular" font-size="10.5" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
+      <text x="230" y="102" class="regular" font-size="12" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
+      <text x="230" y="122" class="regular" font-size="12" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
     </g>
   `;
 
@@ -257,17 +257,17 @@ function generateSvg({ date, events, tasks, weather }) {
 
   // Generate hourly slots
   const scheduleHours = [];
-  for (let h = 6; h <= 23; h++) {
+  for (let h = 8; h <= 21; h++) {
     scheduleHours.push(String(h).padStart(2, '0') + ':00');
   }
 
-  const rowSpacing = 14.5;
+  const rowSpacing = 18.0;
   
   scheduleHours.forEach((hour, idx) => {
-    const rowY = 46 + idx * rowSpacing;
+    const rowY = 48 + idx * rowSpacing;
     
     // Draw hour text
-    svg += `<text x="235" y="${rowY}" class="bold" font-size="10.5" text-anchor="end" fill="black">${hour}</text>`;
+    svg += `<text x="235" y="${rowY}" class="bold" font-size="12" text-anchor="end" fill="black">${hour}</text>`;
     // Draw tiny dashed division lines
     svg += `<line x1="202" y1="${rowY + 3}" x2="235" y2="${rowY + 3}" stroke="black" stroke-width="0.5" stroke-dasharray="1,1" />`;
 
@@ -276,7 +276,7 @@ function generateSvg({ date, events, tasks, weather }) {
     const task = tasks.find(t => t.time.startsWith(hourPrefix));
     if (task) {
       const cleanDesc = stripNikud(task.description);
-      svg += `<text x="195" y="${rowY}" class="regular" font-size="10.5" text-anchor="end" fill="black">${truncateText(cleanDesc, 23)}</text>`;
+      svg += `<text x="195" y="${rowY}" class="regular" font-size="11.5" text-anchor="end" fill="black">${truncateText(cleanDesc, 20)}</text>`;
     }
   });
 
@@ -307,9 +307,20 @@ function generateSvg({ date, events, tasks, weather }) {
   svg += `<line x1="0" y1="76" x2="${col2Width}" y2="76" stroke="black" stroke-width="2" />`;
 
   // Days Grid
+  const grid = Array(35).fill(null).map(() => []);
   let dayCounter = 1;
+  for (let i = 0; i < daysInMonth; i++) {
+    const flatIndex = firstDayIndex + i;
+    if (flatIndex < 35) {
+      grid[flatIndex].push(dayCounter);
+    } else {
+      // Map back to the 5th row (flatIndex - 7)
+      grid[flatIndex - 7].push(dayCounter);
+    }
+    dayCounter++;
+  }
 
-  for (let row = 0; row < 6; row++) {
+  for (let row = 0; row < 5; row++) {
     const cellY = 76 + row * cellHeight;
 
     // Draw horizontal grid lines inside the card boundaries
@@ -326,36 +337,74 @@ function generateSvg({ date, events, tasks, weather }) {
       }
 
       const flatIndex = row * 7 + col;
-      if (flatIndex >= firstDayIndex && dayCounter <= daysInMonth) {
-        const currentDayVal = dayCounter;
-        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(currentDayVal).padStart(2, '0')}`;
-        
-        // Highlight current day
-        const isCurrentDay = isSameDay(dateStr, date);
+      const cellDays = grid[flatIndex];
 
-        if (isCurrentDay) {
-          svg += `<circle cx="${cellX + cellWidth - 17}" cy="${cellY + 16}" r="10.5" fill="black" />`;
-          svg += `<text x="${cellX + cellWidth - 17}" y="${cellY + 22}" class="bold" font-size="14" text-anchor="middle" fill="white">${currentDayVal}</text>`;
+      if (cellDays && cellDays.length > 0) {
+        if (cellDays.length === 1) {
+          const currentDayVal = cellDays[0];
+          const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(currentDayVal).padStart(2, '0')}`;
+          const isCurrentDay = isSameDay(dateStr, date);
+
+          if (isCurrentDay) {
+            svg += `<circle cx="${cellX + cellWidth - 19}" cy="${cellY + 19}" r="12" fill="black" />`;
+            svg += `<text x="${cellX + cellWidth - 19}" y="${cellY + 25}" class="bold" font-size="15" text-anchor="middle" fill="white">${currentDayVal}</text>`;
+          } else {
+            svg += `<text x="${cellX + cellWidth - 8}" y="${cellY + 23}" class="bold" font-size="16" text-anchor="end" fill="black">${currentDayVal}</text>`;
+          }
+
+          // Check for Jewish Holiday (clean Nikud)
+          const holiday = holidays[dateStr];
+          if (holiday) {
+            const cleanHoliday = simplifyHoliday(holiday);
+            svg += `<text x="${cellX + cellWidth / 2}" y="${cellY + 44}" class="bold" font-size="9.5" text-anchor="middle" fill="black">${truncateText(cleanHoliday, 11)}</text>`;
+          }
+
+          // Check for Calendar Event (clean Nikud)
+          const dayEvent = events.find(e => e.date === dateStr);
+          if (dayEvent) {
+            const cleanEventTitle = stripNikud(dayEvent.title);
+            const eventY = holiday ? cellY + 58 : cellY + 48;
+            svg += `<text x="${cellX + cellWidth / 2}" y="${eventY}" class="regular" font-size="10" text-anchor="middle" fill="black">${truncateText(cleanEventTitle, 11)}</text>`;
+          }
         } else {
-          svg += `<text x="${cellX + cellWidth - 8}" y="${cellY + 20}" class="bold" font-size="14" text-anchor="end" fill="black">${currentDayVal}</text>`;
-        }
+          // 2 days in the cell (split representation)
+          const d1 = cellDays[0];
+          const d2 = cellDays[1];
 
-        // Check for Jewish Holiday (clean Nikud)
-        const holiday = holidays[dateStr];
-        if (holiday) {
-          const cleanHoliday = simplifyHoliday(holiday);
-          svg += `<text x="${cellX + cellWidth / 2}" y="${cellY + 38}" class="bold" font-size="8.5" text-anchor="middle" fill="black">${truncateText(cleanHoliday, 11)}</text>`;
-        }
+          const dateStr1 = `${year}-${String(month).padStart(2, '0')}-${String(d1).padStart(2, '0')}`;
+          const dateStr2 = `${year}-${String(month).padStart(2, '0')}-${String(d2).padStart(2, '0')}`;
 
-        // Check for Calendar Event (clean Nikud)
-        const dayEvent = events.find(e => e.date === dateStr);
-        if (dayEvent) {
-          const cleanEventTitle = stripNikud(dayEvent.title);
-          const eventY = holiday ? cellY + 50 : cellY + 41;
-          svg += `<text x="${cellX + cellWidth / 2}" y="${eventY}" class="regular" font-size="9" text-anchor="middle" fill="black">${truncateText(cleanEventTitle, 11)}</text>`;
-        }
+          const isD1Active = isSameDay(dateStr1, date);
+          const isD2Active = isSameDay(dateStr2, date);
 
-        dayCounter++;
+          svg += `<text x="${cellX + cellWidth - 6}" y="${cellY + 18}" class="bold" font-size="12" text-anchor="end" fill="black">${d1}</text>`;
+          svg += `<line x1="${cellX + cellWidth - 25}" y1="${cellY + 6}" x2="${cellX + 6}" y2="${cellY + 28}" stroke="black" stroke-width="1" />`;
+          svg += `<text x="${cellX + 8}" y="${cellY + 29}" class="bold" font-size="12" text-anchor="start" fill="black">${d2}</text>`;
+
+          if (isD1Active) {
+            svg += `<circle cx="${cellX + cellWidth - 12}" cy="${cellY + 14}" r="9" fill="black" opacity="0.3" />`;
+          }
+          if (isD2Active) {
+            svg += `<circle cx="${cellX + 14}" cy="${cellY + 25}" r="9" fill="black" opacity="0.3" />`;
+          }
+
+          const holiday1 = holidays[dateStr1];
+          const holiday2 = holidays[dateStr2];
+          const hol = holiday1 || holiday2;
+          if (hol) {
+            const cleanHoliday = simplifyHoliday(hol);
+            svg += `<text x="${cellX + cellWidth / 2}" y="${cellY + 44}" class="bold" font-size="9" text-anchor="middle" fill="black">${truncateText(cleanHoliday, 11)}</text>`;
+          }
+
+          const dayEvent1 = events.find(e => e.date === dateStr1);
+          const dayEvent2 = events.find(e => e.date === dateStr2);
+          const ev = dayEvent1 || dayEvent2;
+          if (ev) {
+            const cleanEventTitle = stripNikud(ev.title);
+            const eventY = hol ? cellY + 58 : cellY + 48;
+            svg += `<text x="${cellX + cellWidth / 2}" y="${eventY}" class="regular" font-size="9.5" text-anchor="middle" fill="black">${truncateText(cleanEventTitle, 11)}</text>`;
+          }
+        }
       }
     }
   }
