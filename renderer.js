@@ -357,16 +357,22 @@ function generateSvg({ date, events, tasks, weather }) {
       const dayEvents = events.filter(e => e.date === dStr);
       const hol = holidays[dStr];
       const itemsToDraw = [];
-      if (hol) itemsToDraw.push({ title: simplifyHoliday(hol), isHoliday: true });
-      dayEvents.forEach(e => itemsToDraw.push({ title: e.title, author: e.author }));
+      if (hol) itemsToDraw.push({ title: simplifyHoliday(hol), isHoliday: true, isTimed: false });
+      dayEvents.forEach(e => itemsToDraw.push(e));
       
       for (let i = 0; i < Math.min(itemsToDraw.length, 5); i++) {
         const item = itemsToDraw[i];
         const eventY = 92 + i * 50;
-        const authorSuffix = item.author ? ` [${item.author}]` : '';
-        const cleanTitle = stripNikud(item.title) + authorSuffix;
         
-        svg += `<text x="${cellX + colWidth / 2}" y="${eventY + 14}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="12" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        if (item.isTimed) {
+          const cleanTitle = stripNikud(item.title);
+          svg += `<text x="${cellX + colWidth / 2}" y="${eventY + 12}" class="regular" font-size="11" text-anchor="middle" fill="black">${item.time} ${truncateText(cleanTitle, 8)}</text>`;
+          svg += `<text x="${cellX + colWidth / 2}" y="${eventY + 28}" class="bold" font-size="11" text-anchor="middle" fill="black">[${item.author}]</text>`;
+        } else {
+          const authorSuffix = item.author ? ` [${item.author}]` : '';
+          const cleanTitle = stripNikud(item.title) + authorSuffix;
+          svg += `<text x="${cellX + colWidth / 2}" y="${eventY + 20}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="12" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        }
       }
     } else {
       // Column 6: Weekend (split Friday & Saturday)
@@ -391,15 +397,21 @@ function generateSvg({ date, events, tasks, weather }) {
       const friEvents = events.filter(e => e.date === dFriStr);
       const friHol = holidays[dFriStr];
       const friItems = [];
-      if (friHol) friItems.push({ title: simplifyHoliday(friHol), isHoliday: true });
-      friEvents.forEach(e => friItems.push({ title: e.title, author: e.author }));
+      if (friHol) friItems.push({ title: simplifyHoliday(friHol), isHoliday: true, isTimed: false });
+      friEvents.forEach(e => friItems.push(e));
       
       for (let i = 0; i < Math.min(friItems.length, 3); i++) {
         const item = friItems[i];
         const eventY = 92 + i * 36;
-        const authorSuffix = item.author ? ` [${item.author}]` : '';
-        const cleanTitle = stripNikud(item.title) + authorSuffix;
-        svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        if (item.isTimed) {
+          const cleanTitle = stripNikud(item.title);
+          svg += `<text x="${colWidth / 2}" y="${eventY + 11}" class="regular" font-size="10" text-anchor="middle" fill="black">${item.time} ${truncateText(cleanTitle, 8)}</text>`;
+          svg += `<text x="${colWidth / 2}" y="${eventY + 23}" class="bold" font-size="10" text-anchor="middle" fill="black">[${item.author}]</text>`;
+        } else {
+          const authorSuffix = item.author ? ` [${item.author}]` : '';
+          const cleanTitle = stripNikud(item.title) + authorSuffix;
+          svg += `<text x="${colWidth / 2}" y="${eventY + 18}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        }
       }
       
       // Saturday
@@ -421,15 +433,21 @@ function generateSvg({ date, events, tasks, weather }) {
       const satEvents = events.filter(e => e.date === dSatStr);
       const satHol = holidays[dSatStr];
       const satItems = [];
-      if (satHol) satItems.push({ title: simplifyHoliday(satHol), isHoliday: true });
-      satEvents.forEach(e => satItems.push({ title: e.title, author: e.author }));
+      if (satHol) satItems.push({ title: simplifyHoliday(satHol), isHoliday: true, isTimed: false });
+      satEvents.forEach(e => satItems.push(e));
       
       for (let i = 0; i < Math.min(satItems.length, 3); i++) {
         const item = satItems[i];
         const eventY = 276 + i * 30;
-        const authorSuffix = item.author ? ` [${item.author}]` : '';
-        const cleanTitle = stripNikud(item.title) + authorSuffix;
-        svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        if (item.isTimed) {
+          const cleanTitle = stripNikud(item.title);
+          svg += `<text x="${colWidth / 2}" y="${eventY + 10}" class="regular" font-size="9.5" text-anchor="middle" fill="black">${item.time} ${truncateText(cleanTitle, 8)}</text>`;
+          svg += `<text x="${colWidth / 2}" y="${eventY + 21}" class="bold" font-size="9.5" text-anchor="middle" fill="black">[${item.author}]</text>`;
+        } else {
+          const authorSuffix = item.author ? ` [${item.author}]` : '';
+          const cleanTitle = stripNikud(item.title) + authorSuffix;
+          svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        }
       }
     }
   }

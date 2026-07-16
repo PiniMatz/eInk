@@ -333,7 +333,46 @@
       </div>
     </div>
 
-    <!-- CARD 3: LIVE SCREEN PREVIEW -->
+    <!-- CARD 3: CONNECTED CALENDARS (Google Calendar) -->
+    <div class="card">
+      <h2>לוחות שנה מקושרים (Google Calendar)</h2>
+      <p style="font-size: 0.9rem; color: var(--text-sub); margin: -4px 0 12px 0;">
+        קשר לוחות שנה באמצעות "כתובת סודית בפורמט iCal" כדי להציג את האירועים שלהם אוטומטית במסך.
+      </p>
+
+      <!-- Add Calendar Form -->
+      <form id="calendar-form">
+        <div class="form-group" style="flex: 1.5;">
+          <label for="calendar-url">קישור סודי (iCal URL)</label>
+          <input type="url" id="calendar-url" required placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
+        </div>
+        <div class="form-group" style="flex: 0.8;">
+          <label for="calendar-name">יוצר</label>
+          <select id="calendar-name">
+            <option value="אבא">אבא</option>
+            <option value="אמא">אמא</option>
+            <option value="אבי">אבי</option>
+            <option value="דני">דני</option>
+            <option value="רוני">רוני</option>
+            <option value="מיכל">מיכל</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary">חבר לוח שנה</button>
+      </form>
+
+      <!-- Connected Calendars List -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <h3>לוחות שנה מחוברים</h3>
+        <button class="btn-primary" onclick="syncAllCalendars(event)" style="padding: 6px 12px; font-size: 0.85rem;">סנכרן כעת</button>
+      </div>
+      <div class="list-container">
+        <div id="calendars-list">
+          <p class="empty-msg">אין לוחות שנה מחוברים</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4: LIVE SCREEN PREVIEW -->
     <div class="card preview-card">
       <h2>תצוגה מקדימה של המסך (800x480)</h2>
       <p>כך נראית התמונה העדכנית ביותר שהמסך יוריד</p>
@@ -358,7 +397,8 @@
     // Load data on page load
     window.addEventListener('DOMContentLoaded', () => {
       loadEvents();
-      loadTasks(todayStr);
+      loadTasks(currentSelectedDate);
+      loadCalendars();
       refreshPreview();
 
       // Listen to task date change to update task list
@@ -509,6 +549,111 @@
         }
       } catch (err) {
         console.error('Error deleting task:', err);
+      }
+    }
+
+    async function deleteEvent(id, date) {
+      if (!confirm('האם למחוק אירוע זה?')) return;
+      try {
+        const response = await fetch(`/api/events/${id}?date=${date}`, { method: 'DELETE' });
+        if (response.ok) {
+          loadEvents();
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error deleting event:', err);
+      }
+    }
+
+    // --- CONNECTED CALENDARS (iCal Integration) ---
+    async function loadCalendars() {
+      try {
+        const response = await fetch('/api/calendars');
+        const calendars = await response.json();
+        
+        const container = document.getElementById('calendars-list');
+        if (calendars.length === 0) {
+          container.innerHTML = '<p class="empty-msg">אין לוחות שנה מחוברים</p>';
+          return;
+        }
+
+        container.innerHTML = calendars.map(c => `
+          <div class="list-item">
+            <div class="details">
+              <span class="date-badge">${c.name}</span>
+              <span class="desc" style="font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 350px;">
+                ${c.url}
+              </span>
+            </div>
+            <button class="btn-delete" onclick="deleteCalendar('${c.id}')">מחק</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error('Error loading calendars:', err);
+      }
+    }
+
+    document.getElementById('calendar-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('calendar-url').value;
+      const name = document.getElementById('calendar-name').value;
+
+      try {
+        const response = await fetch('/api/calendars', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, url })
+        });
+        
+        if (response.ok) {
+          document.getElementById('calendar-url').value = '';
+          loadCalendars();
+          loadEvents();
+          loadTasks(currentSelectedDate);
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error adding calendar:', err);
+      }
+    });
+
+    async function deleteCalendar(id) {
+      if (!confirm('האם לנתק לוח שנה זה? כל האירועים שלו יימחקו מהתצוגה.')) return;
+      try {
+        const response = await fetch(`/api/calendars/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          loadCalendars();
+          loadEvents();
+          loadTasks(currentSelectedDate);
+          refreshPreview();
+        }
+      } catch (err) {
+        console.error('Error deleting calendar:', err);
+      }
+    }
+
+    async function syncAllCalendars(event) {
+      const btn = event ? event.target : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'מסנכרן...';
+      }
+      try {
+        const response = await fetch('/api/calendars/sync', { method: 'POST' });
+        if (response.ok) {
+          loadEvents();
+          loadTasks(currentSelectedDate);
+          refreshPreview();
+          alert('הסנכרון הושלם בהצלחה!');
+        }
+      } catch (err) {
+        console.error('Error syncing calendars:', err);
+        alert('הסנכרון נכשל.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'סנכרן כעת';
+        }
       }
     }
 

@@ -216,10 +216,60 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
+// API: Get connected calendars
+app.get('/api/calendars', async (req, res) => {
+  try {
+    const calendars = await db.getCalendars();
+    res.json(calendars);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Connect a new calendar
+app.post('/api/calendars', async (req, res) => {
+  const { name, url } = req.body;
+  if (!name || !url) {
+    return res.status(400).json({ error: 'Name and URL are required' });
+  }
+  try {
+    const newCal = await db.addCalendar({ name, url });
+    // Trigger sync immediately in background
+    db.syncCalendars().catch(err => console.error('Auto sync error:', err));
+    res.status(201).json(newCal);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Disconnect a calendar
+app.delete('/api/calendars/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.deleteCalendar(id);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// API: Trigger calendar sync manually
+app.post('/api/calendars/sync', async (req, res) => {
+  try {
+    await db.syncCalendars();
+    res.status(200).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: Render ePaper Screen PNG Image
 app.get('/api/screen', async (req, res) => {
   try {
-    // 1. Resolve date
+    // 1. Trigger calendar sync
+    await db.syncCalendars().catch(err => console.error('Auto-sync during screen render failed:', err));
+
+    // 2. Resolve date
     let reqDate = new Date();
     if (req.query.date) {
       reqDate = new Date(req.query.date);
@@ -228,7 +278,7 @@ app.get('/api/screen', async (req, res) => {
     const year = reqDate.getFullYear();
     const month = reqDate.getMonth() + 1;
 
-    // 2. Fetch database data
+    // 3. Fetch database data
     const [events, tasks, weather] = await Promise.all([
       db.getEvents(year, month),
       db.getTasks(dateStr),
