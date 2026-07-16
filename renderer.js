@@ -3,21 +3,6 @@ const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 const { getJewishHolidays } = require('./holidays');
 
-// Lazy-load fonts to ensure process.cwd() is resolved correctly during serverless execution
-let fontBuffersCache = null;
-function getFontBuffers() {
-  if (fontBuffersCache) return fontBuffersCache;
-  fontBuffersCache = [];
-  const heeboBoldPath = path.join(process.cwd(), 'fonts', 'Heebo-Bold.ttf');
-  const notoBoldPath = path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf');
-  if (fs.existsSync(heeboBoldPath)) {
-    fontBuffersCache.push(fs.readFileSync(heeboBoldPath));
-  }
-  if (fs.existsSync(notoBoldPath)) {
-    fontBuffersCache.push(fs.readFileSync(notoBoldPath));
-  }
-  return fontBuffersCache;
-}
 
 const MONTHS_HE = [
   "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
@@ -213,8 +198,8 @@ function generateSvg({ date, events, tasks, weather }) {
   // Global styling rules
   svg += `
     <style>
-      .bold { font-family: 'Heebo', sans-serif; font-weight: bold; }
-      .regular { font-family: 'Heebo', sans-serif; font-weight: normal; }
+      .bold { font-family: 'Heebo', 'Noto Sans Hebrew', sans-serif; font-weight: bold; }
+      .regular { font-family: 'Heebo', 'Noto Sans Hebrew', sans-serif; font-weight: normal; }
     </style>
   `;
 
@@ -387,7 +372,10 @@ function renderBmp(data) {
 
   const resvg = new Resvg(svgString, {
     font: {
-      fontBuffers: getFontBuffers(),
+      fontFiles: [
+        path.join(process.cwd(), 'fonts', 'Heebo-Bold.ttf'),
+        path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf')
+      ],
       defaultFontFamily: 'Heebo',
       loadSystemFonts: false,
     },
