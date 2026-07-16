@@ -92,9 +92,13 @@ app.get('/api/diagnose', (req, res) => {
       `;
 
       try {
+        const fontFiles = [];
+        if (heeboExists) fontFiles.push(heeboBoldPath);
+        if (notoExists) fontFiles.push(notoBoldPath);
+
         const resvg = new Resvg(testSvg, {
           font: {
-            fontBuffers,
+            fontFiles,
             defaultFontFamily: family,
             loadSystemFonts: false,
           },
