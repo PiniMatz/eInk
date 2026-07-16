@@ -312,19 +312,25 @@ const db = {
         // Delete events
         const eventsSnapshot = await firestore.collection('events')
           .where('source', '==', calendarId)
-          .where('date', '>=', startStr)
-          .where('date', '<=', endStr)
           .get();
         const batch = firestore.batch();
-        eventsSnapshot.forEach(doc => batch.delete(doc.ref));
+        eventsSnapshot.forEach(doc => {
+          const d = doc.data();
+          if (d.date >= startStr && d.date <= endStr) {
+            batch.delete(doc.ref);
+          }
+        });
         
         // Delete tasks
         const tasksSnapshot = await firestore.collection('tasks')
           .where('source', '==', calendarId)
-          .where('date', '>=', startStr)
-          .where('date', '<=', endStr)
           .get();
-        tasksSnapshot.forEach(doc => batch.delete(doc.ref));
+        tasksSnapshot.forEach(doc => {
+          const d = doc.data();
+          if (d.date >= startStr && d.date <= endStr) {
+            batch.delete(doc.ref);
+          }
+        });
         
         await batch.commit();
       } catch (err) {
@@ -561,7 +567,12 @@ function getEventOrganizerName(ev, defaultName) {
   let org = ev.organizer;
   if (!org && ev.creator) org = ev.creator;
   
-  if (!org) return defaultName;
+  if (!org) {
+    let resolvedDefault = defaultName;
+    if (resolvedDefault === 'אמא') resolvedDefault = 'נדיה';
+    if (resolvedDefault === 'אבא') resolvedDefault = 'פיני';
+    return resolvedDefault;
+  }
   
   let val = '';
   if (typeof org === 'string') {
