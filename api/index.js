@@ -135,6 +135,7 @@ app.get('/api/diagnose', (req, res) => {
       notoExists,
       notoSize,
       notoBufferLength,
+      usingFirestore: db.isUsingFirestore(),
       testResults
     });
   } catch (err) {

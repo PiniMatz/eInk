@@ -420,7 +420,9 @@ const db = {
       } catch (err) {
         console.error(`Failed to sync calendar ${cal.name}:`, err.message);
       }
-    }
+  },
+  isUsingFirestore() {
+    return firestore !== null;
   }
 };
 
