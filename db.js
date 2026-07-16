@@ -347,7 +347,9 @@ const db = {
                   summary: ev.summary,
                   start: d,
                   end: ev.end ? new Date(d.getTime() + (ev.end.getTime() - ev.start.getTime())) : d,
-                  datetype: ev.datetype
+                  datetype: ev.datetype,
+                  organizer: ev.organizer,
+                  creator: ev.creator
                 });
               });
             } catch (rruleErr) {
@@ -365,12 +367,20 @@ const db = {
             const occStart = occ.start;
             const dateStr = `${occStart.getFullYear()}-${String(occStart.getMonth() + 1).padStart(2, '0')}-${String(occStart.getDate()).padStart(2, '0')}`;
             
+            // Resolve correct Hebrew owner name
+            const resolvedAuthor = getEventOrganizerName(occ, cal.name);
+
             if (occ.datetype === 'date') {
               // All-day event
+              // Check if duplicate all-day event already added
+              if (await isDuplicateEvent(dateStr, occ.summary || 'אירוע')) {
+                console.log(`Skipping duplicate event: ${occ.summary} on ${dateStr}`);
+                continue;
+              }
               await this.addEvent({
                 title: occ.summary || 'אירוע',
                 date: dateStr,
-                author: cal.name,
+                author: resolvedAuthor,
                 isTimed: false,
                 time: '',
                 source: cal.id
@@ -379,12 +389,18 @@ const db = {
               // Timed event
               const hourStr = `${String(occStart.getHours()).padStart(2, '0')}:${String(occStart.getMinutes()).padStart(2, '0')}`;
               
+              // Check if duplicate timed event already added
+              if (await isDuplicateTask(dateStr, hourStr, occ.summary || 'פעילות')) {
+                console.log(`Skipping duplicate task/event: ${occ.summary} on ${dateStr} at ${hourStr}`);
+                continue;
+              }
+
               // 1. Add to tasks (Daily Schedule)
               await this.addTask({
                 description: occ.summary || 'פעילות',
                 date: dateStr,
                 time: hourStr,
-                author: cal.name,
+                author: resolvedAuthor,
                 source: cal.id
               });
 
@@ -393,7 +409,7 @@ const db = {
               await this.addEvent({
                 title: shortSummary,
                 date: dateStr,
-                author: cal.name,
+                author: resolvedAuthor,
                 isTimed: true,
                 time: hourStr,
                 source: cal.id
@@ -461,6 +477,69 @@ async function summarizeTitle(title) {
   const aiSummary = await summarizeTitleAI(title);
   if (aiSummary) return aiSummary;
   return summarizeTitleRule(title);
+}
+
+function getEventOrganizerName(ev, defaultName) {
+  let org = ev.organizer;
+  if (!org && ev.creator) org = ev.creator;
+  
+  if (!org) return defaultName;
+  
+  let val = '';
+  if (typeof org === 'string') {
+    val = org;
+  } else if (org.val) {
+    val = org.val;
+  }
+  
+  let cn = '';
+  if (org.params) {
+    cn = org.params.cn || org.params.CN || '';
+  }
+  
+  const text = `${val} ${cn}`.toLowerCase();
+  
+  if (text.includes('michal') || text.includes('מיכל') || text.includes('אמא')) return 'אמא';
+  if (text.includes('pini') || text.includes('פיני') || text.includes('אבא')) return 'אבא';
+  if (text.includes('dani') || text.includes('דני')) return 'דני';
+  if (text.includes('roni') || text.includes('רוני')) return 'רוני';
+  
+  return defaultName;
+}
+
+async function isDuplicateEvent(dateStr, title) {
+  if (firestore) {
+    try {
+      const snapshot = await firestore.collection('events')
+        .where('date', '==', dateStr)
+        .where('title', '==', title)
+        .get();
+      return !snapshot.empty;
+    } catch (err) {
+      return false;
+    }
+  } else {
+    const data = readLocal();
+    return (data.events || []).some(e => e.date === dateStr && e.title === title);
+  }
+}
+
+async function isDuplicateTask(dateStr, timeStr, desc) {
+  if (firestore) {
+    try {
+      const snapshot = await firestore.collection('tasks')
+        .where('date', '==', dateStr)
+        .where('time', '==', timeStr)
+        .where('description', '==', desc)
+        .get();
+      return !snapshot.empty;
+    } catch (err) {
+      return false;
+    }
+  } else {
+    const data = readLocal();
+    return (data.tasks || []).some(t => t.date === dateStr && t.time === timeStr && t.description === desc);
+  }
 }
 
 module.exports = db;
