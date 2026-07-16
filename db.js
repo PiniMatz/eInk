@@ -501,8 +501,8 @@ function getEventOrganizerName(ev, defaultName) {
   
   if (text.includes('michal') || text.includes('מיכל') || text.includes('אמא')) return 'אמא';
   if (text.includes('pini') || text.includes('פיני') || text.includes('אבא')) return 'אבא';
-  if (text.includes('dani') || text.includes('דני')) return 'דני';
-  if (text.includes('roni') || text.includes('רוני')) return 'רוני';
+  if (text.includes('sahar') || text.includes('סהר')) return 'סהר';
+  if (text.includes('sol') || text.includes('סול')) return 'סול';
   
   return defaultName;
 }
