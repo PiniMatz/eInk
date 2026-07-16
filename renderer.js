@@ -151,9 +151,6 @@ function getWeatherIconSvg(iconCode) {
   return iconSvg;
 }
 
-/**
- * Generate the SVG markup for the 800x480 dashboard
- */
 function generateSvg({ date, events, tasks, weather }) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
@@ -193,15 +190,15 @@ function generateSvg({ date, events, tasks, weather }) {
   const col2X = col1X + col1Width + gap; // 12 + 250 + 12 = 274
   const col2Width = 800 - pad - col2X;   // 800 - 12 - 274 = 514
   
-  // Height partitions (Top row 100px, Bottom row 344px)
+  // Height partitions (Top row 76px, Bottom row 368px)
   const weatherY = pad;
-  const weatherHeight = 100;
+  const weatherHeight = 76;
   
-  const scheduleY = weatherY + weatherHeight + gap; // 12 + 100 + 12 = 124
-  const scheduleHeight = 480 - pad - scheduleY;    // 480 - 12 - 124 = 344
+  const scheduleY = weatherY + weatherHeight + gap; // 12 + 76 + 12 = 100
+  const scheduleHeight = 480 - pad - scheduleY;    // 480 - 12 - 100 = 368
   
   const calendarY = pad;
-  const calendarHeight = 344;
+  const calendarHeight = 368;
   
   // Start constructing SVG string
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
@@ -215,7 +212,7 @@ function generateSvg({ date, events, tasks, weather }) {
   `;
 
   // ==========================================
-  // CARD 1: WEATHER CARD (Top-Left, 100px Height)
+  // CARD 1: WEATHER CARD (Top-Left, 76px Height)
   // ==========================================
   const wTemp = weather.temp !== undefined ? `${Math.round(weather.temp)}°C` : '--°C';
   const wTempMin = weather.tempMin !== undefined ? `${Math.round(weather.tempMin)}` : '--';
@@ -231,36 +228,29 @@ function generateSvg({ date, events, tasks, weather }) {
     <g transform="translate(${col1X}, ${weatherY})">
       <rect x="0" y="0" width="${col1Width}" height="${weatherHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Weather Icon Placement -->
-      <g transform="translate(45, 30)">
+      <!-- Weather Icon Placement (scaled and centered) -->
+      <g transform="translate(45, 18) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description under Icon -->
-      <text x="45" y="78" class="bold" font-size="12.5" text-anchor="middle" fill="black">${wDesc}</text>
-      <!-- Location under Description -->
-      <text x="45" y="92" class="bold" font-size="11" text-anchor="middle" fill="black">${wCity}</text>
+      <text x="45" y="62" class="bold" font-size="11.5" text-anchor="middle" fill="black">${wDesc}</text>
       
       <!-- Temperature -->
-      <text x="135" y="44" class="bold" font-size="36" text-anchor="middle" fill="black">${wTemp}</text>
+      <text x="120" y="38" class="bold" font-size="32" text-anchor="middle" fill="black">${wTemp}</text>
       <!-- Min/Max Temp Range -->
-      <text x="135" y="66" class="regular" font-size="13" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
+      <text x="120" y="58" class="regular" font-size="12" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Sunrise & Sunset -->
-      <text x="238" y="44" class="regular" font-size="12" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
-      <text x="238" y="66" class="regular" font-size="12" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
+      <text x="235" y="38" class="regular" font-size="11" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
+      <text x="235" y="58" class="regular" font-size="11" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
     </g>
   `;
 
   // ==========================================
-  // CARD 2: GREGORIAN DATE BANNER (Top-Right, 100px Height)
+  // CARD 2: GREGORIAN DATE BANNER (Top-Right, 76px Height)
   // ==========================================
   const dayName = WEEKDAYS_HE_FULL[date.getDay()];
   const dateBannerStr = `יום ${dayName}, ${date.getDate()} ב${MONTHS_HE[month - 1]} ${year}`;
-  
-  // Find holiday for today
-  const todayStr = `${year}-${String(month).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  const todayHoliday = holidays[todayStr];
-  const holidaySummaryStr = todayHoliday ? simplifyHoliday(todayHoliday) : 'לוז יומי שגרתי';
 
   svg += `
     <!-- Date Banner Container -->
@@ -268,14 +258,12 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${col2Width}" height="${weatherHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Gregorian Date Banner -->
-      <text x="257" y="44" class="bold" font-size="22" text-anchor="middle" fill="black">${dateBannerStr}</text>
-      <!-- Active Holiday or Status Banner -->
-      <text x="257" y="76" class="bold" font-size="14" text-anchor="middle" fill="black">${holidaySummaryStr}</text>
+      <text x="257" y="46" class="bold" font-size="22" text-anchor="middle" fill="black">${dateBannerStr}</text>
     </g>
   `;
 
   // ==========================================
-  // CARD 3: DAILY SCHEDULE (Bottom-Left, 344px Height)
+  // CARD 3: DAILY SCHEDULE (Bottom-Left, 368px Height)
   // ==========================================
   const displayDateStr = `${date.getDate()}/${month}`;
   svg += `
@@ -288,36 +276,28 @@ function generateSvg({ date, events, tasks, weather }) {
       <line x1="15" y1="34" x2="235" y2="34" stroke="black" stroke-width="1.5" />
   `;
 
-  // Generate hourly slots (08:00 to 21:00)
-  const scheduleHours = [];
-  for (let h = 8; h <= 21; h++) {
-    scheduleHours.push(String(h).padStart(2, '0') + ':00');
-  }
-
-  const rowSpacing = 20.6;
-  
-  scheduleHours.forEach((hour, idx) => {
-    const rowY = 52 + idx * rowSpacing;
-    
-    // Draw hour text
-    svg += `<text x="235" y="${rowY}" class="bold" font-size="12" text-anchor="end" fill="black">${hour}</text>`;
-    // Draw tiny dashed division lines
-    svg += `<line x1="202" y1="${rowY + 3}" x2="235" y2="${rowY + 3}" stroke="black" stroke-width="0.5" stroke-dasharray="1,1" />`;
-
-    // Find task
-    const hourPrefix = hour.substring(0, 3);
-    const task = tasks.find(t => t.time.startsWith(hourPrefix));
-    if (task) {
+  if (tasks.length === 0) {
+    svg += `<text x="125" y="190" class="bold" font-size="14.5" text-anchor="middle" fill="black">אין משימות מתוכננות להיום</text>`;
+  } else {
+    // Render up to 7 items
+    tasks.slice(0, 7).forEach((task, idx) => {
+      const rowY = 64 + idx * 42;
       const authorSuffix = task.author ? ` [${task.author}]` : '';
       const cleanDesc = stripNikud(task.description) + authorSuffix;
-      svg += `<text x="195" y="${rowY}" class="regular" font-size="11.5" text-anchor="end" fill="black">${truncateText(cleanDesc, 20)}</text>`;
-    }
-  });
+      
+      // Draw hour
+      svg += `<text x="235" y="${rowY}" class="bold" font-size="13" text-anchor="end" fill="black">${task.time}</text>`;
+      // Dot separator
+      svg += `<circle cx="188" cy="${rowY - 4}" r="2" fill="black" />`;
+      // Draw task desc
+      svg += `<text x="176" y="${rowY}" class="regular" font-size="13" text-anchor="end" fill="black">${truncateText(cleanDesc, 19)}</text>`;
+    });
+  }
 
   svg += `</g>`;
 
   // ==========================================
-  // CARD 4: WEEKLY AGENDA (Bottom-Right, 344px Height, 6 Columns)
+  // CARD 4: WEEKLY AGENDA (Bottom-Right, 368px Height, 6 Columns)
   // ==========================================
   const sunday = weekDates[0];
   const saturday = weekDates[6];
@@ -362,8 +342,8 @@ function generateSvg({ date, events, tasks, weather }) {
       
       // Header
       if (isToday) {
-        svg += `<circle cx="${cellX + colWidth / 2}" cy="63" r="13" fill="black" />`;
-        svg += `<text x="${cellX + colWidth / 2}" y="52" class="bold" font-size="13" text-anchor="middle" fill="white">${dayLetter}</text>`;
+        svg += `<rect x="${cellX + 6}" y="38" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
+        svg += `<text x="${cellX + colWidth / 2}" y="53" class="bold" font-size="13" text-anchor="middle" fill="white">${dayLetter}</text>`;
         svg += `<text x="${cellX + colWidth / 2}" y="71" class="bold" font-size="15" text-anchor="middle" fill="white">${dayNum}</text>`;
       } else {
         svg += `<text x="${cellX + colWidth / 2}" y="52" class="bold" font-size="13" text-anchor="middle" fill="black">${dayLetter}</text>`;
@@ -382,15 +362,15 @@ function generateSvg({ date, events, tasks, weather }) {
       
       for (let i = 0; i < Math.min(itemsToDraw.length, 5); i++) {
         const item = itemsToDraw[i];
-        const eventY = 92 + i * 46;
+        const eventY = 92 + i * 50;
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title) + authorSuffix;
         
-        svg += `<text x="${cellX + colWidth / 2}" y="${eventY + 14}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        svg += `<text x="${cellX + colWidth / 2}" y="${eventY + 14}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="12" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
       }
     } else {
       // Column 6: Weekend (split Friday & Saturday)
-      svg += `<line x1="0" y1="212" x2="${colWidth}" y2="212" stroke="black" stroke-width="1" />`;
+      svg += `<line x1="0" y1="224" x2="${colWidth}" y2="224" stroke="black" stroke-width="1" />`;
       
       // Friday
       const dFri = weekDates[5];
@@ -399,12 +379,14 @@ function generateSvg({ date, events, tasks, weather }) {
       const friDayNum = dFri.getDate();
       
       if (isFriToday) {
-        svg += `<rect x="6" y="42" width="${colWidth - 12}" height="32" rx="6" ry="6" fill="black" />`;
-        svg += `<text x="${colWidth / 2}" y="62" class="bold" font-size="14" text-anchor="middle" fill="white">ו׳ - ${friDayNum}</text>`;
+        svg += `<rect x="6" y="84" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
+        svg += `<text x="${colWidth / 2}" y="100" class="bold" font-size="13" text-anchor="middle" fill="white">ו׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="118" class="bold" font-size="15" text-anchor="middle" fill="white">${friDayNum}</text>`;
       } else {
-        svg += `<text x="${colWidth / 2}" y="62" class="bold" font-size="14" text-anchor="middle" fill="black">ו׳ - ${friDayNum}</text>`;
+        svg += `<text x="${colWidth / 2}" y="98" class="bold" font-size="13" text-anchor="middle" fill="black">ו׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="116" class="bold" font-size="17" text-anchor="middle" fill="black">${friDayNum}</text>`;
       }
-      svg += `<line x1="8" y1="80" x2="${colWidth - 8}" y2="80" stroke="black" stroke-width="1" />`;
+      svg += `<line x1="8" y1="124" x2="${colWidth - 8}" y2="124" stroke="black" stroke-width="1" />`;
       
       const friEvents = events.filter(e => e.date === dFriStr);
       const friHol = holidays[dFriStr];
@@ -414,10 +396,10 @@ function generateSvg({ date, events, tasks, weather }) {
       
       for (let i = 0; i < Math.min(friItems.length, 3); i++) {
         const item = friItems[i];
-        const eventY = 90 + i * 36;
+        const eventY = 132 + i * 40;
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title) + authorSuffix;
-        svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
       }
       
       // Saturday
@@ -427,12 +409,14 @@ function generateSvg({ date, events, tasks, weather }) {
       const satDayNum = dSat.getDate();
       
       if (isSatToday) {
-        svg += `<rect x="6" y="218" width="${colWidth - 12}" height="32" rx="6" ry="6" fill="black" />`;
-        svg += `<text x="${colWidth / 2}" y="238" class="bold" font-size="14" text-anchor="middle" fill="white">ש׳ - ${satDayNum}</text>`;
+        svg += `<rect x="6" y="216" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
+        svg += `<text x="${colWidth / 2}" y="232" class="bold" font-size="13" text-anchor="middle" fill="white">ש׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="250" class="bold" font-size="15" text-anchor="middle" fill="white">${satDayNum}</text>`;
       } else {
-        svg += `<text x="${colWidth / 2}" y="238" class="bold" font-size="14" text-anchor="middle" fill="black">ש׳ - ${satDayNum}</text>`;
+        svg += `<text x="${colWidth / 2}" y="230" class="bold" font-size="13" text-anchor="middle" fill="black">ש׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="248" class="bold" font-size="17" text-anchor="middle" fill="black">${satDayNum}</text>`;
       }
-      svg += `<line x1="8" y1="248" x2="${colWidth - 8}" y2="248" stroke="black" stroke-width="1" />`;
+      svg += `<line x1="8" y1="256" x2="${colWidth - 8}" y2="256" stroke="black" stroke-width="1" />`;
       
       const satEvents = events.filter(e => e.date === dSatStr);
       const satHol = holidays[dSatStr];
@@ -442,10 +426,10 @@ function generateSvg({ date, events, tasks, weather }) {
       
       for (let i = 0; i < Math.min(satItems.length, 3); i++) {
         const item = satItems[i];
-        const eventY = 256 + i * 36;
+        const eventY = 276 + i * 40;
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title) + authorSuffix;
-        svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
+        svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
       }
     }
   }
