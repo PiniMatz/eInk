@@ -269,6 +269,15 @@
           <label for="event-title">שם האירוע</label>
           <input type="text" id="event-title" required placeholder="לדוגמה: יום הולדת לאבא">
         </div>
+        <div class="form-group" style="flex: 0.8;">
+          <label for="event-author">יוצר</label>
+          <select id="event-author">
+            <option value="אבי">אבי</option>
+            <option value="דני">דני</option>
+            <option value="רוני">רוני</option>
+            <option value="מיכל">מיכל</option>
+          </select>
+        </div>
         <div class="form-group" style="flex: 1;">
           <label for="event-date">תאריך</label>
           <input type="date" id="event-date" required>
@@ -294,6 +303,15 @@
         <div class="form-group" style="flex: 1.5;">
           <label for="task-desc">תיאור הפעילות</label>
           <input type="text" id="task-desc" required placeholder="לדוגמה: פגישת עבודה במשרד">
+        </div>
+        <div class="form-group" style="flex: 0.8;">
+          <label for="task-author">יוצר</label>
+          <select id="task-author">
+            <option value="אבי">אבי</option>
+            <option value="דני">דני</option>
+            <option value="רוני">רוני</option>
+            <option value="מיכל">מיכל</option>
+          </select>
         </div>
         <div class="form-group" style="flex: 0.8;">
           <label for="task-time">שעה</label>
@@ -374,15 +392,18 @@
         // Sort events by date
         events.sort((a, b) => a.date.localeCompare(b.date));
 
-        container.innerHTML = events.map(e => `
-          <div class="list-item">
-            <div class="details">
-              <span class="date-badge">${formatDate(e.date)}</span>
-              <span class="desc">${e.title}</span>
+        container.innerHTML = events.map(e => {
+          const authorText = e.author ? ` [${e.author}]` : '';
+          return `
+            <div class="list-item">
+              <div class="details">
+                <span class="date-badge">${formatDate(e.date)}</span>
+                <span class="desc">${e.title}${authorText}</span>
+              </div>
+              <button class="btn-delete" onclick="deleteEvent('${e.id}', '${e.date}')">מחק</button>
             </div>
-            <button class="btn-delete" onclick="deleteEvent('${e.id}', '${e.date}')">מחק</button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } catch (err) {
         console.error('Error loading events:', err);
       }
@@ -392,12 +413,13 @@
       e.preventDefault();
       const title = document.getElementById('event-title').value;
       const date = document.getElementById('event-date').value;
+      const author = document.getElementById('event-author').value;
 
       try {
         const response = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, date })
+          body: JSON.stringify({ title, date, author })
         });
         
         if (response.ok) {
@@ -435,15 +457,18 @@
           return;
         }
 
-        container.innerHTML = tasks.map(t => `
-          <div class="list-item">
-            <div class="details">
-              <span class="time-badge">${t.time}</span>
-              <span class="desc">${t.description}</span>
+        container.innerHTML = tasks.map(t => {
+          const authorText = t.author ? ` [${t.author}]` : '';
+          return `
+            <div class="list-item">
+              <div class="details">
+                <span class="time-badge">${t.time}</span>
+                <span class="desc">${t.description}${authorText}</span>
+              </div>
+              <button class="btn-delete" onclick="deleteTask('${t.id}', '${t.date}')">מחק</button>
             </div>
-            <button class="btn-delete" onclick="deleteTask('${t.id}', '${t.date}')">מחק</button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } catch (err) {
         console.error('Error loading tasks:', err);
       }
@@ -454,12 +479,13 @@
       const description = document.getElementById('task-desc').value;
       const time = document.getElementById('task-time').value;
       const date = document.getElementById('task-date').value;
+      const author = document.getElementById('task-author').value;
 
       try {
         const response = await fetch('/api/tasks', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ description, time, date })
+          body: JSON.stringify({ description, time, date, author })
         });
         
         if (response.ok) {

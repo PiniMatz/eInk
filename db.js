@@ -84,12 +84,13 @@ const db = {
   },
 
   async addEvent(event) {
-    // event: { date ("YYYY-MM-DD"), title (Hebrew string) }
+    // event: { date ("YYYY-MM-DD"), title (Hebrew string), author }
     if (firestore) {
       try {
         const docRef = await firestore.collection('events').add({
           title: event.title,
-          date: event.date
+          date: event.date,
+          author: event.author || ''
         });
         return { id: docRef.id, ...event };
       } catch (err) {
@@ -147,13 +148,14 @@ const db = {
   },
 
   async addTask(task) {
-    // task: { date ("YYYY-MM-DD"), time ("HH:MM"), description (Hebrew string) }
+    // task: { date ("YYYY-MM-DD"), time ("HH:MM"), description (Hebrew string), author }
     if (firestore) {
       try {
         const docRef = await firestore.collection('tasks').add({
           description: task.description,
           time: task.time,
-          date: task.date
+          date: task.date,
+          author: task.author || ''
         });
         return { id: docRef.id, ...task };
       } catch (err) {

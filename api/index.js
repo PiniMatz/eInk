@@ -157,12 +157,12 @@ app.get('/api/events', async (req, res) => {
 
 // API: Add event
 app.post('/api/events', async (req, res) => {
-  const { title, date } = req.body;
+  const { title, date, author } = req.body;
   if (!title || !date) {
     return res.status(400).json({ error: 'Title and Date are required' });
   }
   try {
-    const newEvent = await db.addEvent({ title, date });
+    const newEvent = await db.addEvent({ title, date, author });
     res.status(201).json(newEvent);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -193,12 +193,12 @@ app.get('/api/tasks', async (req, res) => {
 
 // API: Add daily task
 app.post('/api/tasks', async (req, res) => {
-  const { description, time, date } = req.body;
+  const { description, time, date, author } = req.body;
   if (!description || !time || !date) {
     return res.status(400).json({ error: 'Description, Time, and Date are required' });
   }
   try {
-    const newTask = await db.addTask({ description, time, date });
+    const newTask = await db.addTask({ description, time, date, author });
     res.status(201).json(newTask);
   } catch (err) {
     res.status(500).json({ error: err.message });
