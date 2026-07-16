@@ -379,14 +379,14 @@ function generateSvg({ date, events, tasks, weather }) {
       const friDayNum = dFri.getDate();
       
       if (isFriToday) {
-        svg += `<rect x="6" y="84" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
-        svg += `<text x="${colWidth / 2}" y="100" class="bold" font-size="13" text-anchor="middle" fill="white">ו׳</text>`;
-        svg += `<text x="${colWidth / 2}" y="118" class="bold" font-size="15" text-anchor="middle" fill="white">${friDayNum}</text>`;
+        svg += `<rect x="6" y="38" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
+        svg += `<text x="${colWidth / 2}" y="53" class="bold" font-size="13" text-anchor="middle" fill="white">ו׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="71" class="bold" font-size="15" text-anchor="middle" fill="white">${friDayNum}</text>`;
       } else {
-        svg += `<text x="${colWidth / 2}" y="98" class="bold" font-size="13" text-anchor="middle" fill="black">ו׳</text>`;
-        svg += `<text x="${colWidth / 2}" y="116" class="bold" font-size="17" text-anchor="middle" fill="black">${friDayNum}</text>`;
+        svg += `<text x="${colWidth / 2}" y="52" class="bold" font-size="13" text-anchor="middle" fill="black">ו׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="70" class="bold" font-size="17" text-anchor="middle" fill="black">${friDayNum}</text>`;
       }
-      svg += `<line x1="8" y1="124" x2="${colWidth - 8}" y2="124" stroke="black" stroke-width="1" />`;
+      svg += `<line x1="8" y1="80" x2="${colWidth - 8}" y2="80" stroke="black" stroke-width="1" />`;
       
       const friEvents = events.filter(e => e.date === dFriStr);
       const friHol = holidays[dFriStr];
@@ -396,7 +396,7 @@ function generateSvg({ date, events, tasks, weather }) {
       
       for (let i = 0; i < Math.min(friItems.length, 3); i++) {
         const item = friItems[i];
-        const eventY = 132 + i * 40;
+        const eventY = 92 + i * 36;
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title) + authorSuffix;
         svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
@@ -409,14 +409,14 @@ function generateSvg({ date, events, tasks, weather }) {
       const satDayNum = dSat.getDate();
       
       if (isSatToday) {
-        svg += `<rect x="6" y="216" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
-        svg += `<text x="${colWidth / 2}" y="232" class="bold" font-size="13" text-anchor="middle" fill="white">ש׳</text>`;
+        svg += `<rect x="6" y="228" width="${colWidth - 12}" height="38" rx="6" ry="6" fill="black" />`;
+        svg += `<text x="${colWidth / 2}" y="243" class="bold" font-size="13" text-anchor="middle" fill="white">ש׳</text>`;
         svg += `<text x="${colWidth / 2}" y="250" class="bold" font-size="15" text-anchor="middle" fill="white">${satDayNum}</text>`;
       } else {
-        svg += `<text x="${colWidth / 2}" y="230" class="bold" font-size="13" text-anchor="middle" fill="black">ש׳</text>`;
-        svg += `<text x="${colWidth / 2}" y="248" class="bold" font-size="17" text-anchor="middle" fill="black">${satDayNum}</text>`;
+        svg += `<text x="${colWidth / 2}" y="242" class="bold" font-size="13" text-anchor="middle" fill="black">ש׳</text>`;
+        svg += `<text x="${colWidth / 2}" y="260" class="bold" font-size="17" text-anchor="middle" fill="black">${satDayNum}</text>`;
       }
-      svg += `<line x1="8" y1="256" x2="${colWidth - 8}" y2="256" stroke="black" stroke-width="1" />`;
+      svg += `<line x1="8" y1="268" x2="${colWidth - 8}" y2="268" stroke="black" stroke-width="1" />`;
       
       const satEvents = events.filter(e => e.date === dSatStr);
       const satHol = holidays[dSatStr];
@@ -426,7 +426,7 @@ function generateSvg({ date, events, tasks, weather }) {
       
       for (let i = 0; i < Math.min(satItems.length, 3); i++) {
         const item = satItems[i];
-        const eventY = 276 + i * 40;
+        const eventY = 276 + i * 30;
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title) + authorSuffix;
         svg += `<text x="${colWidth / 2}" y="${eventY + 12}" class="${item.isHoliday ? 'bold' : 'regular'}" font-size="11.5" text-anchor="middle" fill="black">${truncateText(cleanTitle, 10)}</text>`;
