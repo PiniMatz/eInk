@@ -7,19 +7,33 @@ const LOCAL_DB_PATH = path.join(__dirname, 'db.json');
 // Initialize Firebase Admin if environment variables are set
 let firestore = null;
 
-if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+let hasEnvKeys = process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY;
+let keyFile = path.join(__dirname, 'Firebase_Key.json');
+let hasKeyFile = fs.existsSync(keyFile);
+
+if (hasEnvKeys || hasKeyFile) {
   try {
     const admin = require('firebase-admin');
     
     // Prevent double initialization if serverless function hot-reloads
     if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
+      let config;
+      if (hasEnvKeys) {
+        config = {
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          // Handle escaped newline strings common in environment configurations
           privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        })
+        };
+      } else {
+        const serviceAccount = require(keyFile);
+        config = {
+          projectId: serviceAccount.project_id,
+          clientEmail: serviceAccount.client_email,
+          privateKey: serviceAccount.private_key,
+        };
+      }
+      admin.initializeApp({
+        credential: admin.credential.cert(config)
       });
     }
     
@@ -356,14 +370,34 @@ const db = {
       rangeStart = minDate;
     }
     const rangeEnd = new Date(now.getTime() + 35 * 24 * 60 * 60 * 1000);
+    const startStr = `${rangeStart.getFullYear()}-${String(rangeStart.getMonth() + 1).padStart(2, '0')}-${String(rangeStart.getDate()).padStart(2, '0')}`;
+    const endStr = `${rangeEnd.getFullYear()}-${String(rangeEnd.getMonth() + 1).padStart(2, '0')}-${String(rangeEnd.getDate()).padStart(2, '0')}`;
+
+    // 1. Fetch all existing events and tasks from Firestore to do in-memory lookup
+    let existingEvents = [];
+    let existingTasks = [];
+    if (firestore) {
+      try {
+        const evSnap = await firestore.collection('events').get();
+        evSnap.forEach(doc => existingEvents.push({ id: doc.id, ...doc.data() }));
+        const tSnap = await firestore.collection('tasks').get();
+        tSnap.forEach(doc => existingTasks.push({ id: doc.id, ...doc.data() }));
+      } catch (err) {
+        console.error('Failed to load existing items for sync:', err);
+      }
+    } else {
+      const data = readLocal();
+      existingEvents = data.events || [];
+      existingTasks = data.tasks || [];
+    }
+
+    const keepEventIds = new Set();
+    const keepTaskIds = new Set();
 
     for (const cal of calendars) {
       try {
         console.log(`Syncing calendar for ${cal.name}: ${cal.url}`);
         
-        // 1. Wipe existing events/tasks from this calendar source within range
-        await this.deleteCalendarEventsAndTasks(cal.id, rangeStart, rangeEnd);
-
         // 2. Fetch and parse iCal
         const webEvents = await ical.async.fromURL(cal.url);
         
@@ -383,7 +417,6 @@ const db = {
             ev.summary.trim().startsWith('יום הולדת')
           );
           if (cal.name === 'אבא' && isYearly && startsWithBirthday) {
-            console.log(`Skipping yearly birthday event for אבא: ${ev.summary}`);
             continue;
           }
 
@@ -406,13 +439,12 @@ const db = {
               console.error('Failed expanding rrule:', rruleErr.message);
             }
           } else {
-            // Single occurrence
             if (ev.start >= rangeStart && ev.start <= rangeEnd) {
               occurrences.push(ev);
             }
           }
 
-          // Insert occurrences into DB
+          // Process occurrences
           for (const occ of occurrences) {
             const occStart = occ.start;
             let dateStr;
@@ -431,28 +463,33 @@ const db = {
               dateStr = `${y}-${m}-${d}`;
             }
             
-            // Resolve correct Hebrew owner name
             const resolvedAuthor = getEventOrganizerName(occ, cal.name);
 
             if (occ.datetype === 'date') {
               // All-day event
-              // Check if duplicate all-day event already added
-              const duplicate = await findDuplicateEvent(dateStr, occ.summary || 'אירוע');
-              if (duplicate) {
-                console.log(`Skipping duplicate event: ${occ.summary} on ${dateStr}`);
-                if (resolvedAuthor === 'נדיה' && duplicate.author !== 'נדיה') {
-                  await this.updateEventAuthor(dateStr, '', 'נדיה');
-                }
-                continue;
+              let matched = existingEvents.find(e => e.date === dateStr && e.source === cal.id && areTitlesSimilar(e.title, occ.summary || 'אירוע'));
+              if (!matched) {
+                matched = existingEvents.find(e => e.date === dateStr && areTitlesSimilar(e.title, occ.summary || 'אירוע'));
               }
-              await this.addEvent({
-                title: occ.summary || 'אירוע',
-                date: dateStr,
-                author: resolvedAuthor,
-                isTimed: false,
-                time: '',
-                source: cal.id
-              });
+
+              if (matched) {
+                keepEventIds.add(matched.id);
+                if (resolvedAuthor === 'נדיה' && matched.author !== 'נדיה') {
+                  await this.updateEventAuthor(dateStr, '', 'נדיה');
+                  matched.author = 'נדיה';
+                }
+              } else {
+                const newEv = await this.addEvent({
+                  title: occ.summary || 'אירוע',
+                  date: dateStr,
+                  author: resolvedAuthor,
+                  isTimed: false,
+                  time: '',
+                  source: cal.id
+                });
+                existingEvents.push(newEv);
+                keepEventIds.add(newEv.id);
+              }
             } else {
               // Timed event
               const tParts = new Intl.DateTimeFormat('en-US', {
@@ -465,36 +502,53 @@ const db = {
               const minute = tParts.find(p => p.type === 'minute').value;
               const hourStr = `${hour}:${minute}`;
               
-              // Check if duplicate timed event already added
-              const duplicate = await findDuplicateTask(dateStr, hourStr, occ.summary || 'פעילות');
-              if (duplicate) {
-                console.log(`Skipping duplicate task/event: ${occ.summary} on ${dateStr} at ${hourStr}`);
-                if (resolvedAuthor === 'נדיה' && duplicate.author !== 'נדיה') {
-                  await this.updateTaskAuthor(duplicate.id, 'נדיה');
-                  await this.updateEventAuthor(dateStr, hourStr, 'נדיה');
-                }
-                continue;
+              let matchedTask = existingTasks.find(t => t.date === dateStr && t.time === hourStr && t.source === cal.id && areTitlesSimilar(t.description, occ.summary || 'פעילות'));
+              if (!matchedTask) {
+                matchedTask = existingTasks.find(t => t.date === dateStr && t.time === hourStr && areTitlesSimilar(t.description, occ.summary || 'פעילות'));
               }
 
-              // 1. Add to tasks (Daily Schedule)
-              await this.addTask({
-                description: occ.summary || 'פעילות',
-                date: dateStr,
-                time: hourStr,
-                author: resolvedAuthor,
-                source: cal.id
-              });
+              let matchedEvent = existingEvents.find(e => e.date === dateStr && e.time === hourStr && e.source === cal.id && e.isTimed === true);
 
-              // 2. Add to events (Weekly Agenda) - summarized title
-              const shortSummary = await summarizeTitle(occ.summary || 'פעילות');
-              await this.addEvent({
-                title: shortSummary,
-                date: dateStr,
-                author: resolvedAuthor,
-                isTimed: true,
-                time: hourStr,
-                source: cal.id
-              });
+              if (matchedTask && matchedEvent) {
+                keepTaskIds.add(matchedTask.id);
+                keepEventIds.add(matchedEvent.id);
+                if (resolvedAuthor === 'נדיה' && matchedTask.author !== 'נדיה') {
+                  await this.updateTaskAuthor(matchedTask.id, 'נדיה');
+                  await this.updateEventAuthor(dateStr, hourStr, 'נדיה');
+                  matchedTask.author = 'נדיה';
+                  matchedEvent.author = 'נדיה';
+                }
+              } else {
+                let taskId = matchedTask ? matchedTask.id : null;
+                if (!matchedTask) {
+                  const newTask = await this.addTask({
+                    description: occ.summary || 'פעילות',
+                    date: dateStr,
+                    time: hourStr,
+                    author: resolvedAuthor,
+                    source: cal.id
+                  });
+                  existingTasks.push(newTask);
+                  taskId = newTask.id;
+                }
+                keepTaskIds.add(taskId);
+
+                let eventId = matchedEvent ? matchedEvent.id : null;
+                if (!matchedEvent) {
+                  const shortSummary = await summarizeTitle(occ.summary || 'פעילות');
+                  const newEv = await this.addEvent({
+                    title: shortSummary,
+                    date: dateStr,
+                    author: resolvedAuthor,
+                    isTimed: true,
+                    time: hourStr,
+                    source: cal.id
+                  });
+                  existingEvents.push(newEv);
+                  eventId = newEv.id;
+                }
+                keepEventIds.add(eventId);
+              }
             }
           }
         }
@@ -502,6 +556,41 @@ const db = {
         console.error(`Failed to sync calendar ${cal.name}:`, err.message);
       }
     }
+
+    // 3. Delete stale events and tasks within the sync range
+    if (firestore) {
+      try {
+        const batch = firestore.batch();
+        let deleteCount = 0;
+        
+        existingEvents.forEach(e => {
+          if (e.date >= startStr && e.date <= endStr && !keepEventIds.has(e.id)) {
+            batch.delete(firestore.collection('events').doc(e.id));
+            deleteCount++;
+          }
+        });
+
+        existingTasks.forEach(t => {
+          if (t.date >= startStr && t.date <= endStr && !keepTaskIds.has(t.id)) {
+            batch.delete(firestore.collection('tasks').doc(t.id));
+            deleteCount++;
+          }
+        });
+
+        if (deleteCount > 0) {
+          await batch.commit();
+          console.log(`Deleted ${deleteCount} stale synced items from Firestore.`);
+        }
+      } catch (err) {
+        console.error('Failed deleting stale sync items:', err);
+      }
+    } else {
+      const data = readLocal();
+      data.events = (data.events || []).filter(e => !(e.date >= startStr && e.date <= endStr && !keepEventIds.has(e.id)));
+      data.tasks = (data.tasks || []).filter(t => !(t.date >= startStr && t.date <= endStr && !keepTaskIds.has(t.id)));
+      writeLocal(data);
+    }
+    console.log('Smart sync completed successfully!');
   },
   isUsingFirestore() {
     return firestore !== null;
