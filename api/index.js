@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 });
 
 // Diagnostic API: Check font files and environment
-app.get('/api/diagnose', (req, res) => {
+app.get('/api/diagnose', async (req, res) => {
   try {
     const cwd = process.cwd();
     const dirname = __dirname;
