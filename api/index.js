@@ -296,7 +296,8 @@ app.get('/api/screen', async (req, res) => {
       const d = parts.find(p => p.type === 'day').value;
       dateStr = `${y}-${m}-${d}`;
     }
-    const [year, month] = dateStr.split('-').map(Number);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const reqDate = new Date(year, month - 1, day);
 
     // 3. Fetch database data
     const [events, tasks, weather] = await Promise.all([
