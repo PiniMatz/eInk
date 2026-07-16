@@ -358,7 +358,7 @@ function generateSvg({ date, events, tasks, weather }) {
       const item = items[0];
       const authorSuffix = item.author ? ` [${item.author}]` : '';
       const cleanTitle = stripNikud(item.title);
-      line1Text = item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
+      line1Text = item.isTimed ? `${cleanTitle}${authorSuffix} ${item.time}` : `${cleanTitle}${authorSuffix}`;
     } else {
       const mid = Math.ceil(items.length / 2);
       const line1List = items.slice(0, mid);
@@ -367,13 +367,13 @@ function generateSvg({ date, events, tasks, weather }) {
       line1Text = line1List.map(item => {
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title);
-        return item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
+        return item.isTimed ? `${cleanTitle}${authorSuffix} ${item.time}` : `${cleanTitle}${authorSuffix}`;
       }).join('  •  ');
       
       line2Text = line2List.map(item => {
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title);
-        return item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
+        return item.isTimed ? `${cleanTitle}${authorSuffix} ${item.time}` : `${cleanTitle}${authorSuffix}`;
       }).join('  •  ');
     }
     
