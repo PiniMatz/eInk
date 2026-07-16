@@ -354,7 +354,12 @@ function generateSvg({ date, events, tasks, weather }) {
       svg += `<line x1="${cellX + 8}" y1="80" x2="${cellX + colWidth - 8}" y2="80" stroke="black" stroke-width="1" />`;
       
       // Events list
-      const dayEvents = events.filter(e => e.date === dStr);
+      const dayEvents = events.filter(e => e.date === dStr).sort((a, b) => {
+        if (!a.isTimed && b.isTimed) return -1;
+        if (a.isTimed && !b.isTimed) return 1;
+        if (a.isTimed && b.isTimed) return (a.time || '').localeCompare(b.time || '');
+        return 0;
+      });
       const hol = holidays[dStr];
       const itemsToDraw = [];
       if (hol) itemsToDraw.push({ title: simplifyHoliday(hol), isHoliday: true, isTimed: false });
@@ -394,7 +399,12 @@ function generateSvg({ date, events, tasks, weather }) {
       }
       svg += `<line x1="8" y1="80" x2="${colWidth - 8}" y2="80" stroke="black" stroke-width="1" />`;
       
-      const friEvents = events.filter(e => e.date === dFriStr);
+      const friEvents = events.filter(e => e.date === dFriStr).sort((a, b) => {
+        if (!a.isTimed && b.isTimed) return -1;
+        if (a.isTimed && !b.isTimed) return 1;
+        if (a.isTimed && b.isTimed) return (a.time || '').localeCompare(b.time || '');
+        return 0;
+      });
       const friHol = holidays[dFriStr];
       const friItems = [];
       if (friHol) friItems.push({ title: simplifyHoliday(friHol), isHoliday: true, isTimed: false });
@@ -430,7 +440,12 @@ function generateSvg({ date, events, tasks, weather }) {
       }
       svg += `<line x1="8" y1="268" x2="${colWidth - 8}" y2="268" stroke="black" stroke-width="1" />`;
       
-      const satEvents = events.filter(e => e.date === dSatStr);
+      const satEvents = events.filter(e => e.date === dSatStr).sort((a, b) => {
+        if (!a.isTimed && b.isTimed) return -1;
+        if (a.isTimed && !b.isTimed) return 1;
+        if (a.isTimed && b.isTimed) return (a.time || '').localeCompare(b.time || '');
+        return 0;
+      });
       const satHol = holidays[dSatStr];
       const satItems = [];
       if (satHol) satItems.push({ title: simplifyHoliday(satHol), isHoliday: true, isTimed: false });
