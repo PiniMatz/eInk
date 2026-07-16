@@ -262,6 +262,47 @@ const db = {
     }
   },
 
+  async updateTaskAuthor(id, newAuthor) {
+    if (firestore) {
+      try {
+        await firestore.collection('tasks').doc(id).update({ author: newAuthor });
+      } catch (err) {
+        console.error('Firestore updateTaskAuthor failed:', err);
+      }
+    } else {
+      const data = readLocal();
+      const task = (data.tasks || []).find(t => t.id === id);
+      if (task) task.author = newAuthor;
+      writeLocal(data);
+    }
+  },
+
+  async updateEventAuthor(dateStr, timeStr, newAuthor) {
+    if (firestore) {
+      try {
+        const isTimed = timeStr !== '';
+        const snapshot = await firestore.collection('events')
+          .where('date', '==', dateStr)
+          .where('time', '==', timeStr)
+          .where('isTimed', '==', isTimed)
+          .get();
+        const batch = firestore.batch();
+        snapshot.forEach(doc => {
+          batch.update(doc.ref, { author: newAuthor });
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error('Firestore updateEventAuthor failed:', err);
+      }
+    } else {
+      const data = readLocal();
+      const isTimed = timeStr !== '';
+      const events = (data.events || []).filter(e => e.date === dateStr && e.time === timeStr && e.isTimed === isTimed);
+      events.forEach(e => e.author = newAuthor);
+      writeLocal(data);
+    }
+  },
+
   async deleteCalendarEventsAndTasks(calendarId, rangeStart, rangeEnd) {
     const startStr = `${rangeStart.getFullYear()}-${String(rangeStart.getMonth() + 1).padStart(2, '0')}-${String(rangeStart.getDate()).padStart(2, '0')}`;
     const endStr = `${rangeEnd.getFullYear()}-${String(rangeEnd.getMonth() + 1).padStart(2, '0')}-${String(rangeEnd.getDate()).padStart(2, '0')}`;
@@ -387,8 +428,12 @@ const db = {
             if (occ.datetype === 'date') {
               // All-day event
               // Check if duplicate all-day event already added
-              if (await isDuplicateEvent(dateStr, occ.summary || 'אירוע')) {
+              const duplicate = await findDuplicateEvent(dateStr, occ.summary || 'אירוע');
+              if (duplicate) {
                 console.log(`Skipping duplicate event: ${occ.summary} on ${dateStr}`);
+                if (resolvedAuthor === 'אמא' && duplicate.author !== 'אמא') {
+                  await this.updateEventAuthor(dateStr, '', 'אמא');
+                }
                 continue;
               }
               await this.addEvent({
@@ -412,8 +457,13 @@ const db = {
               const hourStr = `${hour}:${minute}`;
               
               // Check if duplicate timed event already added
-              if (await isDuplicateTask(dateStr, hourStr, occ.summary || 'פעילות')) {
+              const duplicate = await findDuplicateTask(dateStr, hourStr, occ.summary || 'פעילות');
+              if (duplicate) {
                 console.log(`Skipping duplicate task/event: ${occ.summary} on ${dateStr} at ${hourStr}`);
+                if (resolvedAuthor === 'אמא' && duplicate.author !== 'אמא') {
+                  await this.updateTaskAuthor(duplicate.id, 'אמא');
+                  await this.updateEventAuthor(dateStr, hourStr, 'אמא');
+                }
                 continue;
               }
 
@@ -532,38 +582,64 @@ function getEventOrganizerName(ev, defaultName) {
   return defaultName;
 }
 
-async function isDuplicateEvent(dateStr, title) {
+function areTitlesSimilar(t1, t2) {
+  if (!t1 || !t2) return false;
+  const clean = (s) => s.toLowerCase().replace(/[\s\-_]/g, '');
+  const c1 = clean(t1);
+  const c2 = clean(t2);
+  return c1 === c2 || c1.includes(c2) || c2.includes(c1);
+}
+
+async function findDuplicateEvent(dateStr, title) {
   if (firestore) {
     try {
       const snapshot = await firestore.collection('events')
         .where('date', '==', dateStr)
-        .where('title', '==', title)
         .get();
-      return !snapshot.empty;
+      
+      let duplicate = null;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (areTitlesSimilar(data.title, title)) {
+          duplicate = { id: doc.id, ...data };
+        }
+      });
+      return duplicate;
     } catch (err) {
-      return false;
+      console.error('findDuplicateEvent error:', err);
+      return null;
     }
   } else {
     const data = readLocal();
-    return (data.events || []).some(e => e.date === dateStr && e.title === title);
+    const found = (data.events || []).find(e => e.date === dateStr && areTitlesSimilar(e.title, title));
+    return found ? { id: found.id, ...found } : null;
   }
 }
 
-async function isDuplicateTask(dateStr, timeStr, desc) {
+async function findDuplicateTask(dateStr, timeStr, desc) {
   if (firestore) {
     try {
       const snapshot = await firestore.collection('tasks')
         .where('date', '==', dateStr)
         .where('time', '==', timeStr)
-        .where('description', '==', desc)
         .get();
-      return !snapshot.empty;
+      
+      let duplicate = null;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (areTitlesSimilar(data.description, desc)) {
+          duplicate = { id: doc.id, ...data };
+        }
+      });
+      return duplicate;
     } catch (err) {
-      return false;
+      console.error('findDuplicateTask error:', err);
+      return null;
     }
   } else {
     const data = readLocal();
-    return (data.tasks || []).some(t => t.date === dateStr && t.time === timeStr && t.description === desc);
+    const found = (data.tasks || []).find(t => t.date === dateStr && t.time === timeStr && areTitlesSimilar(t.description, desc));
+    return found ? { id: found.id, ...found } : null;
   }
 }
 
