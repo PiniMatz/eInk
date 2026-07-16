@@ -344,8 +344,11 @@ const db = {
 
     const ical = require('node-ical');
     const now = new Date();
-    // Sync window: +/- 35 days
-    const rangeStart = new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000);
+    let rangeStart = new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000);
+    const minDate = new Date('2026-07-12T00:00:00Z');
+    if (rangeStart < minDate) {
+      rangeStart = minDate;
+    }
     const rangeEnd = new Date(now.getTime() + 35 * 24 * 60 * 60 * 1000);
 
     for (const cal of calendars) {
@@ -431,8 +434,8 @@ const db = {
               const duplicate = await findDuplicateEvent(dateStr, occ.summary || 'אירוע');
               if (duplicate) {
                 console.log(`Skipping duplicate event: ${occ.summary} on ${dateStr}`);
-                if (resolvedAuthor === 'אמא' && duplicate.author !== 'אמא') {
-                  await this.updateEventAuthor(dateStr, '', 'אמא');
+                if (resolvedAuthor === 'נדיה' && duplicate.author !== 'נדיה') {
+                  await this.updateEventAuthor(dateStr, '', 'נדיה');
                 }
                 continue;
               }
@@ -460,9 +463,9 @@ const db = {
               const duplicate = await findDuplicateTask(dateStr, hourStr, occ.summary || 'פעילות');
               if (duplicate) {
                 console.log(`Skipping duplicate task/event: ${occ.summary} on ${dateStr} at ${hourStr}`);
-                if (resolvedAuthor === 'אמא' && duplicate.author !== 'אמא') {
-                  await this.updateTaskAuthor(duplicate.id, 'אמא');
-                  await this.updateEventAuthor(dateStr, hourStr, 'אמא');
+                if (resolvedAuthor === 'נדיה' && duplicate.author !== 'נדיה') {
+                  await this.updateTaskAuthor(duplicate.id, 'נדיה');
+                  await this.updateEventAuthor(dateStr, hourStr, 'נדיה');
                 }
                 continue;
               }
@@ -514,11 +517,11 @@ async function summarizeTitleAI(title) {
   if (!genAI) return null;
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const prompt = `קצר את כותרת האירוע הבאה ל-1 או 2 מילים משמעותיות בלבד בעברית (למשל "פגישת עבודה עם דני" -> "פגישה", "שיעור פסנתר בקונסרבטוריון" -> "שיעור פסנתר", "יום הולדת לאבא בגן" -> "יומולדת"): "${title}"`;
+    const prompt = `קצר את כותרת האירוע הבאה לעד 4 מילים משמעותיות בלבד בעברית (למשל "פגישת עבודה עם דני בנושא הפרויקט החדש" -> "פגישת עבודה עם דני", "שיעור פסנתר בקונסרבטוריון העירוני" -> "שיעור פסנתר בקונסרבטוריון"): "${title}"`;
     const result = await model.generateContent(prompt);
     const text = result.response.text().trim();
     const cleanText = text.replace(/['"״`״]+/g, '');
-    if (cleanText && cleanText.length > 0 && cleanText.length < 20) {
+    if (cleanText && cleanText.length > 0 && cleanText.length < 40) {
       return cleanText;
     }
   } catch (err) {
@@ -544,7 +547,7 @@ function summarizeTitleRule(title) {
   let words = clean.split(/\s+/);
   words = words.filter(w => !stopWords.includes(w));
   
-  const shortTitle = words.slice(0, 2).join(' ');
+  const shortTitle = words.slice(0, 4).join(' ');
   return shortTitle || clean;
 }
 
@@ -573,13 +576,16 @@ function getEventOrganizerName(ev, defaultName) {
   }
   
   const text = `${val} ${cn}`.toLowerCase();
-  
-  if (text.includes('michal') || text.includes('מיכל') || text.includes('אמא')) return 'אמא';
-  if (text.includes('pini') || text.includes('פיני') || text.includes('אבא')) return 'אבא';
+  if (text.includes('michal') || text.includes('מיכל') || text.includes('nadia') || text.includes('נדיה') || text.includes('אמא')) return 'נדיה';
+  if (text.includes('pini') || text.includes('פיני') || text.includes('אבא')) return 'פיני';
   if (text.includes('sahar') || text.includes('סהר')) return 'סהר';
   if (text.includes('sol') || text.includes('סול')) return 'סול';
   
-  return defaultName;
+  // Clean defaultName if it's the default raw name
+  let resolvedDefault = defaultName;
+  if (resolvedDefault === 'אמא') resolvedDefault = 'נדיה';
+  if (resolvedDefault === 'אבא') resolvedDefault = 'פיני';
+  return resolvedDefault;
 }
 
 function areTitlesSimilar(t1, t2) {

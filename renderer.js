@@ -349,23 +349,40 @@ function generateSvg({ date, events, tasks, weather }) {
     if (hol) items.push({ title: simplifyHoliday(hol), isHoliday: true, isTimed: false });
     dayEvents.forEach(e => items.push(e));
     
-    let eventsStr = '';
+    let line1Text = '';
+    let line2Text = '';
+    
     if (items.length === 0) {
-      eventsStr = 'אין אירועים';
+      line1Text = 'אין אירועים';
+    } else if (items.length === 1) {
+      const item = items[0];
+      const authorSuffix = item.author ? ` [${item.author}]` : '';
+      const cleanTitle = stripNikud(item.title);
+      line1Text = item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
     } else {
-      eventsStr = items.map(item => {
+      const mid = Math.ceil(items.length / 2);
+      const line1List = items.slice(0, mid);
+      const line2List = items.slice(mid);
+      
+      line1Text = line1List.map(item => {
         const authorSuffix = item.author ? ` [${item.author}]` : '';
         const cleanTitle = stripNikud(item.title);
-        if (item.isTimed) {
-          return `${item.time} ${cleanTitle}${authorSuffix}`;
-        } else {
-          return `${cleanTitle}${authorSuffix}`;
-        }
+        return item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
+      }).join('  •  ');
+      
+      line2Text = line2List.map(item => {
+        const authorSuffix = item.author ? ` [${item.author}]` : '';
+        const cleanTitle = stripNikud(item.title);
+        return item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
       }).join('  •  ');
     }
     
-    // Draw event text (RTL) - Left part of the row (Width from 15 to 400 = 385px)
-    svg += `<text x="400" y="${rowY + 33}" class="${items.length === 0 ? 'regular' : 'bold'}" font-size="13.5" text-anchor="end" fill="${items.length === 0 ? '#888888' : 'black'}">${truncateText(eventsStr, 48)}</text>`;
+    if (line2Text === '') {
+      svg += `<text x="400" y="${rowY + 33}" class="${items.length === 0 ? 'regular' : 'bold'}" font-size="13.5" text-anchor="end" fill="${items.length === 0 ? '#888888' : 'black'}">${truncateText(line1Text, 48)}</text>`;
+    } else {
+      svg += `<text x="400" y="${rowY + 23}" class="bold" font-size="12" text-anchor="end" fill="black">${truncateText(line1Text, 52)}</text>`;
+      svg += `<text x="400" y="${rowY + 43}" class="bold" font-size="12" text-anchor="end" fill="black">${truncateText(line2Text, 52)}</text>`;
+    }
   }
 
   svg += `</g>`;
