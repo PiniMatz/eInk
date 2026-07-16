@@ -365,7 +365,21 @@ const db = {
           // Insert occurrences into DB
           for (const occ of occurrences) {
             const occStart = occ.start;
-            const dateStr = `${occStart.getFullYear()}-${String(occStart.getMonth() + 1).padStart(2, '0')}-${String(occStart.getDate()).padStart(2, '0')}`;
+            let dateStr;
+            if (occ.datetype === 'date') {
+              dateStr = `${occStart.getUTCFullYear()}-${String(occStart.getUTCMonth() + 1).padStart(2, '0')}-${String(occStart.getUTCDate()).padStart(2, '0')}`;
+            } else {
+              const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Jerusalem',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              }).formatToParts(occStart);
+              const y = parts.find(p => p.type === 'year').value;
+              const m = parts.find(p => p.type === 'month').value;
+              const d = parts.find(p => p.type === 'day').value;
+              dateStr = `${y}-${m}-${d}`;
+            }
             
             // Resolve correct Hebrew owner name
             const resolvedAuthor = getEventOrganizerName(occ, cal.name);
@@ -387,7 +401,15 @@ const db = {
               });
             } else {
               // Timed event
-              const hourStr = `${String(occStart.getHours()).padStart(2, '0')}:${String(occStart.getMinutes()).padStart(2, '0')}`;
+              const tParts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Jerusalem',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+              }).formatToParts(occStart);
+              const hour = tParts.find(p => p.type === 'hour').value;
+              const minute = tParts.find(p => p.type === 'minute').value;
+              const hourStr = `${hour}:${minute}`;
               
               // Check if duplicate timed event already added
               if (await isDuplicateTask(dateStr, hourStr, occ.summary || 'פעילות')) {

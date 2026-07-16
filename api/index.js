@@ -281,14 +281,22 @@ app.get('/api/screen', async (req, res) => {
     // 1. Trigger calendar sync in background (non-blocking)
     db.syncCalendars().catch(err => console.error('Auto-sync during screen render failed:', err));
 
-    // 2. Resolve date
-    let reqDate = new Date();
+    let dateStr;
     if (req.query.date) {
-      reqDate = new Date(req.query.date);
+      dateStr = req.query.date;
+    } else {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jerusalem',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(new Date());
+      const y = parts.find(p => p.type === 'year').value;
+      const m = parts.find(p => p.type === 'month').value;
+      const d = parts.find(p => p.type === 'day').value;
+      dateStr = `${y}-${m}-${d}`;
     }
-    const dateStr = reqDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
-    const year = reqDate.getFullYear();
-    const month = reqDate.getMonth() + 1;
+    const [year, month] = dateStr.split('-').map(Number);
 
     // 3. Fetch database data
     const [events, tasks, weather] = await Promise.all([
