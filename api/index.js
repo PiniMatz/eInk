@@ -275,6 +275,16 @@ app.post('/api/calendars/sync', async (req, res) => {
   }
 });
 
+// API: Clean database duplicates manually
+app.post('/api/calendars/dedup', async (req, res) => {
+  try {
+    const result = await db.deduplicateAll();
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // API: Render ePaper Screen PNG Image
 app.get('/api/screen', async (req, res) => {
   try {

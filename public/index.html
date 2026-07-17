@@ -361,7 +361,10 @@
       <!-- Connected Calendars List -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
         <h3>לוחות שנה מחוברים</h3>
-        <button class="btn-primary" onclick="syncAllCalendars(event)" style="padding: 6px 12px; font-size: 0.85rem;">סנכרן כעת</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-primary" onclick="deduplicateDatabase(event)" style="padding: 6px 12px; font-size: 0.85rem; background-color: #10b981; color: white;">נקה כפילויות</button>
+          <button class="btn-primary" onclick="syncAllCalendars(event)" style="padding: 6px 12px; font-size: 0.85rem;">סנכרן כעת</button>
+        </div>
       </div>
       <div class="list-container">
         <div id="calendars-list">
@@ -651,6 +654,32 @@
         if (btn) {
           btn.disabled = false;
           btn.innerText = 'סנכרן כעת';
+        }
+      }
+    }
+
+    async function deduplicateDatabase(event) {
+      const btn = event ? event.target : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'מנקה...';
+      }
+      try {
+        const response = await fetch('/api/calendars/dedup', { method: 'POST' });
+        if (response.ok) {
+          const res = await response.json();
+          loadEvents();
+          loadTasks(currentSelectedDate);
+          refreshPreview();
+          alert(`ניקוי הכפילויות הושלם! נמחקו ${res.count} פריטים כפולים.`);
+        }
+      } catch (err) {
+        console.error('Error deduplicating database:', err);
+        alert('ניקוי הכפילויות נכשל.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = 'נקה כפילויות';
         }
       }
     }

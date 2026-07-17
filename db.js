@@ -508,6 +508,9 @@ const db = {
               }
 
               let matchedEvent = existingEvents.find(e => e.date === dateStr && e.time === hourStr && e.source === cal.id && e.isTimed === true);
+              if (!matchedEvent) {
+                matchedEvent = existingEvents.find(e => e.date === dateStr && e.time === hourStr && e.isTimed === true && areTitlesSimilar(e.title, occ.summary || 'פעילות'));
+              }
 
               if (matchedTask && matchedEvent) {
                 keepTaskIds.add(matchedTask.id);
@@ -594,6 +597,62 @@ const db = {
   },
   isUsingFirestore() {
     return firestore !== null;
+  },
+  async deduplicateAll() {
+    if (!firestore) return { success: true, count: 0 };
+    try {
+      const eventsSnap = await firestore.collection('events').get();
+      const tasksSnap = await firestore.collection('tasks').get();
+      
+      const events = [];
+      eventsSnap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+      const tasks = [];
+      tasksSnap.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
+      
+      const batch = firestore.batch();
+      let deleteCount = 0;
+      
+      // Deduplicate events
+      const keptEvents = [];
+      events.forEach(ev => {
+        const dup = keptEvents.find(k => k.date === ev.date && k.time === ev.time && k.isTimed === ev.isTimed && areTitlesSimilar(k.title, ev.title));
+        if (dup) {
+          batch.delete(firestore.collection('events').doc(ev.id));
+          deleteCount++;
+          if (ev.author === 'נדיה' && dup.author !== 'נדיה') {
+            batch.update(firestore.collection('events').doc(dup.id), { author: 'נדיה' });
+            dup.author = 'נדיה';
+          }
+        } else {
+          keptEvents.push(ev);
+        }
+      });
+      
+      // Deduplicate tasks
+      const keptTasks = [];
+      tasks.forEach(t => {
+        const dup = keptTasks.find(k => k.date === t.date && k.time === t.time && areTitlesSimilar(k.description, t.description));
+        if (dup) {
+          batch.delete(firestore.collection('tasks').doc(t.id));
+          deleteCount++;
+          if (t.author === 'נדיה' && dup.author !== 'נדיה') {
+            batch.update(firestore.collection('tasks').doc(dup.id), { author: 'נדיה' });
+            dup.author = 'נדיה';
+          }
+        } else {
+          keptTasks.push(t);
+        }
+      });
+      
+      if (deleteCount > 0) {
+        await batch.commit();
+        console.log(`Deduplicated: Deleted ${deleteCount} duplicate items from Firestore.`);
+      }
+      return { success: true, count: deleteCount };
+    } catch (err) {
+      console.error('Deduplicate failed:', err);
+      throw err;
+    }
   }
 };
 
