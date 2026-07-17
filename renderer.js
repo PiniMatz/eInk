@@ -38,6 +38,38 @@ function truncateText(text, maxLength = 10) {
   return text.length > maxLength ? text.substring(0, maxLength - 1) + '..' : text;
 }
 
+function renderEventLine(svg, textX, textY, fontSize, item) {
+  if (item.isHoliday) {
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${stripNikud(item.title)}</text>`;
+  }
+  
+  const authorSuffix = item.author ? ` [${item.author}]` : '';
+  const cleanTitle = stripNikud(item.title) + authorSuffix;
+  
+  if (item.isTimed) {
+    const timeX = textX;
+    const dotX = textX - 42;
+    const titleX = textX - 50;
+    
+    let lineSvg = '';
+    lineSvg += `<text x="${timeX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${item.time}</text>`;
+    lineSvg += `<circle cx="${dotX}" cy="${textY - 4}" r="1.8" fill="black" />`;
+    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, 40)}</text>`;
+    return svg + lineSvg;
+  } else {
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, 48)}</text>`;
+  }
+}
+
+function renderMultiEventLine(svg, textX, textY, fontSize, list) {
+  const text = list.map(item => {
+    const authorSuffix = item.author ? ` [${item.author}]` : '';
+    const cleanTitle = stripNikud(item.title);
+    return item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
+  }).join('  •  ');
+  return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(text, 52)}</text>`;
+}
+
 /**
  * Clean and simplify holiday names for tiny display cells (stripped of Nikud)
  */
@@ -349,39 +381,29 @@ function generateSvg({ date, events, tasks, weather }) {
     if (hol) items.push({ title: simplifyHoliday(hol), isHoliday: true, isTimed: false });
     dayEvents.forEach(e => items.push(e));
     
-    let line1Text = '';
-    let line2Text = '';
-    
     if (items.length === 0) {
-      line1Text = 'אין אירועים';
+      svg += `<text x="400" y="${rowY + 33}" class="regular" font-size="13.5" text-anchor="end" fill="#888888">אין אירועים</text>`;
     } else if (items.length === 1) {
-      const item = items[0];
-      const authorSuffix = item.author ? ` [${item.author}]` : '';
-      const cleanTitle = stripNikud(item.title);
-      line1Text = item.isTimed ? `${cleanTitle}${authorSuffix} ${item.time}` : `${cleanTitle}${authorSuffix}`;
+      svg = renderEventLine(svg, 400, rowY + 33, 13.5, items[0]);
+    } else if (items.length === 2) {
+      svg = renderEventLine(svg, 400, rowY + 23, 12, items[0]);
+      svg = renderEventLine(svg, 400, rowY + 43, 12, items[1]);
     } else {
       const mid = Math.ceil(items.length / 2);
       const line1List = items.slice(0, mid);
       const line2List = items.slice(mid);
       
-      line1Text = line1List.map(item => {
-        const authorSuffix = item.author ? ` [${item.author}]` : '';
-        const cleanTitle = stripNikud(item.title);
-        return item.isTimed ? `${cleanTitle}${authorSuffix} ${item.time}` : `${cleanTitle}${authorSuffix}`;
-      }).join('  •  ');
+      if (line1List.length === 1) {
+        svg = renderEventLine(svg, 400, rowY + 23, 12, line1List[0]);
+      } else {
+        svg = renderMultiEventLine(svg, 400, rowY + 23, 12, line1List);
+      }
       
-      line2Text = line2List.map(item => {
-        const authorSuffix = item.author ? ` [${item.author}]` : '';
-        const cleanTitle = stripNikud(item.title);
-        return item.isTimed ? `${cleanTitle}${authorSuffix} ${item.time}` : `${cleanTitle}${authorSuffix}`;
-      }).join('  •  ');
-    }
-    
-    if (line2Text === '') {
-      svg += `<text x="400" y="${rowY + 33}" class="${items.length === 0 ? 'regular' : 'bold'}" font-size="13.5" text-anchor="end" fill="${items.length === 0 ? '#888888' : 'black'}">${truncateText(line1Text, 48)}</text>`;
-    } else {
-      svg += `<text x="400" y="${rowY + 23}" class="bold" font-size="12" text-anchor="end" fill="black">${truncateText(line1Text, 52)}</text>`;
-      svg += `<text x="400" y="${rowY + 43}" class="bold" font-size="12" text-anchor="end" fill="black">${truncateText(line2Text, 52)}</text>`;
+      if (line2List.length === 1) {
+        svg = renderEventLine(svg, 400, rowY + 43, 12, line2List[0]);
+      } else {
+        svg = renderMultiEventLine(svg, 400, rowY + 43, 12, line2List);
+      }
     }
   }
 
