@@ -44,7 +44,9 @@ function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
   }
   
   const authorSuffix = item.author ? ` [${item.author}]` : '';
-  const cleanTitle = stripNikud(item.title) + authorSuffix;
+  const cleanTitle = stripNikud(item.title);
+  const truncatedTitle = truncateText(cleanTitle, maxLen);
+  const displayText = truncatedTitle + authorSuffix;
   
   if (item.isTimed) {
     let timeOffset = 42;
@@ -64,10 +66,10 @@ function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
     let lineSvg = '';
     lineSvg += `<text x="${timeX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${item.time}</text>`;
     lineSvg += `<circle cx="${dotX}" cy="${textY - 3.5}" r="1.5" fill="black" />`;
-    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, maxLen)}</text>`;
+    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${displayText}</text>`;
     return svg + lineSvg;
   } else {
-    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, maxLen + 6)}</text>`;
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${displayText}</text>`;
   }
 }
 
@@ -210,13 +212,13 @@ function generateSvg({ date, events, tasks, weather }) {
   const pad = 12;
   const gap = 12;
   
-  // Left Section (Weekly Horizon): X: 12, Width: 534px
+  // Left Section (Weekly Horizon): X: 12, Width: 580px
   const leftX = pad;
-  const leftWidth = 534;
+  const leftWidth = 580;
   
-  // Right Section (Sidebar): X: 558, Width: 230px
-  const rightX = leftX + leftWidth + gap; // 12 + 534 + 12 = 558
-  const rightWidth = 230;
+  // Right Section (Sidebar): X: 604, Width: 184px
+  const rightX = leftX + leftWidth + gap; // 12 + 580 + 12 = 604
+  const rightWidth = 184;
   
   // Start constructing SVG string
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
@@ -246,20 +248,20 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${rightWidth}" height="100" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Weather Icon Placement -->
-      <g transform="translate(36, 22) scale(0.85)">
+      <g transform="translate(26, 22) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description under Icon -->
-      <text x="36" y="76" class="bold" font-size="11" text-anchor="middle" fill="black">${wDesc}</text>
+      <text x="26" y="76" class="bold" font-size="11" text-anchor="middle" fill="black">${wDesc}</text>
       
       <!-- Temperature -->
-      <text x="110" y="44" class="bold" font-size="28" text-anchor="middle" fill="black">${wTemp}</text>
+      <text x="92" y="44" class="bold" font-size="28" text-anchor="middle" fill="black">${wTemp}</text>
       <!-- Min/Max Temp Range -->
-      <text x="110" y="68" class="regular" font-size="12" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
+      <text x="92" y="68" class="regular" font-size="12" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Sunrise & Sunset -->
-      <text x="215" y="44" class="regular" font-size="11" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
-      <text x="215" y="68" class="regular" font-size="11" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
+      <text x="172" y="44" class="regular" font-size="11" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
+      <text x="172" y="68" class="regular" font-size="11" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
     </g>
   `;
 
@@ -276,8 +278,8 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${rightWidth}" height="60" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Gregorian Date Banner -->
-      <text x="115" y="24" class="bold" font-size="16" text-anchor="middle" fill="black">${dateBannerStr}</text>
-      <text x="115" y="45" class="regular" font-size="13" text-anchor="middle" fill="black">${dateSubStr}</text>
+      <text x="92" y="24" class="bold" font-size="16" text-anchor="middle" fill="black">${dateBannerStr}</text>
+      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="black">${dateSubStr}</text>
     </g>
   `;
 
@@ -293,25 +295,27 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${rightWidth}" height="${scheduleHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Section Title -->
-      <text x="215" y="26" class="bold" font-size="15" text-anchor="end" fill="black">לוז להיום - ${displayDateStr}</text>
-      <line x1="15" y1="34" x2="215" y2="34" stroke="black" stroke-width="1.5" />
+      <text x="172" y="26" class="bold" font-size="15" text-anchor="end" fill="black">לוז להיום - ${displayDateStr}</text>
+      <line x1="12" y1="34" x2="172" y2="34" stroke="black" stroke-width="1.5" />
   `;
 
   if (tasks.length === 0) {
-    svg += `<text x="115" y="140" class="bold" font-size="14.5" text-anchor="middle" fill="black">אין משימות להיום</text>`;
+    svg += `<text x="92" y="140" class="bold" font-size="14.5" text-anchor="middle" fill="black">אין משימות להיום</text>`;
   } else {
     // Render up to 5 items
     tasks.slice(0, 5).forEach((task, idx) => {
       const rowY = 58 + idx * 40;
       const authorSuffix = task.author ? ` [${task.author}]` : '';
-      const cleanDesc = stripNikud(task.description) + authorSuffix;
+      const cleanDesc = stripNikud(task.description);
+      const truncatedDesc = truncateText(cleanDesc, 11);
+      const displayText = truncatedDesc + authorSuffix;
       
       // Draw hour
-      svg += `<text x="215" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
+      svg += `<text x="172" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
       // Dot separator
-      svg += `<circle cx="172" cy="${rowY - 4}" r="2" fill="black" />`;
+      svg += `<circle cx="130" cy="${rowY - 4}" r="2" fill="black" />`;
       // Draw task desc
-      svg += `<text x="160" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${truncateText(cleanDesc, 17)}</text>`;
+      svg += `<text x="120" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${displayText}</text>`;
     });
   }
 
@@ -337,8 +341,8 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Weekly Range Header -->
-      <text x="519" y="26" class="bold" font-size="16" text-anchor="end" fill="black">לוח שבועי: ${weekRangeStr}</text>
-      <line x1="15" y1="34" x2="519" y2="34" stroke="black" stroke-width="1.5" />
+      <text x="565" y="26" class="bold" font-size="16" text-anchor="end" fill="black">לוח שבועי: ${weekRangeStr}</text>
+      <line x1="15" y1="34" x2="565" y2="34" stroke="black" stroke-width="1.5" />
   `;
 
   // Draw 7 horizontal rows
@@ -353,21 +357,21 @@ function generateSvg({ date, events, tasks, weather }) {
     
     // Draw row bottom divider (except last)
     if (i < 6) {
-      svg += `<line x1="15" y1="${rowY + rowHeight}" x2="519" y2="${rowY + rowHeight}" stroke="black" stroke-dasharray="3,3" stroke-width="1" />`;
+      svg += `<line x1="15" y1="${rowY + rowHeight}" x2="565" y2="${rowY + rowHeight}" stroke="black" stroke-dasharray="3,3" stroke-width="1" />`;
     }
     
     // Day Label (RTL) - Right part of the row
     const dayLabelStr = `${WEEKDAYS_HE_FULL[i]} ${d.getDate()}/${d.getMonth() + 1}`;
     if (isToday) {
       // Draw highlighted black pill for today
-      svg += `<rect x="422" y="${rowY + 8}" width="90" height="42" rx="6" ry="6" fill="black" />`;
-      svg += `<text x="467" y="${rowY + 33}" class="bold" font-size="13.5" text-anchor="middle" fill="white">${dayLabelStr}</text>`;
+      svg += `<rect x="468" y="${rowY + 8}" width="90" height="42" rx="6" ry="6" fill="black" />`;
+      svg += `<text x="513" y="${rowY + 33}" class="bold" font-size="13.5" text-anchor="middle" fill="white">${dayLabelStr}</text>`;
     } else {
-      svg += `<text x="512" y="${rowY + 33}" class="bold" font-size="13.5" text-anchor="end" fill="black">${dayLabelStr}</text>`;
+      svg += `<text x="558" y="${rowY + 33}" class="bold" font-size="13.5" text-anchor="end" fill="black">${dayLabelStr}</text>`;
     }
     
     // Day column divider
-    svg += `<line x1="412" y1="${rowY + 6}" x2="412" y2="${rowY + rowHeight - 6}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    svg += `<line x1="458" y1="${rowY + 6}" x2="458" y2="${rowY + rowHeight - 6}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     
     // Fetch and sort events for this day
     const dayEvents = events.filter(e => e.date === dStr).sort((a, b) => {
@@ -383,29 +387,29 @@ function generateSvg({ date, events, tasks, weather }) {
     dayEvents.forEach(e => items.push(e));
     
     if (items.length === 0) {
-      svg += `<text x="400" y="${rowY + 33}" class="regular" font-size="13" text-anchor="end" fill="#888888">אין אירועים</text>`;
+      svg += `<text x="446" y="${rowY + 33}" class="regular" font-size="13" text-anchor="end" fill="#888888">אין אירועים</text>`;
     } else if (items.length === 1) {
-      svg = renderSingleEventCol(svg, 400, rowY + 33, 13, items[0], 40);
+      svg = renderSingleEventCol(svg, 446, rowY + 33, 13, items[0], 46);
     } else if (items.length === 2) {
-      svg = renderSingleEventCol(svg, 400, rowY + 22, 11, items[0], 48);
-      svg = renderSingleEventCol(svg, 400, rowY + 42, 11, items[1], 48);
+      svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 54);
+      svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[1], 54);
     } else if (items.length === 3) {
-      svg = renderSingleEventCol(svg, 400, rowY + 16, 10, items[0], 52);
-      svg = renderSingleEventCol(svg, 400, rowY + 31, 10, items[1], 52);
-      svg = renderSingleEventCol(svg, 400, rowY + 46, 10, items[2], 52);
+      svg = renderSingleEventCol(svg, 446, rowY + 16, 10, items[0], 60);
+      svg = renderSingleEventCol(svg, 446, rowY + 31, 10, items[1], 60);
+      svg = renderSingleEventCol(svg, 446, rowY + 46, 10, items[2], 60);
     } else if (items.length === 4) {
-      svg = renderSingleEventCol(svg, 400, rowY + 22, 11, items[0], 16);
-      svg = renderSingleEventCol(svg, 195, rowY + 22, 11, items[1], 16);
-      svg = renderSingleEventCol(svg, 400, rowY + 42, 11, items[2], 16);
-      svg = renderSingleEventCol(svg, 195, rowY + 42, 11, items[3], 16);
+      svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 20);
+      svg = renderSingleEventCol(svg, 210, rowY + 22, 11, items[1], 17);
+      svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[2], 20);
+      svg = renderSingleEventCol(svg, 210, rowY + 42, 11, items[3], 17);
     } else {
-      svg = renderSingleEventCol(svg, 400, rowY + 16, 10, items[0], 18);
-      svg = renderSingleEventCol(svg, 195, rowY + 16, 10, items[1], 18);
-      svg = renderSingleEventCol(svg, 400, rowY + 31, 10, items[2], 18);
-      svg = renderSingleEventCol(svg, 195, rowY + 31, 10, items[3], 18);
-      svg = renderSingleEventCol(svg, 400, rowY + 46, 10, items[4], 18);
+      svg = renderSingleEventCol(svg, 446, rowY + 16, 10, items[0], 22);
+      svg = renderSingleEventCol(svg, 210, rowY + 16, 10, items[1], 19);
+      svg = renderSingleEventCol(svg, 446, rowY + 31, 10, items[2], 22);
+      svg = renderSingleEventCol(svg, 210, rowY + 31, 10, items[3], 19);
+      svg = renderSingleEventCol(svg, 446, rowY + 46, 10, items[4], 22);
       if (items.length >= 6) {
-        svg = renderSingleEventCol(svg, 195, rowY + 46, 10, items[5], 18);
+        svg = renderSingleEventCol(svg, 210, rowY + 46, 10, items[5], 19);
       }
     }
   }
