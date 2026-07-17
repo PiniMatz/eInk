@@ -304,10 +304,8 @@ function generateSvg({ date, events, tasks, weather }) {
     // Render up to 5 items
     tasks.slice(0, 5).forEach((task, idx) => {
       const rowY = 58 + idx * 40;
-      const authorSuffix = task.author ? ` [${task.author}]` : '';
       const cleanDesc = stripNikud(task.description);
-      const truncatedDesc = truncateText(cleanDesc, 11);
-      const displayText = truncatedDesc + authorSuffix;
+      const displayText = truncateText(cleanDesc, 17);
       
       // Draw hour
       svg += `<text x="172" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
