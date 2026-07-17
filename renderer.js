@@ -247,21 +247,20 @@ function generateSvg({ date, events, tasks, weather }) {
     <g transform="translate(${rightX}, ${pad})">
       <rect x="0" y="0" width="${rightWidth}" height="100" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Weather Icon Placement -->
-      <g transform="translate(32, 34) scale(0.85)">
+      <!-- Temperature (Top Right) -->
+      <text x="172" y="36" class="bold" font-size="24" text-anchor="end" fill="black">${wTemp}</text>
+      <!-- Min/Max Temp Range (Below Temp) -->
+      <text x="172" y="56" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
+      
+      <!-- Weather Icon Placement (Center-Left) -->
+      <g transform="translate(72, 10) scale(0.8)">
         ${getWeatherIconSvg(wIcon)}
       </g>
-      <!-- Description under Icon -->
-      <text x="32" y="78" class="bold" font-size="10" text-anchor="middle" fill="black">${wDesc}</text>
+      <!-- Description (Left Edge) -->
+      <text x="12" y="44" class="bold" font-size="10.5" text-anchor="start" fill="black">${wDesc}</text>
       
-      <!-- Temperature -->
-      <text x="92" y="44" class="bold" font-size="25" text-anchor="middle" fill="black">${wTemp}</text>
-      <!-- Min/Max Temp Range -->
-      <text x="92" y="68" class="regular" font-size="11.5" text-anchor="middle" fill="black">${wTempMin}° - ${wTempMax}°</text>
-      
-      <!-- Sunrise & Sunset -->
-      <text x="172" y="44" class="regular" font-size="9" text-anchor="end" fill="black">זריחה: ${wSunrise}</text>
-      <text x="172" y="68" class="regular" font-size="9" text-anchor="end" fill="black">שקיעה: ${wSunset}</text>
+      <!-- Sunrise & Sunset (Bottom Row Centered) -->
+      <text x="92" y="84" class="regular" font-size="9" text-anchor="middle" fill="black">זריחה: ${wSunrise}  •  שקיעה: ${wSunset}</text>
     </g>
   `;
 
