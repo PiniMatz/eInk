@@ -61,15 +61,6 @@ function renderEventLine(svg, textX, textY, fontSize, item) {
   }
 }
 
-function renderMultiEventLine(svg, textX, textY, fontSize, list) {
-  const text = list.map(item => {
-    const authorSuffix = item.author ? ` [${item.author}]` : '';
-    const cleanTitle = truncateText(stripNikud(item.title) + authorSuffix, 25);
-    return item.isTimed ? `\u202A${cleanTitle} ${item.time}\u202C` : `\u202A${cleanTitle}\u202C`;
-  }).join('  •  ');
-  return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${text}</text>`;
-}
-
 /**
  * Clean and simplify holiday names for tiny display cells (stripped of Nikud)
  */
@@ -385,25 +376,10 @@ function generateSvg({ date, events, tasks, weather }) {
       svg += `<text x="400" y="${rowY + 33}" class="regular" font-size="13.5" text-anchor="end" fill="#888888">אין אירועים</text>`;
     } else if (items.length === 1) {
       svg = renderEventLine(svg, 400, rowY + 33, 13.5, items[0]);
-    } else if (items.length === 2) {
+    } else {
+      // Render the first 2 events on separate lines to prevent grid overflow and guarantee hours alignment
       svg = renderEventLine(svg, 400, rowY + 23, 12, items[0]);
       svg = renderEventLine(svg, 400, rowY + 43, 12, items[1]);
-    } else {
-      const mid = Math.ceil(items.length / 2);
-      const line1List = items.slice(0, mid);
-      const line2List = items.slice(mid);
-      
-      if (line1List.length === 1) {
-        svg = renderEventLine(svg, 400, rowY + 23, 12, line1List[0]);
-      } else {
-        svg = renderMultiEventLine(svg, 400, rowY + 23, 12, line1List);
-      }
-      
-      if (line2List.length === 1) {
-        svg = renderEventLine(svg, 400, rowY + 43, 12, line2List[0]);
-      } else {
-        svg = renderMultiEventLine(svg, 400, rowY + 43, 12, line2List);
-      }
     }
   }
 
