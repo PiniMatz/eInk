@@ -64,10 +64,10 @@ function renderEventLine(svg, textX, textY, fontSize, item) {
 function renderMultiEventLine(svg, textX, textY, fontSize, list) {
   const text = list.map(item => {
     const authorSuffix = item.author ? ` [${item.author}]` : '';
-    const cleanTitle = stripNikud(item.title);
-    return item.isTimed ? `${item.time} ${cleanTitle}${authorSuffix}` : `${cleanTitle}${authorSuffix}`;
+    const cleanTitle = truncateText(stripNikud(item.title) + authorSuffix, 25);
+    return item.isTimed ? `\u202A${cleanTitle} ${item.time}\u202C` : `\u202A${cleanTitle}\u202C`;
   }).join('  •  ');
-  return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(text, 52)}</text>`;
+  return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${text}</text>`;
 }
 
 /**
