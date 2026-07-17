@@ -278,6 +278,10 @@
             <option value="סול">סול</option>
           </select>
         </div>
+        <div class="form-group" style="flex: 0.8;">
+          <label for="event-time">שעה (אופציונלי)</label>
+          <input type="time" id="event-time">
+        </div>
         <div class="form-group" style="flex: 1;">
           <label for="event-date">תאריך</label>
           <input type="date" id="event-date" required>
@@ -435,10 +439,12 @@
 
         container.innerHTML = events.map(e => {
           const authorText = e.author ? ` [${e.author}]` : '';
+          const timeBadge = e.isTimed && e.time ? `<span class="time-badge">${e.time}</span>` : '';
           return `
             <div class="list-item">
               <div class="details">
                 <span class="date-badge">${formatDate(e.date)}</span>
+                ${timeBadge}
                 <span class="desc">${e.title}${authorText}</span>
               </div>
               <button class="btn-delete" onclick="deleteEvent('${e.id}', '${e.date}')">מחק</button>
@@ -455,16 +461,18 @@
       const title = document.getElementById('event-title').value;
       const date = document.getElementById('event-date').value;
       const author = document.getElementById('event-author').value;
+      const time = document.getElementById('event-time').value || '';
 
       try {
         const response = await fetch('/api/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, date, author })
+          body: JSON.stringify({ title, date, author, time })
         });
         
         if (response.ok) {
           document.getElementById('event-title').value = '';
+          document.getElementById('event-time').value = '';
           loadEvents();
           refreshPreview();
         }

@@ -169,12 +169,13 @@ app.get('/api/events', async (req, res) => {
 
 // API: Add event
 app.post('/api/events', async (req, res) => {
-  const { title, date, author } = req.body;
+  const { title, date, author, time } = req.body;
   if (!title || !date) {
     return res.status(400).json({ error: 'Title and Date are required' });
   }
   try {
-    const newEvent = await db.addEvent({ title, date, author });
+    const isTimed = !!time;
+    const newEvent = await db.addEvent({ title, date, author, isTimed, time });
     res.status(201).json(newEvent);
   } catch (err) {
     res.status(500).json({ error: err.message });
