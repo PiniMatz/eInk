@@ -38,26 +38,36 @@ function truncateText(text, maxLength = 10) {
   return text.length > maxLength ? text.substring(0, maxLength - 1) + '..' : text;
 }
 
-function renderEventLine(svg, textX, textY, fontSize, item) {
+function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
   if (item.isHoliday) {
-    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${stripNikud(item.title)}</text>`;
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(stripNikud(item.title), maxLen)}</text>`;
   }
   
   const authorSuffix = item.author ? ` [${item.author}]` : '';
   const cleanTitle = stripNikud(item.title) + authorSuffix;
   
   if (item.isTimed) {
+    let timeOffset = 42;
+    let titleOffset = 50;
+    if (fontSize <= 10) {
+      timeOffset = 34;
+      titleOffset = 40;
+    } else if (fontSize <= 11) {
+      timeOffset = 38;
+      titleOffset = 45;
+    }
+    
     const timeX = textX;
-    const dotX = textX - 42;
-    const titleX = textX - 50;
+    const dotX = textX - timeOffset;
+    const titleX = textX - titleOffset;
     
     let lineSvg = '';
     lineSvg += `<text x="${timeX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${item.time}</text>`;
-    lineSvg += `<circle cx="${dotX}" cy="${textY - 4}" r="1.8" fill="black" />`;
-    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, 40)}</text>`;
+    lineSvg += `<circle cx="${dotX}" cy="${textY - 3.5}" r="1.5" fill="black" />`;
+    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, maxLen)}</text>`;
     return svg + lineSvg;
   } else {
-    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, 48)}</text>`;
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(cleanTitle, maxLen + 6)}</text>`;
   }
 }
 
@@ -373,13 +383,30 @@ function generateSvg({ date, events, tasks, weather }) {
     dayEvents.forEach(e => items.push(e));
     
     if (items.length === 0) {
-      svg += `<text x="400" y="${rowY + 33}" class="regular" font-size="13.5" text-anchor="end" fill="#888888">אין אירועים</text>`;
+      svg += `<text x="400" y="${rowY + 33}" class="regular" font-size="13" text-anchor="end" fill="#888888">אין אירועים</text>`;
     } else if (items.length === 1) {
-      svg = renderEventLine(svg, 400, rowY + 33, 13.5, items[0]);
+      svg = renderSingleEventCol(svg, 400, rowY + 33, 13, items[0], 40);
+    } else if (items.length === 2) {
+      svg = renderSingleEventCol(svg, 400, rowY + 22, 11, items[0], 48);
+      svg = renderSingleEventCol(svg, 400, rowY + 42, 11, items[1], 48);
+    } else if (items.length === 3) {
+      svg = renderSingleEventCol(svg, 400, rowY + 16, 10, items[0], 52);
+      svg = renderSingleEventCol(svg, 400, rowY + 31, 10, items[1], 52);
+      svg = renderSingleEventCol(svg, 400, rowY + 46, 10, items[2], 52);
+    } else if (items.length === 4) {
+      svg = renderSingleEventCol(svg, 400, rowY + 22, 11, items[0], 16);
+      svg = renderSingleEventCol(svg, 195, rowY + 22, 11, items[1], 16);
+      svg = renderSingleEventCol(svg, 400, rowY + 42, 11, items[2], 16);
+      svg = renderSingleEventCol(svg, 195, rowY + 42, 11, items[3], 16);
     } else {
-      // Render the first 2 events on separate lines to prevent grid overflow and guarantee hours alignment
-      svg = renderEventLine(svg, 400, rowY + 23, 12, items[0]);
-      svg = renderEventLine(svg, 400, rowY + 43, 12, items[1]);
+      svg = renderSingleEventCol(svg, 400, rowY + 16, 10, items[0], 18);
+      svg = renderSingleEventCol(svg, 195, rowY + 16, 10, items[1], 18);
+      svg = renderSingleEventCol(svg, 400, rowY + 31, 10, items[2], 18);
+      svg = renderSingleEventCol(svg, 195, rowY + 31, 10, items[3], 18);
+      svg = renderSingleEventCol(svg, 400, rowY + 46, 10, items[4], 18);
+      if (items.length >= 6) {
+        svg = renderSingleEventCol(svg, 195, rowY + 46, 10, items[5], 18);
+      }
     }
   }
 
