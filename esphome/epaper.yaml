@@ -19,6 +19,7 @@ esp32:
 
 # Enable logging
 logger:
+  level: INFO
 
 # Enable native API for Home Assistant (optional)
 # api:
@@ -29,8 +30,8 @@ ota:
 
 # Wi-Fi Configuration
 wifi:
-  ssid: "Matzner"
-  password: "MatznerFamily"
+  ssid: "Pini"
+  password: "PiniRules"
   ap:
     ssid: "E-Paper Setup"
     ap_timeout: 15s
@@ -38,20 +39,14 @@ wifi:
     then:
       - component.update: screen_image
 
-# Enable captive portal
-captive_portal:
+# Disable captive portal to save memory
+# captive_portal:
 
 # HTTP Request client (bypass TLS check to avoid memory crash on HTTPS fetches)
 http_request:
   useragent: esphome/device
   timeout: 15s
   verify_ssl: false
-
-# Font configuration for local on-screen instructions
-font:
-  - file: "Rubik-Bold.ttf"
-    id: rubik_font
-    size: 26
 
 # SPI interface configuration for Seeed Studio XIAO ESP32-C3
 spi:
@@ -72,9 +67,6 @@ display:
         it.image(0, 0, id(screen_image));
       } else {
         it.fill(COLOR_OFF);
-        it.print(400, 160, id(rubik_font), COLOR_ON, TextAlign::CENTER, "Wi-Fi Config Mode");
-        it.print(400, 220, id(rubik_font), COLOR_ON, TextAlign::CENTER, "Connect to: E-Paper Setup");
-        it.print(400, 270, id(rubik_font), COLOR_ON, TextAlign::CENTER, "Open browser at: 192.168.4.1");
       }
 
 # Online Image component that fetches pre-rendered BMP from the Vercel app

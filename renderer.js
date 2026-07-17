@@ -248,11 +248,11 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${rightWidth}" height="100" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Weather Icon Placement -->
-      <g transform="translate(32, 22) scale(0.85)">
+      <g transform="translate(32, 34) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description under Icon -->
-      <text x="32" y="76" class="bold" font-size="10" text-anchor="middle" fill="black">${wDesc}</text>
+      <text x="32" y="78" class="bold" font-size="10" text-anchor="middle" fill="black">${wDesc}</text>
       
       <!-- Temperature -->
       <text x="92" y="44" class="bold" font-size="25" text-anchor="middle" fill="black">${wTemp}</text>
