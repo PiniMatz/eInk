@@ -289,8 +289,12 @@ app.post('/api/calendars/dedup', async (req, res) => {
 // API: Render ePaper Screen PNG Image
 app.get('/api/screen', async (req, res) => {
   try {
-    // 1. Trigger calendar sync in background (non-blocking)
-    db.syncCalendars().catch(err => console.error('Auto-sync during screen render failed:', err));
+    // 1. Trigger calendar sync (blocking so it always renders with the latest updates)
+    try {
+      await db.syncCalendars();
+    } catch (err) {
+      console.error('Auto-sync during screen render failed:', err);
+    }
 
     let dateStr;
     if (req.query.date) {

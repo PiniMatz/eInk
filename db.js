@@ -373,7 +373,7 @@ const db = {
     const startStr = `${rangeStart.getFullYear()}-${String(rangeStart.getMonth() + 1).padStart(2, '0')}-${String(rangeStart.getDate()).padStart(2, '0')}`;
     const endStr = `${rangeEnd.getFullYear()}-${String(rangeEnd.getMonth() + 1).padStart(2, '0')}-${String(rangeEnd.getDate()).padStart(2, '0')}`;
 
-    // 1. Fetch all existing events and tasks from Firestore to do in-memory lookup
+    // 1. Fetch all existing events and tasks to do in-memory lookup
     let existingEvents = [];
     let existingTasks = [];
     if (firestore) {
@@ -394,12 +394,22 @@ const db = {
     const keepEventIds = new Set();
     const keepTaskIds = new Set();
 
+    // Prepare Firestore batch
+    const batch = firestore ? firestore.batch() : null;
+
     for (const cal of calendars) {
       try {
         console.log(`Syncing calendar for ${cal.name}: ${cal.url}`);
         
-        // 2. Fetch and parse iCal
-        const webEvents = await ical.async.fromURL(cal.url);
+        // 2. Fetch and parse iCal with cache-busting
+        const bustUrl = cal.url.includes('?') ? `${cal.url}&_nocache=${Date.now()}` : `${cal.url}?_nocache=${Date.now()}`;
+        const webEvents = await ical.async.fromURL(bustUrl, {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
         
         for (const k in webEvents) {
           if (!webEvents.hasOwnProperty(k)) continue;
@@ -475,18 +485,43 @@ const db = {
               if (matched) {
                 keepEventIds.add(matched.id);
                 if (resolvedAuthor === 'נדיה' && matched.author !== 'נדיה') {
-                  await this.updateEventAuthor(dateStr, '', 'נדיה');
+                  if (firestore) {
+                    batch.update(firestore.collection('events').doc(matched.id), { author: 'נדיה' });
+                  }
                   matched.author = 'נדיה';
                 }
               } else {
-                const newEv = await this.addEvent({
-                  title: occ.summary || 'אירוע',
-                  date: dateStr,
-                  author: resolvedAuthor,
-                  isTimed: false,
-                  time: '',
-                  source: cal.id
-                });
+                let newEv;
+                if (firestore) {
+                  const docRef = firestore.collection('events').doc();
+                  newEv = {
+                    id: docRef.id,
+                    title: occ.summary || 'אירוע',
+                    date: dateStr,
+                    author: resolvedAuthor,
+                    isTimed: false,
+                    time: '',
+                    source: cal.id
+                  };
+                  batch.set(docRef, {
+                    title: newEv.title,
+                    date: newEv.date,
+                    author: newEv.author,
+                    isTimed: newEv.isTimed,
+                    time: newEv.time,
+                    source: newEv.source
+                  });
+                } else {
+                  newEv = {
+                    id: Math.random().toString(36).substring(2, 9),
+                    title: occ.summary || 'אירוע',
+                    date: dateStr,
+                    author: resolvedAuthor,
+                    isTimed: false,
+                    time: '',
+                    source: cal.id
+                  };
+                }
                 existingEvents.push(newEv);
                 keepEventIds.add(newEv.id);
               }
@@ -516,39 +551,87 @@ const db = {
                 keepTaskIds.add(matchedTask.id);
                 keepEventIds.add(matchedEvent.id);
                 if (resolvedAuthor === 'נדיה' && matchedTask.author !== 'נדיה') {
-                  await this.updateTaskAuthor(matchedTask.id, 'נדיה');
-                  await this.updateEventAuthor(dateStr, hourStr, 'נדיה');
+                  if (firestore) {
+                    batch.update(firestore.collection('tasks').doc(matchedTask.id), { author: 'נדיה' });
+                    batch.update(firestore.collection('events').doc(matchedEvent.id), { author: 'נדיה' });
+                  }
                   matchedTask.author = 'נדיה';
                   matchedEvent.author = 'נדיה';
                 }
               } else {
                 let taskId = matchedTask ? matchedTask.id : null;
                 if (!matchedTask) {
-                  const newTask = await this.addTask({
-                    description: occ.summary || 'פעילות',
-                    date: dateStr,
-                    time: hourStr,
-                    author: resolvedAuthor,
-                    source: cal.id
-                  });
-                  existingTasks.push(newTask);
-                  taskId = newTask.id;
+                  if (firestore) {
+                    const docRef = firestore.collection('tasks').doc();
+                    taskId = docRef.id;
+                    const newTask = {
+                      id: taskId,
+                      description: occ.summary || 'פעילות',
+                      date: dateStr,
+                      time: hourStr,
+                      author: resolvedAuthor,
+                      source: cal.id
+                    };
+                    batch.set(docRef, {
+                      description: newTask.description,
+                      date: newTask.date,
+                      time: newTask.time,
+                      author: newTask.author,
+                      source: newTask.source
+                    });
+                    existingTasks.push(newTask);
+                  } else {
+                    taskId = Math.random().toString(36).substring(2, 9);
+                    const newTask = {
+                      id: taskId,
+                      description: occ.summary || 'פעילות',
+                      date: dateStr,
+                      time: hourStr,
+                      author: resolvedAuthor,
+                      source: cal.id
+                    };
+                    existingTasks.push(newTask);
+                  }
                 }
                 keepTaskIds.add(taskId);
 
                 let eventId = matchedEvent ? matchedEvent.id : null;
                 if (!matchedEvent) {
                   const shortSummary = await summarizeTitle(occ.summary || 'פעילות');
-                  const newEv = await this.addEvent({
-                    title: shortSummary,
-                    date: dateStr,
-                    author: resolvedAuthor,
-                    isTimed: true,
-                    time: hourStr,
-                    source: cal.id
-                  });
-                  existingEvents.push(newEv);
-                  eventId = newEv.id;
+                  if (firestore) {
+                    const docRef = firestore.collection('events').doc();
+                    eventId = docRef.id;
+                    const newEv = {
+                      id: eventId,
+                      title: shortSummary,
+                      date: dateStr,
+                      author: resolvedAuthor,
+                      isTimed: true,
+                      time: hourStr,
+                      source: cal.id
+                    };
+                    batch.set(docRef, {
+                      title: newEv.title,
+                      date: newEv.date,
+                      author: newEv.author,
+                      isTimed: newEv.isTimed,
+                      time: newEv.time,
+                      source: newEv.source
+                    });
+                    existingEvents.push(newEv);
+                  } else {
+                    eventId = Math.random().toString(36).substring(2, 9);
+                    const newEv = {
+                      id: eventId,
+                      title: shortSummary,
+                      date: dateStr,
+                      author: resolvedAuthor,
+                      isTimed: true,
+                      time: hourStr,
+                      source: cal.id
+                    };
+                    existingEvents.push(newEv);
+                  }
                 }
                 keepEventIds.add(eventId);
               }
@@ -563,25 +646,26 @@ const db = {
     // 3. Delete stale events and tasks within the sync range
     if (firestore) {
       try {
-        const batch = firestore.batch();
         let deleteCount = 0;
         
         existingEvents.forEach(e => {
-          if (e.date >= startStr && e.date <= endStr && !keepEventIds.has(e.id)) {
+          // Only delete synced events, leave manually created UI events untouched
+          if (e.source && e.date >= startStr && e.date <= endStr && !keepEventIds.has(e.id)) {
             batch.delete(firestore.collection('events').doc(e.id));
             deleteCount++;
           }
         });
 
         existingTasks.forEach(t => {
-          if (t.date >= startStr && t.date <= endStr && !keepTaskIds.has(t.id)) {
+          // Only delete synced tasks, leave manually created UI tasks untouched
+          if (t.source && t.date >= startStr && t.date <= endStr && !keepTaskIds.has(t.id)) {
             batch.delete(firestore.collection('tasks').doc(t.id));
             deleteCount++;
           }
         });
 
+        await batch.commit();
         if (deleteCount > 0) {
-          await batch.commit();
           console.log(`Deleted ${deleteCount} stale synced items from Firestore.`);
         }
       } catch (err) {
@@ -589,8 +673,18 @@ const db = {
       }
     } else {
       const data = readLocal();
-      data.events = (data.events || []).filter(e => !(e.date >= startStr && e.date <= endStr && !keepEventIds.has(e.id)));
-      data.tasks = (data.tasks || []).filter(t => !(t.date >= startStr && t.date <= endStr && !keepTaskIds.has(t.id)));
+      data.events = (data.events || []).filter(e => {
+        if (e.source && e.date >= startStr && e.date <= endStr) {
+          return keepEventIds.has(e.id);
+        }
+        return true;
+      });
+      data.tasks = (data.tasks || []).filter(t => {
+        if (t.source && t.date >= startStr && t.date <= endStr) {
+          return keepTaskIds.has(t.id);
+        }
+        return true;
+      });
       writeLocal(data);
     }
     console.log('Smart sync completed successfully!');
