@@ -40,7 +40,9 @@ function truncateText(text, maxLength = 10) {
 
 function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
   if (item.isHoliday) {
-    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(stripNikud(item.title), maxLen)}</text>`;
+    const cleanTitle = truncateText(stripNikud(item.title), maxLen);
+    const rleHoliday = `\u202B${cleanTitle}\u202C`;
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${rleHoliday}</text>`;
   }
   
   const showAuthor = item.author && (item.author === 'סול' || item.author === 'סהר');
@@ -48,6 +50,7 @@ function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
   const cleanTitle = stripNikud(item.title);
   const truncatedTitle = truncateText(cleanTitle, maxLen);
   const displayText = truncatedTitle + authorSuffix;
+  const rleText = `\u202B${displayText}\u202C`;
   
   if (item.isTimed) {
     let timeOffset = 42;
@@ -67,10 +70,10 @@ function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
     let lineSvg = '';
     lineSvg += `<text x="${timeX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${item.time}</text>`;
     lineSvg += `<circle cx="${dotX}" cy="${textY - 3.5}" r="1.5" fill="black" />`;
-    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${displayText}</text>`;
+    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${rleText}</text>`;
     return svg + lineSvg;
   } else {
-    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${displayText}</text>`;
+    return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${rleText}</text>`;
   }
 }
 
@@ -245,8 +248,8 @@ function generateSvg({ date, events, tasks, weather }) {
   // SIDEBAR: CARD 1: GREGORIAN DATE BANNER (Top-Right, 60px Height)
   // ==========================================
   const dayName = WEEKDAYS_HE_FULL[date.getDay()];
-  const dateBannerStr = `יום ${dayName}`;
-  const dateSubStr = `${date.getDate()}.${month}.${year}`;
+  const dateBannerStr = `\u202Bיום ${dayName}\u202C`;
+  const dateSubStr = `\u202B${date.getDate()}.${month}.${year}\u202C`;
 
   svg += `
     <!-- Date Banner Container -->
@@ -285,10 +288,10 @@ function generateSvg({ date, events, tasks, weather }) {
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description centered under the Icon -->
-      <text x="46" y="80" class="bold" font-size="10.5" text-anchor="middle" fill="black">${wDesc}</text>
+      <text x="46" y="80" class="bold" font-size="10.5" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
-      <text x="92" y="104" class="regular" font-size="9" text-anchor="middle" fill="black">זריחה: ${wSunrise}  •  שקיעה: ${wSunset}</text>
+      <text x="92" y="104" class="regular" font-size="9" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
     </g>
   `;
 
@@ -309,20 +312,21 @@ function generateSvg({ date, events, tasks, weather }) {
   `;
 
   if (tasks.length === 0) {
-    svg += `<text x="92" y="140" class="bold" font-size="14.5" text-anchor="middle" fill="black">אין משימות להיום</text>`;
+    svg += `<text x="92" y="140" class="bold" font-size="14.5" text-anchor="middle" fill="black">\u202Bאין משימות להיום\u202C</text>`;
   } else {
     // Render up to 5 items
     tasks.slice(0, 5).forEach((task, idx) => {
       const rowY = 58 + idx * 40;
       const cleanDesc = stripNikud(task.description);
       const displayText = truncateText(cleanDesc, 17);
+      const rleText = `\u202B${displayText}\u202C`;
       
       // Draw hour
       svg += `<text x="172" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
       // Dot separator
       svg += `<circle cx="130" cy="${rowY - 4}" r="2" fill="black" />`;
       // Draw task desc
-      svg += `<text x="120" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${displayText}</text>`;
+      svg += `<text x="120" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${rleText}</text>`;
     });
   }
 
@@ -354,7 +358,7 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Weekly Range Header -->
-      <text x="565" y="26" class="bold" font-size="16" text-anchor="end" fill="black">לוח שבועי: ${weekRangeStr}</text>
+      <text x="565" y="26" class="bold" font-size="16" text-anchor="end" fill="black">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
       <line x1="15" y1="34" x2="565" y2="34" stroke="black" stroke-width="1.5" />
   `;
 
@@ -374,7 +378,7 @@ function generateSvg({ date, events, tasks, weather }) {
     }
     
     // Day Label (RTL) - Right part of the row
-    const dayLabelStr = `${WEEKDAYS_HE_FULL[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
+    const dayLabelStr = `\u202B${WEEKDAYS_HE_FULL[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}\u202C`;
     if (isToday) {
       // Draw highlighted black pill for today
       svg += `<rect x="468" y="${rowY + 8}" width="90" height="42" rx="6" ry="6" fill="black" />`;
@@ -400,7 +404,7 @@ function generateSvg({ date, events, tasks, weather }) {
     dayEvents.forEach(e => items.push(e));
     
     if (items.length === 0) {
-      svg += `<text x="446" y="${rowY + 33}" class="regular" font-size="13" text-anchor="end" fill="#888888">אין אירועים</text>`;
+      svg += `<text x="446" y="${rowY + 33}" class="regular" font-size="13" text-anchor="end" fill="#888888">\u202Bאין אירועים\u202C</text>`;
     } else if (items.length === 1) {
       svg = renderSingleEventCol(svg, 446, rowY + 33, 13, items[0], 46);
     } else if (items.length === 2) {

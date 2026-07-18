@@ -44,9 +44,6 @@ wifi:
   ap:
     ssid: "E-Paper Setup"
     ap_timeout: 15s
-  on_connect:
-    then:
-      - component.update: screen_image
 
 # Disable captive portal to save memory
 # captive_portal:
