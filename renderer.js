@@ -406,9 +406,9 @@ function generateSvg({ date, events, tasks, weather }) {
       svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 54);
       svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[1], 54);
     } else if (items.length === 3) {
-      svg = renderSingleEventCol(svg, 446, rowY + 16, 10, items[0], 60);
-      svg = renderSingleEventCol(svg, 446, rowY + 31, 10, items[1], 60);
-      svg = renderSingleEventCol(svg, 446, rowY + 46, 10, items[2], 60);
+      svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 20);
+      svg = renderSingleEventCol(svg, 210, rowY + 22, 11, items[1], 17);
+      svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[2], 20);
     } else if (items.length === 4) {
       svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 20);
       svg = renderSingleEventCol(svg, 210, rowY + 22, 11, items[1], 17);
