@@ -310,9 +310,40 @@ app.get('/api/screen', async (req, res) => {
     const [year, month, day] = dateStr.split('-').map(Number);
     const reqDate = new Date(year, month - 1, day);
 
+    // Calculate the start and end of the 7-day window (yesterday to yesterday + 6 days)
+    const startRangeDate = new Date(reqDate);
+    startRangeDate.setDate(reqDate.getDate() - 1);
+    const endRangeDate = new Date(reqDate);
+    endRangeDate.setDate(reqDate.getDate() + 5);
+
+    const startYear = startRangeDate.getFullYear();
+    const startMonth = startRangeDate.getMonth() + 1;
+    const endYear = endRangeDate.getFullYear();
+    const endMonth = endRangeDate.getMonth() + 1;
+
+    let eventsPromise;
+    if (startYear === endYear && startMonth === endMonth) {
+      eventsPromise = db.getEvents(startYear, startMonth);
+    } else {
+      eventsPromise = Promise.all([
+        db.getEvents(startYear, startMonth),
+        db.getEvents(endYear, endMonth)
+      ]).then(([evs1, evs2]) => {
+        const seen = new Set();
+        const merged = [];
+        [...evs1, ...evs2].forEach(e => {
+          if (!seen.has(e.id)) {
+            seen.add(e.id);
+            merged.push(e);
+          }
+        });
+        return merged;
+      });
+    }
+
     // 3. Fetch database data
     const [events, tasks, weather] = await Promise.all([
-      db.getEvents(year, month),
+      eventsPromise,
       db.getTasks(dateStr),
       getWeather(req.query.location)
     ]);

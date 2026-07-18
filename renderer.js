@@ -190,23 +190,32 @@ function generateSvg({ date, events, tasks, weather }) {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   
-  // Fetch Jewish Holidays for this month
-  const holidays = getJewishHolidays(year, month);
-
-  // Hebrew weekday full and short lists
-  const WEEKDAYS_HE_FULL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
-  // Calculate current week dates (Sunday to Saturday)
-  const currentDayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ...
-  const sundayDate = new Date(date);
-  sundayDate.setDate(date.getDate() - currentDayOfWeek);
+  // Calculate rolling 7-day window starting from yesterday
+  const yesterdayDate = new Date(date);
+  yesterdayDate.setDate(date.getDate() - 1);
   
   const weekDates = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(sundayDate);
-    d.setDate(sundayDate.getDate() + i);
+    const d = new Date(yesterdayDate);
+    d.setDate(yesterdayDate.getDate() + i);
     weekDates.push(d);
   }
+
+  const startWeek = weekDates[0];
+  const endWeek = weekDates[6];
+
+  // Fetch Jewish Holidays for the week range (could span two months)
+  let holidays = {};
+  if (startWeek.getMonth() === endWeek.getMonth()) {
+    holidays = getJewishHolidays(startWeek.getFullYear(), startWeek.getMonth() + 1);
+  } else {
+    const h1 = getJewishHolidays(startWeek.getFullYear(), startWeek.getMonth() + 1);
+    const h2 = getJewishHolidays(endWeek.getFullYear(), endWeek.getMonth() + 1);
+    holidays = { ...h1, ...h2 };
+  }
+
+  // Hebrew weekday full and short lists
+  const WEEKDAYS_HE_FULL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 
   // Layout Grid Dimensions (Option 1: Main Left 70%, Sidebar Right 30%)
   const pad = 12;
@@ -321,15 +330,21 @@ function generateSvg({ date, events, tasks, weather }) {
   // ==========================================
   // MAIN SECTION: CARD 4: WEEKLY AGENDA HORIZON (Left Section, 7 Rows)
   // ==========================================
-  const sunday = weekDates[0];
-  const saturday = weekDates[6];
-  const startMonthName = MONTHS_HE[sunday.getMonth()];
-  const endMonthName = MONTHS_HE[saturday.getMonth()];
+  const startOfWeek = weekDates[0];
+  const endOfWeek = weekDates[6];
+  const startMonthName = MONTHS_HE[startOfWeek.getMonth()];
+  const endMonthName = MONTHS_HE[endOfWeek.getMonth()];
   let weekRangeStr = "";
-  if (sunday.getMonth() === saturday.getMonth()) {
-    weekRangeStr = `${sunday.getDate()} - ${saturday.getDate()} ${startMonthName} ${year}`;
+  if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+    weekRangeStr = `${startOfWeek.getDate()} - ${endOfWeek.getDate()} ${startMonthName} ${startOfWeek.getFullYear()}`;
   } else {
-    weekRangeStr = `${sunday.getDate()} ${startMonthName} - ${saturday.getDate()} ${endMonthName} ${year}`;
+    const startYear = startOfWeek.getFullYear();
+    const endYear = endOfWeek.getFullYear();
+    if (startYear === endYear) {
+      weekRangeStr = `${startOfWeek.getDate()} ${startMonthName} - ${endOfWeek.getDate()} ${endMonthName} ${endYear}`;
+    } else {
+      weekRangeStr = `${startOfWeek.getDate()} ${startMonthName} ${startYear} - ${endOfWeek.getDate()} ${endMonthName} ${endYear}`;
+    }
   }
 
   svg += `
@@ -358,7 +373,7 @@ function generateSvg({ date, events, tasks, weather }) {
     }
     
     // Day Label (RTL) - Right part of the row
-    const dayLabelStr = `${WEEKDAYS_HE_FULL[i]} ${d.getDate()}/${d.getMonth() + 1}`;
+    const dayLabelStr = `${WEEKDAYS_HE_FULL[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
     if (isToday) {
       // Draw highlighted black pill for today
       svg += `<rect x="468" y="${rowY + 8}" width="90" height="42" rx="6" ry="6" fill="black" />`;
