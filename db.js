@@ -129,13 +129,29 @@ const db = {
   async deleteEvent(id) {
     if (firestore) {
       try {
-        await firestore.collection('events').doc(id).delete();
+        const docRef = firestore.collection('events').doc(id);
+        const doc = await docRef.get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.uid) {
+            await firestore.collection('deleted_uids').doc(data.uid).set({ deletedAt: new Date() });
+            console.log(`Tombstoned deleted event UID: ${data.uid}`);
+          }
+        }
+        await docRef.delete();
       } catch (err) {
         console.error('Firestore deleteEvent failed:', err);
         throw err;
       }
     } else {
       const data = readLocal();
+      const event = data.events.find(e => e.id === id);
+      if (event && event.uid) {
+        data.deleted_uids = data.deleted_uids || [];
+        if (!data.deleted_uids.includes(event.uid)) {
+          data.deleted_uids.push(event.uid);
+        }
+      }
       data.events = data.events.filter(e => e.id !== id);
       writeLocal(data);
     }
@@ -196,13 +212,29 @@ const db = {
   async deleteTask(id) {
     if (firestore) {
       try {
-        await firestore.collection('tasks').doc(id).delete();
+        const docRef = firestore.collection('tasks').doc(id);
+        const doc = await docRef.get();
+        if (doc.exists) {
+          const data = doc.data();
+          if (data.uid) {
+            await firestore.collection('deleted_uids').doc(data.uid).set({ deletedAt: new Date() });
+            console.log(`Tombstoned deleted task UID: ${data.uid}`);
+          }
+        }
+        await docRef.delete();
       } catch (err) {
         console.error('Firestore deleteTask failed:', err);
         throw err;
       }
     } else {
       const data = readLocal();
+      const task = data.tasks.find(t => t.id === id);
+      if (task && task.uid) {
+        data.deleted_uids = data.deleted_uids || [];
+        if (!data.deleted_uids.includes(task.uid)) {
+          data.deleted_uids.push(task.uid);
+        }
+      }
       data.tasks = data.tasks.filter(t => t.id !== id);
       writeLocal(data);
     }
@@ -373,6 +405,20 @@ const db = {
     const startStr = `${rangeStart.getFullYear()}-${String(rangeStart.getMonth() + 1).padStart(2, '0')}-${String(rangeStart.getDate()).padStart(2, '0')}`;
     const endStr = `${rangeEnd.getFullYear()}-${String(rangeEnd.getMonth() + 1).padStart(2, '0')}-${String(rangeEnd.getDate()).padStart(2, '0')}`;
 
+    // Load tombstoned UIDs
+    const deletedUids = new Set();
+    if (firestore) {
+      try {
+        const deletedSnap = await firestore.collection('deleted_uids').get();
+        deletedSnap.forEach(doc => deletedUids.add(doc.id));
+      } catch (err) {
+        console.error('Failed to load deleted UIDs:', err);
+      }
+    } else {
+      const localData = readLocal();
+      (localData.deleted_uids || []).forEach(uid => deletedUids.add(uid));
+    }
+
     // 1. Fetch all existing events and tasks to do in-memory lookup
     let existingEvents = [];
     let existingTasks = [];
@@ -472,6 +518,13 @@ const db = {
               const d = parts.find(p => p.type === 'day').value;
               dateStr = `${y}-${m}-${d}`;
             }
+
+            // Build unique occurrence ID and check if tombstoned
+            const occUid = ev.uid ? `${ev.uid}_${dateStr}` : `${occ.summary || 'event'}_${dateStr}_${occStart.getTime()}_${cal.id}`;
+            if (deletedUids.has(occUid)) {
+              console.log(`Skipping deleted event occurrence: ${occUid}`);
+              continue;
+            }
             
             const resolvedAuthor = getEventOrganizerName(occ, cal.name);
 
@@ -484,11 +537,17 @@ const db = {
 
               if (matched) {
                 keepEventIds.add(matched.id);
+                const updateData = {};
+                if (!matched.uid) {
+                  updateData.uid = occUid;
+                  matched.uid = occUid;
+                }
                 if (resolvedAuthor === 'נדיה' && matched.author !== 'נדיה') {
-                  if (firestore) {
-                    batch.update(firestore.collection('events').doc(matched.id), { author: 'נדיה' });
-                  }
+                  updateData.author = 'נדיה';
                   matched.author = 'נדיה';
+                }
+                if (Object.keys(updateData).length > 0 && firestore) {
+                  batch.update(firestore.collection('events').doc(matched.id), updateData);
                 }
               } else {
                 let newEv;
@@ -501,7 +560,8 @@ const db = {
                     author: resolvedAuthor,
                     isTimed: false,
                     time: '',
-                    source: cal.id
+                    source: cal.id,
+                    uid: occUid
                   };
                   batch.set(docRef, {
                     title: newEv.title,
@@ -509,7 +569,8 @@ const db = {
                     author: newEv.author,
                     isTimed: newEv.isTimed,
                     time: newEv.time,
-                    source: newEv.source
+                    source: newEv.source,
+                    uid: occUid
                   });
                 } else {
                   newEv = {
@@ -519,7 +580,8 @@ const db = {
                     author: resolvedAuthor,
                     isTimed: false,
                     time: '',
-                    source: cal.id
+                    source: cal.id,
+                    uid: occUid
                   };
                 }
                 existingEvents.push(newEv);
@@ -550,13 +612,31 @@ const db = {
               if (matchedTask && matchedEvent) {
                 keepTaskIds.add(matchedTask.id);
                 keepEventIds.add(matchedEvent.id);
+
+                const taskUpdate = {};
+                if (!matchedTask.uid) {
+                  taskUpdate.uid = occUid;
+                  matchedTask.uid = occUid;
+                }
                 if (resolvedAuthor === 'נדיה' && matchedTask.author !== 'נדיה') {
-                  if (firestore) {
-                    batch.update(firestore.collection('tasks').doc(matchedTask.id), { author: 'נדיה' });
-                    batch.update(firestore.collection('events').doc(matchedEvent.id), { author: 'נדיה' });
-                  }
+                  taskUpdate.author = 'נדיה';
                   matchedTask.author = 'נדיה';
+                }
+                if (Object.keys(taskUpdate).length > 0 && firestore) {
+                  batch.update(firestore.collection('tasks').doc(matchedTask.id), taskUpdate);
+                }
+
+                const eventUpdate = {};
+                if (!matchedEvent.uid) {
+                  eventUpdate.uid = occUid;
+                  matchedEvent.uid = occUid;
+                }
+                if (resolvedAuthor === 'נדיה' && matchedEvent.author !== 'נדיה') {
+                  eventUpdate.author = 'נדיה';
                   matchedEvent.author = 'נדיה';
+                }
+                if (Object.keys(eventUpdate).length > 0 && firestore) {
+                  batch.update(firestore.collection('events').doc(matchedEvent.id), eventUpdate);
                 }
               } else {
                 let taskId = matchedTask ? matchedTask.id : null;
@@ -570,14 +650,16 @@ const db = {
                       date: dateStr,
                       time: hourStr,
                       author: resolvedAuthor,
-                      source: cal.id
+                      source: cal.id,
+                      uid: occUid
                     };
                     batch.set(docRef, {
                       description: newTask.description,
                       date: newTask.date,
                       time: newTask.time,
                       author: newTask.author,
-                      source: newTask.source
+                      source: newTask.source,
+                      uid: occUid
                     });
                     existingTasks.push(newTask);
                   } else {
@@ -588,7 +670,8 @@ const db = {
                       date: dateStr,
                       time: hourStr,
                       author: resolvedAuthor,
-                      source: cal.id
+                      source: cal.id,
+                      uid: occUid
                     };
                     existingTasks.push(newTask);
                   }
@@ -608,7 +691,8 @@ const db = {
                       author: resolvedAuthor,
                       isTimed: true,
                       time: hourStr,
-                      source: cal.id
+                      source: cal.id,
+                      uid: occUid
                     };
                     batch.set(docRef, {
                       title: newEv.title,
@@ -616,7 +700,8 @@ const db = {
                       author: newEv.author,
                       isTimed: newEv.isTimed,
                       time: newEv.time,
-                      source: newEv.source
+                      source: newEv.source,
+                      uid: occUid
                     });
                     existingEvents.push(newEv);
                   } else {
@@ -628,7 +713,8 @@ const db = {
                       author: resolvedAuthor,
                       isTimed: true,
                       time: hourStr,
-                      source: cal.id
+                      source: cal.id,
+                      uid: occUid
                     };
                     existingEvents.push(newEv);
                   }
