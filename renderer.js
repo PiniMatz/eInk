@@ -242,7 +242,25 @@ function generateSvg({ date, events, tasks, weather }) {
   `;
 
   // ==========================================
-  // SIDEBAR: CARD 1: WEATHER CARD (Top-Right, 100px Height)
+  // SIDEBAR: CARD 1: GREGORIAN DATE BANNER (Top-Right, 60px Height)
+  // ==========================================
+  const dayName = WEEKDAYS_HE_FULL[date.getDay()];
+  const dateBannerStr = `יום ${dayName}`;
+  const dateSubStr = `${date.getDate()}.${month}.${year}`;
+
+  svg += `
+    <!-- Date Banner Container -->
+    <g transform="translate(${rightX}, ${pad})">
+      <rect x="0" y="0" width="${rightWidth}" height="60" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      
+      <!-- Gregorian Date Banner -->
+      <text x="92" y="24" class="bold" font-size="16" text-anchor="middle" fill="black">${dateBannerStr}</text>
+      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="black">${dateSubStr}</text>
+    </g>
+  `;
+
+  // ==========================================
+  // SIDEBAR: CARD 2: WEATHER CARD (Middle-Right, 120px Height)
   // ==========================================
   const wTemp = weather.temp !== undefined ? `${Math.round(weather.temp)}°C` : '--°C';
   const wTempMin = weather.tempMin !== undefined ? `${Math.round(weather.tempMin)}` : '--';
@@ -254,53 +272,35 @@ function generateSvg({ date, events, tasks, weather }) {
 
   svg += `
     <!-- Weather Card Container -->
-    <g transform="translate(${rightX}, ${pad})">
-      <rect x="0" y="0" width="${rightWidth}" height="100" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+    <g transform="translate(${rightX}, ${pad + 60 + gap})">
+      <rect x="0" y="0" width="${rightWidth}" height="120" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Temperature (Top Right) -->
-      <text x="172" y="38" class="bold" font-size="24" text-anchor="end" fill="black">${wTemp}</text>
+      <text x="172" y="42" class="bold" font-size="24" text-anchor="end" fill="black">${wTemp}</text>
       <!-- Min/Max Temp Range (Below Temp) -->
-      <text x="172" y="58" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
+      <text x="172" y="64" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Weather Icon Placement (Center-Left Centered) -->
-      <g transform="translate(46, 36) scale(0.85)">
+      <g transform="translate(46, 40) scale(0.9)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description centered under the Icon -->
-      <text x="46" y="72" class="bold" font-size="10.5" text-anchor="middle" fill="black">${wDesc}</text>
+      <text x="46" y="80" class="bold" font-size="10.5" text-anchor="middle" fill="black">${wDesc}</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
-      <text x="92" y="84" class="regular" font-size="9" text-anchor="middle" fill="black">זריחה: ${wSunrise}  •  שקיעה: ${wSunset}</text>
+      <text x="92" y="104" class="regular" font-size="9" text-anchor="middle" fill="black">זריחה: ${wSunrise}  •  שקיעה: ${wSunset}</text>
     </g>
   `;
 
   // ==========================================
-  // SIDEBAR: CARD 2: GREGORIAN DATE BANNER (Middle-Right, 60px Height)
-  // ==========================================
-  const dayName = WEEKDAYS_HE_FULL[date.getDay()];
-  const dateBannerStr = `יום ${dayName}`;
-  const dateSubStr = `${date.getDate()}.${month}.${year}`;
-
-  svg += `
-    <!-- Date Banner Container -->
-    <g transform="translate(${rightX}, ${pad + 100 + gap})">
-      <rect x="0" y="0" width="${rightWidth}" height="60" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
-      
-      <!-- Gregorian Date Banner -->
-      <text x="92" y="24" class="bold" font-size="16" text-anchor="middle" fill="black">${dateBannerStr}</text>
-      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="black">${dateSubStr}</text>
-    </g>
-  `;
-
-  // ==========================================
-  // SIDEBAR: CARD 3: DAILY SCHEDULE (Bottom-Right, 284px Height)
+  // SIDEBAR: CARD 3: DAILY SCHEDULE (Bottom-Right, 252px Height)
   // ==========================================
   const displayDateStr = `${date.getDate()}/${month}`;
-  const scheduleHeight = 480 - pad - (pad + 100 + gap + 60 + gap); // 480 - 12 - 184 = 284
+  const scheduleHeight = 252;
   
   svg += `
     <!-- Schedule Card Container -->
-    <g transform="translate(${rightX}, ${pad + 100 + gap + 60 + gap})">
+    <g transform="translate(${rightX}, ${pad + 60 + gap + 120 + gap})">
       <rect x="0" y="0" width="${rightWidth}" height="${scheduleHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Section Title -->
