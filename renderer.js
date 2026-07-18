@@ -252,12 +252,12 @@ function generateSvg({ date, events, tasks, weather }) {
       <!-- Min/Max Temp Range (Below Temp) -->
       <text x="172" y="58" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
-      <!-- Weather Icon Placement (Center-Left) -->
-      <g transform="translate(76, 28) scale(0.8)">
+      <!-- Weather Icon Placement (Center-Left Centered) -->
+      <g transform="translate(46, 36) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
-      <!-- Description (Left Edge) -->
-      <text x="12" y="50" class="bold" font-size="10" text-anchor="start" fill="black">${wDesc}</text>
+      <!-- Description centered under the Icon -->
+      <text x="46" y="72" class="bold" font-size="10.5" text-anchor="middle" fill="black">${wDesc}</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
       <text x="92" y="84" class="regular" font-size="9" text-anchor="middle" fill="black">זריחה: ${wSunrise}  •  שקיעה: ${wSunset}</text>
