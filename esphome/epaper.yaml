@@ -4,8 +4,10 @@ esphome:
   platformio_options:
     board_build.flash_mode: dio
   on_boot:
-    priority: 0.0
+    priority: 250.0
     then:
+      - lambda: |-
+          id(screen_image).resize(800, 480);
       - delay: 10s
       - online_image.set_url:
           id: screen_image
@@ -16,6 +18,12 @@ esp32:
   variant: esp32c3
   framework:
     type: esp-idf
+    sdkconfig_options:
+      CONFIG_MBEDTLS_DYNAMIC_BUFFER: "y"
+      CONFIG_MBEDTLS_DYNAMIC_FREE_CONFIG_DATA: "y"
+      CONFIG_MBEDTLS_DYNAMIC_FREE_CA_CERT: "y"
+      CONFIG_MBEDTLS_SSL_IN_CONTENT_LEN: "16384"
+      CONFIG_MBEDTLS_SSL_OUT_CONTENT_LEN: "4096"
 
 # Enable logging
 logger:
