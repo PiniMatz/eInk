@@ -43,7 +43,8 @@ function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
     return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${truncateText(stripNikud(item.title), maxLen)}</text>`;
   }
   
-  const authorSuffix = item.author ? ` [${item.author}]` : '';
+  const showAuthor = item.author && (item.author === 'סול' || item.author === 'סהר');
+  const authorSuffix = showAuthor ? ` [${item.author}]` : '';
   const cleanTitle = stripNikud(item.title);
   const truncatedTitle = truncateText(cleanTitle, maxLen);
   const displayText = truncatedTitle + authorSuffix;
