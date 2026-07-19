@@ -236,11 +236,11 @@ function generateSvg({ date, events, tasks, weather }) {
   // Start constructing SVG string
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
 
-  // Global styling rules - Using Assistant as primary font
+  // Global styling rules - Using Noto Sans Hebrew as primary font
   svg += `
     <style>
-      .bold { font-family: 'Assistant', 'Noto Sans Hebrew', sans-serif; font-weight: 700; }
-      .regular { font-family: 'Assistant', 'Noto Sans Hebrew', sans-serif; font-weight: 500; }
+      .bold { font-family: 'Noto Sans Hebrew', sans-serif; font-weight: bold; }
+      .regular { font-family: 'Noto Sans Hebrew', sans-serif; font-weight: normal; }
     </style>
   `;
 
@@ -445,11 +445,10 @@ function renderBmp(data) {
   const resvg = new Resvg(svgString, {
     font: {
       fontFiles: [
-        path.join(process.cwd(), 'fonts', 'Assistant-Bold.ttf'),
-        path.join(process.cwd(), 'fonts', 'Assistant-Regular.ttf'),
-        path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf')
+        path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf'),
+        path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Regular.ttf')
       ],
-      defaultFontFamily: 'Assistant',
+      defaultFontFamily: 'Noto Sans Hebrew',
       loadSystemFonts: false,
     },
     fitTo: {
