@@ -239,8 +239,8 @@ function generateSvg({ date, events, tasks, weather }) {
   // Global styling rules - Using Rubik as primary font
   svg += `
     <style>
-      .bold { font-family: 'Rubik', sans-serif; font-weight: 900; }
-      .regular { font-family: 'Rubik', sans-serif; font-weight: 700; }
+      .bold { font-family: 'Rubik Light Black', sans-serif; font-weight: 900; }
+      .regular { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
     </style>
   `;
 
@@ -446,9 +446,10 @@ function renderBmp(data) {
     font: {
       fontFiles: [
         path.join(process.cwd(), 'fonts', 'Rubik-Bold.ttf'),
-        path.join(process.cwd(), 'fonts', 'Rubik-Regular.ttf')
+        path.join(process.cwd(), 'fonts', 'Rubik-Regular.ttf'),
+        path.join(process.cwd(), 'fonts', 'Rubik-Black.ttf')
       ],
-      defaultFontFamily: 'Rubik',
+      defaultFontFamily: 'Rubik Light',
       loadSystemFonts: false,
     },
     fitTo: {
