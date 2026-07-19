@@ -236,11 +236,11 @@ function generateSvg({ date, events, tasks, weather }) {
   // Start constructing SVG string
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
 
-  // Global styling rules - Using Noto Sans Hebrew with Heebo fallback
+  // Global styling rules - Using Heebo as primary font
   svg += `
     <style>
-      .bold { font-family: 'Noto Sans Hebrew', 'Heebo', sans-serif; font-weight: 800; }
-      .regular { font-family: 'Noto Sans Hebrew', 'Heebo', sans-serif; font-weight: 600; }
+      .bold { font-family: 'Heebo', sans-serif; font-weight: 800; }
+      .regular { font-family: 'Heebo', sans-serif; font-weight: 600; }
     </style>
   `;
 
@@ -445,12 +445,10 @@ function renderBmp(data) {
   const resvg = new Resvg(svgString, {
     font: {
       fontFiles: [
-        path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf'),
-        path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Regular.ttf'),
         path.join(process.cwd(), 'fonts', 'Heebo-Bold.ttf'),
         path.join(process.cwd(), 'fonts', 'Heebo-Regular.ttf')
       ],
-      defaultFontFamily: 'Noto Sans Hebrew',
+      defaultFontFamily: 'Heebo',
       loadSystemFonts: false,
     },
     fitTo: {
