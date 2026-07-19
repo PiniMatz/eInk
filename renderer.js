@@ -446,7 +446,7 @@ function renderBmp(data) {
     font: {
       fontFiles: [
         path.join(process.cwd(), 'fonts', 'Assistant-Bold.ttf'),
-        path.join(process.cwd(), 'fonts', 'Assistant-Medium.ttf'),
+        path.join(process.cwd(), 'fonts', 'Assistant-Regular.ttf'),
         path.join(process.cwd(), 'fonts', 'NotoSansHebrew-Bold.ttf')
       ],
       defaultFontFamily: 'Assistant',
