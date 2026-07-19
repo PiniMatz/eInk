@@ -239,8 +239,8 @@ function generateSvg({ date, events, tasks, weather }) {
   // Global styling rules - Using Heebo as primary font
   svg += `
     <style>
-      .bold { font-family: 'Heebo', sans-serif; font-weight: 800; }
-      .regular { font-family: 'Heebo', sans-serif; font-weight: 600; }
+      .bold { font-family: 'Heebo', sans-serif; font-weight: 900; }
+      .regular { font-family: 'Heebo', sans-serif; font-weight: 700; }
     </style>
   `;
 
