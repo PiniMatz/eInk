@@ -404,7 +404,7 @@ function generateSvg({ date, events, tasks, weather }) {
     dayEvents.forEach(e => items.push(e));
     
     if (items.length === 0) {
-      svg += `<text x="446" y="${rowY + 30}" class="regular" font-size="12.5" text-anchor="end" fill="#888888">\u202Bאין אירועים\u202C</text>`;
+      svg += `<text x="446" y="${rowY + 30}" class="regular" font-size="12.5" text-anchor="end" fill="black">\u202Bאין אירועים\u202C</text>`;
     } else if (items.length === 1) {
       svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], 46);
     } else if (items.length === 2) {
