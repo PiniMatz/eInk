@@ -538,6 +538,11 @@ const db = {
               if (matched) {
                 keepEventIds.add(matched.id);
                 const updateData = {};
+                const newTitle = await summarizeTitle(occ.summary || 'אירוע');
+                if (matched.title !== newTitle) {
+                  updateData.title = newTitle;
+                  matched.title = newTitle;
+                }
                 if (!matched.uid) {
                   updateData.uid = occUid;
                   matched.uid = occUid;
@@ -618,6 +623,10 @@ const db = {
                   taskUpdate.uid = occUid;
                   matchedTask.uid = occUid;
                 }
+                if (matchedTask.description !== (occ.summary || 'פעילות')) {
+                  taskUpdate.description = occ.summary || 'פעילות';
+                  matchedTask.description = occ.summary || 'פעילות';
+                }
                 if (resolvedAuthor === 'נדיה' && matchedTask.author !== 'נדיה') {
                   taskUpdate.author = 'נדיה';
                   matchedTask.author = 'נדיה';
@@ -627,6 +636,11 @@ const db = {
                 }
 
                 const eventUpdate = {};
+                const newTitle = await summarizeTitle(occ.summary || 'פעילות');
+                if (matchedEvent.title !== newTitle) {
+                  eventUpdate.title = newTitle;
+                  matchedEvent.title = newTitle;
+                }
                 if (!matchedEvent.uid) {
                   eventUpdate.uid = occUid;
                   matchedEvent.uid = occUid;
