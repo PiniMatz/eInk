@@ -358,13 +358,13 @@ function generateSvg({ date, events, tasks, weather }) {
       <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Weekly Range Header -->
-      <text x="565" y="26" class="bold" font-size="16" text-anchor="end" fill="black">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
-      <line x1="15" y1="34" x2="565" y2="34" stroke="black" stroke-width="1.5" />
+      <text x="565" y="22" class="bold" font-size="15.5" text-anchor="end" fill="black">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
+      <line x1="15" y1="29" x2="565" y2="29" stroke="black" stroke-width="1.5" />
   `;
 
-  // Draw 7 horizontal rows
-  const rowStartHeight = 36;
-  const rowHeight = 410 / 7; // 58.5px per row
+  // Draw 7 horizontal rows cleanly fitted in available card height (32px to 452px)
+  const rowStartHeight = 31;
+  const rowHeight = (452 - 31) / 7; // 60.14px per row
   
   for (let i = 0; i < 7; i++) {
     const d = weekDates[i];
@@ -381,14 +381,14 @@ function generateSvg({ date, events, tasks, weather }) {
     const dayLabelStr = `\u202B${WEEKDAYS_HE_FULL[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}\u202C`;
     if (isToday) {
       // Draw highlighted black pill for today
-      svg += `<rect x="468" y="${rowY + 8}" width="90" height="42" rx="6" ry="6" fill="black" />`;
-      svg += `<text x="513" y="${rowY + 33}" class="bold" font-size="13.5" text-anchor="middle" fill="white">${dayLabelStr}</text>`;
+      svg += `<rect x="468" y="${rowY + 6}" width="90" height="38" rx="6" ry="6" fill="black" />`;
+      svg += `<text x="513" y="${rowY + 30}" class="bold" font-size="13" text-anchor="middle" fill="white">${dayLabelStr}</text>`;
     } else {
-      svg += `<text x="558" y="${rowY + 33}" class="bold" font-size="13.5" text-anchor="end" fill="black">${dayLabelStr}</text>`;
+      svg += `<text x="558" y="${rowY + 30}" class="bold" font-size="13" text-anchor="end" fill="black">${dayLabelStr}</text>`;
     }
     
     // Day column divider
-    svg += `<line x1="458" y1="${rowY + 6}" x2="458" y2="${rowY + rowHeight - 6}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    svg += `<line x1="458" y1="${rowY + 5}" x2="458" y2="${rowY + rowHeight - 5}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     
     // Fetch and sort events for this day
     const dayEvents = events.filter(e => e.date === dStr).sort((a, b) => {
@@ -404,29 +404,29 @@ function generateSvg({ date, events, tasks, weather }) {
     dayEvents.forEach(e => items.push(e));
     
     if (items.length === 0) {
-      svg += `<text x="446" y="${rowY + 33}" class="regular" font-size="13" text-anchor="end" fill="#888888">\u202Bאין אירועים\u202C</text>`;
+      svg += `<text x="446" y="${rowY + 30}" class="regular" font-size="12.5" text-anchor="end" fill="#888888">\u202Bאין אירועים\u202C</text>`;
     } else if (items.length === 1) {
-      svg = renderSingleEventCol(svg, 446, rowY + 33, 13, items[0], 46);
+      svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], 46);
     } else if (items.length === 2) {
-      svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 54);
-      svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[1], 54);
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 54);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[1], 54);
     } else if (items.length === 3) {
-      svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 20);
-      svg = renderSingleEventCol(svg, 210, rowY + 22, 11, items[1], 17);
-      svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[2], 20);
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 20);
+      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 17);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 20);
     } else if (items.length === 4) {
-      svg = renderSingleEventCol(svg, 446, rowY + 22, 11, items[0], 20);
-      svg = renderSingleEventCol(svg, 210, rowY + 22, 11, items[1], 17);
-      svg = renderSingleEventCol(svg, 446, rowY + 42, 11, items[2], 20);
-      svg = renderSingleEventCol(svg, 210, rowY + 42, 11, items[3], 17);
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 20);
+      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 17);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 20);
+      svg = renderSingleEventCol(svg, 210, rowY + 38, 11, items[3], 17);
     } else {
-      svg = renderSingleEventCol(svg, 446, rowY + 16, 10, items[0], 22);
-      svg = renderSingleEventCol(svg, 210, rowY + 16, 10, items[1], 19);
-      svg = renderSingleEventCol(svg, 446, rowY + 31, 10, items[2], 22);
-      svg = renderSingleEventCol(svg, 210, rowY + 31, 10, items[3], 19);
-      svg = renderSingleEventCol(svg, 446, rowY + 46, 10, items[4], 22);
+      svg = renderSingleEventCol(svg, 446, rowY + 14, 10, items[0], 22);
+      svg = renderSingleEventCol(svg, 210, rowY + 14, 10, items[1], 19);
+      svg = renderSingleEventCol(svg, 446, rowY + 27, 10, items[2], 22);
+      svg = renderSingleEventCol(svg, 210, rowY + 27, 10, items[3], 19);
+      svg = renderSingleEventCol(svg, 446, rowY + 40, 10, items[4], 22);
       if (items.length >= 6) {
-        svg = renderSingleEventCol(svg, 210, rowY + 46, 10, items[5], 19);
+        svg = renderSingleEventCol(svg, 210, rowY + 40, 10, items[5], 19);
       }
     }
   }

@@ -45,6 +45,7 @@ ota:
 wifi:
   ssid: "Pini"
   password: "PiniRules"
+  power_save_mode: NONE
   ap:
     ssid: "E-Paper Setup"
     ap_timeout: 15s
@@ -71,7 +72,7 @@ display:
     cs_pin: GPIO4
     dc_pin: GPIO5
     reset_pin: GPIO2
-    update_interval: 30min
+    update_interval: never
     lambda: |-
       if (id(screen_image).is_ready()) {
         it.image(0, 0, id(screen_image));
@@ -88,3 +89,9 @@ online_image:
     update_interval: 30min
     on_download_finished:
       - component.update: my_display
+
+# Explicit 30-minute interval automation to guarantee periodic image fetches
+interval:
+  - interval: 30min
+    then:
+      - component.update: screen_image
