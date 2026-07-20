@@ -240,7 +240,7 @@ function generateSvg({ date, events, tasks, weather }) {
   svg += `
     <style>
       .bold { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
-      .regular { font-family: 'Rubik Light', sans-serif; font-weight: 400; }
+      .regular { font-family: 'Rubik Light', sans-serif; font-weight: 550; }
     </style>
   `;
 
