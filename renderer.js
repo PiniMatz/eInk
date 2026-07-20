@@ -406,27 +406,27 @@ function generateSvg({ date, events, tasks, weather }) {
     if (items.length === 0) {
       svg += `<text x="446" y="${rowY + 30}" class="bold" font-size="12.5" text-anchor="end" fill="black">\u202Bאין אירועים\u202C</text>`;
     } else if (items.length === 1) {
-      svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], 46);
+      svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], 60);
     } else if (items.length === 2) {
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 54);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[1], 54);
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 58);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[1], 58);
     } else if (items.length === 3) {
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 20);
-      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 17);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 20);
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 26);
+      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 23);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 26);
     } else if (items.length === 4) {
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 20);
-      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 17);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 20);
-      svg = renderSingleEventCol(svg, 210, rowY + 38, 11, items[3], 17);
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 26);
+      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 23);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 26);
+      svg = renderSingleEventCol(svg, 210, rowY + 38, 11, items[3], 23);
     } else {
-      svg = renderSingleEventCol(svg, 446, rowY + 14, 10, items[0], 22);
-      svg = renderSingleEventCol(svg, 210, rowY + 14, 10, items[1], 19);
-      svg = renderSingleEventCol(svg, 446, rowY + 27, 10, items[2], 22);
-      svg = renderSingleEventCol(svg, 210, rowY + 27, 10, items[3], 19);
-      svg = renderSingleEventCol(svg, 446, rowY + 40, 10, items[4], 22);
+      svg = renderSingleEventCol(svg, 446, rowY + 14, 10, items[0], 24);
+      svg = renderSingleEventCol(svg, 210, rowY + 14, 10, items[1], 22);
+      svg = renderSingleEventCol(svg, 446, rowY + 27, 10, items[2], 24);
+      svg = renderSingleEventCol(svg, 210, rowY + 27, 10, items[3], 22);
+      svg = renderSingleEventCol(svg, 446, rowY + 40, 10, items[4], 24);
       if (items.length >= 6) {
-        svg = renderSingleEventCol(svg, 210, rowY + 40, 10, items[5], 19);
+        svg = renderSingleEventCol(svg, 210, rowY + 40, 10, items[5], 22);
       }
     }
   }

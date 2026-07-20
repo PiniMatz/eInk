@@ -877,12 +877,7 @@ function summarizeTitleRule(title) {
     .replace(/^תור ל/g, 'תור ')
     .replace(/^אימון/g, 'אימון');
 
-  const stopWords = ['של', 'עם', 'את', 'ל-', 'ב-', 'אל', 'ה-', 'על', 'בתוך'];
-  let words = clean.split(/\s+/);
-  words = words.filter(w => !stopWords.includes(w));
-  
-  const shortTitle = words.slice(0, 4).join(' ');
-  return shortTitle || clean;
+  return clean;
 }
 
 async function summarizeTitle(title) {
