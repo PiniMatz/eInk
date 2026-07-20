@@ -70,7 +70,7 @@ function renderSingleEventCol(svg, textX, textY, fontSize, item, maxLen) {
     let lineSvg = '';
     lineSvg += `<text x="${timeX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${item.time}</text>`;
     lineSvg += `<circle cx="${dotX}" cy="${textY - 3.5}" r="1.5" fill="black" />`;
-    lineSvg += `<text x="${titleX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${rleText}</text>`;
+    lineSvg += `<text x="${titleX}" y="${textY}" class="regular" font-size="${fontSize}" text-anchor="end" fill="black">${rleText}</text>`;
     return svg + lineSvg;
   } else {
     return svg + `<text x="${textX}" y="${textY}" class="bold" font-size="${fontSize}" text-anchor="end" fill="black">${rleText}</text>`;
@@ -239,8 +239,8 @@ function generateSvg({ date, events, tasks, weather }) {
   // Global styling rules - Using Rubik as primary font
   svg += `
     <style>
-      .bold { font-family: 'Rubik Light Black', sans-serif; font-weight: 900; }
-      .regular { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
+      .bold { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
+      .regular { font-family: 'Rubik Light', sans-serif; font-weight: 400; }
     </style>
   `;
 
@@ -404,7 +404,7 @@ function generateSvg({ date, events, tasks, weather }) {
     dayEvents.forEach(e => items.push(e));
     
     if (items.length === 0) {
-      svg += `<text x="446" y="${rowY + 30}" class="bold" font-size="12.5" text-anchor="end" fill="black">\u202Bאין אירועים\u202C</text>`;
+      svg += `<text x="446" y="${rowY + 30}" class="regular" font-size="12.5" text-anchor="end" fill="black">\u202Bאין אירועים\u202C</text>`;
     } else if (items.length === 1) {
       svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], 60);
     } else if (items.length === 2) {
