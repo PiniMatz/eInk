@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "test": "node scripts/run_automated_tests.js",
     "download-fonts": "node scripts/download-fonts.js"
   },
   "dependencies": {

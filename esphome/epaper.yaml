@@ -9,7 +9,6 @@ esphome:
       - lambda: |-
           id(screen_image).resize(800, 480);
       - delay: 10s
-      - script.execute: restart_watchdog
       - online_image.set_url:
           id: screen_image
           url: "https://e-ink-pini.vercel.app/api/screen"
@@ -30,34 +29,13 @@ esp32:
       CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM: "8"
       CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM: "8"
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "20"
-
-# Restart button platform to trigger clean software reboots
-button:
-  - platform: restart
-    name: "Device Restart"
-    id: my_restart_button
-
-# Watchdog script to reboot device if image download hangs
-script:
-  - id: restart_watchdog
-    mode: restart
-    then:
-      - delay: 2min
-      - logger.log: "Watchdog triggered: download failed to finish in 2 minutes. Rebooting..."
-      - button.press: my_restart_button
+      CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG_NO_BLOCK: "y"
 
 # Enable logging
 logger:
   level: INFO
 
-# Enable native API for Home Assistant (optional)
-# api:
-
-# Enable OTA updates (Over The Air)
-ota:
-  - platform: esphome
-
-# Wi-Fi Configuration
+# Wi-Fi Configuration with power save disabled for reliable connections
 wifi:
   ssid: "Pini"
   password: "PiniRules"
@@ -65,9 +43,6 @@ wifi:
   ap:
     ssid: "E-Paper Setup"
     ap_timeout: 15s
-
-# Disable captive portal to save memory
-# captive_portal:
 
 # HTTP Request client (bypass TLS check to avoid memory crash on HTTPS fetches)
 http_request:
@@ -102,15 +77,6 @@ online_image:
     url: "https://e-ink-pini.vercel.app/api/screen"
     format: bmp
     type: BINARY
-    update_interval: never
+    update_interval: 30min
     on_download_finished:
-      - script.stop: restart_watchdog
       - component.update: my_display
-
-# Reboot device every 30 minutes to clean heap memory fragmentation and perform a fresh sync/fetch
-interval:
-  - interval: 30min
-    startup_delay: 30min
-    then:
-      - logger.log: "30-minute interval reached. Rebooting for fresh screen update..."
-      - button.press: my_restart_button

@@ -792,6 +792,12 @@ const db = {
   isUsingFirestore() {
     return firestore !== null;
   },
+  areTitlesSimilar(t1, t2) {
+    return areTitlesSimilar(t1, t2);
+  },
+  getEventOrganizerName(ev, defaultName) {
+    return getEventOrganizerName(ev, defaultName);
+  },
   async deduplicateAll() {
     if (!firestore) return { success: true, count: 0 };
     try {
