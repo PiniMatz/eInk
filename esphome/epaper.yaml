@@ -17,6 +17,12 @@ esphome:
 safe_mode:
   disabled: true
 
+# Deep Sleep configuration to extend battery life (awake 60s max, sleep 30m)
+deep_sleep:
+  id: deep_sleep_component
+  run_duration: 60s
+  sleep_duration: 30min
+
 esp32:
   board: seeed_xiao_esp32c3
   variant: esp32c3
@@ -82,20 +88,16 @@ online_image:
     url: "https://e-ink-pini.vercel.app/api/screen"
     format: bmp
     type: BINARY
-    update_interval: 30min
+    update_interval: never
     on_download_finished:
       - component.update: my_display
+      - delay: 8s # Wait 8s to ensure waveshare 7.5" V2 finishes drawing before cutting power
+      - deep_sleep.enter:
+          id: deep_sleep_component
+          sleep_duration: 30min
 
 # Restart button platform to trigger clean software reboots
 button:
   - platform: restart
     name: "Device Restart"
     id: my_restart_button
-
-# Reboot device every 4 hours to clear heap memory fragmentation and ensure daily refresh success
-interval:
-  - interval: 4h
-    startup_delay: 4h
-    then:
-      - logger.log: "4-hour interval reached. Rebooting for fresh screen update..."
-      - button.press: my_restart_button
