@@ -13,6 +13,10 @@ esphome:
           id: screen_image
           url: "https://e-ink-pini.vercel.app/api/screen"
 
+# Disable Safe Mode completely to prevent the device from getting bricked in a offline loop
+safe_mode:
+  disabled: true
+
 esp32:
   board: seeed_xiao_esp32c3
   variant: esp32c3
@@ -40,6 +44,7 @@ wifi:
   ssid: "Pini"
   password: "PiniRules"
   power_save_mode: NONE
+  reboot_timeout: 0s
   ap:
     ssid: "E-Paper Setup"
     ap_timeout: 15s
@@ -80,3 +85,17 @@ online_image:
     update_interval: 30min
     on_download_finished:
       - component.update: my_display
+
+# Restart button platform to trigger clean software reboots
+button:
+  - platform: restart
+    name: "Device Restart"
+    id: my_restart_button
+
+# Reboot device every 4 hours to clear heap memory fragmentation and ensure daily refresh success
+interval:
+  - interval: 4h
+    startup_delay: 4h
+    then:
+      - logger.log: "4-hour interval reached. Rebooting for fresh screen update..."
+      - button.press: my_restart_button
