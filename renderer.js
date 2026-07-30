@@ -304,11 +304,11 @@ function generateSvg({ date, events, tasks, weather }) {
       <text x="172" y="92" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Weather Icon Placement (Center-Left Centered) -->
-      <g transform="translate(15, 42) scale(0.85)">
+      <g transform="translate(46, 48) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description centered under the Icon -->
-      <text x="50" y="94" class="bold" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
+      <text x="46" y="94" class="bold" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
       <text x="92" y="124" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
@@ -476,13 +476,14 @@ function generateSvg({ date, events, tasks, weather }) {
       }
     }
   }
-  // status footer: last sync timestamp
+  svg += `</g>`;
+
+  // status footer: last sync timestamp (placed outside of any card group to prevent coordinate shifting)
   const syncHour = String(date.getHours()).padStart(2, '0');
   const syncMin = String(date.getMinutes()).padStart(2, '0');
   const syncTimeStr = `${syncHour}:${syncMin}`;
-  svg += `<text x="${leftX}" y="474" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: ${syncTimeStr}</text>`;
+  svg += `<text x="${leftX}" y="473" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: ${syncTimeStr}</text>`;
 
-  svg += `</g>`;
   svg += `</svg>`;
   return svg;
 }
