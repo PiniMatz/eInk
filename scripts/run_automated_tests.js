@@ -94,12 +94,13 @@ test('Cache Control: Vercel HTTP response headers prevent stale ePaper cache', (
   assert.match(content, /'Pragma',\s*'no-cache'/);
 });
 
-// Test 7: ESPHome firmware non-blocking, safe-mode disable, and deep sleep configs
-test('ESPHome: non-blocking USB CDC JTAG console logging, safe-mode disable, and deep sleep scheduler', () => {
+// Test 7: ESPHome firmware console none, logger none, safe-mode disable, and deep sleep configs
+test('ESPHome: disabled console & logging, safe-mode disable, and deep sleep scheduler', () => {
   const yamlPath = path.join(__dirname, '..', 'esphome', 'epaper.yaml');
   const content = fs.readFileSync(yamlPath, 'utf8');
   
-  assert.match(content, /CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG_NO_BLOCK:\s*["']y["']/);
+  assert.match(content, /CONFIG_ESP_CONSOLE_NONE:\s*["']y["']/);
+  assert.match(content, /level:\s*NONE/i);
   assert.match(content, /safe_mode:\s*disabled:\s*true/i);
   assert.match(content, /reboot_timeout:\s*0s/);
   assert.match(content, /deep_sleep:/);

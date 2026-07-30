@@ -39,11 +39,11 @@ esp32:
       CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM: "8"
       CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM: "8"
       CONFIG_ESP_TASK_WDT_TIMEOUT_S: "20"
-      CONFIG_ESP_CONSOLE_USB_SERIAL_JTAG_NO_BLOCK: "y"
+      CONFIG_ESP_CONSOLE_NONE: "y"
 
-# Enable logging
+# Disable logging completely for stable battery-powered deep sleep wakeups
 logger:
-  level: INFO
+  level: NONE
 
 # Wi-Fi Configuration with power save disabled for reliable connections
 wifi:
