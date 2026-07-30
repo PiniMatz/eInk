@@ -236,8 +236,17 @@ function generateSvg({ date, events, tasks, weather }) {
   // Start constructing SVG string
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
 
-  // Global styling rules - Using Rubik as primary font
+  // Global styling rules & defs
   svg += `
+    <defs>
+      <!-- Clip paths for card headers -->
+      <clipPath id="right-card-clip">
+        <rect x="0" y="0" width="${rightWidth}" height="252" rx="12" ry="12" />
+      </clipPath>
+      <clipPath id="left-card-clip">
+        <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" />
+      </clipPath>
+    </defs>
     <style>
       .bold { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
       .regular { font-family: 'Rubik Light', sans-serif; font-weight: 600; }
@@ -245,7 +254,7 @@ function generateSvg({ date, events, tasks, weather }) {
   `;
 
   // ==========================================
-  // SIDEBAR: CARD 1: GREGORIAN DATE BANNER (Top-Right, 60px Height)
+  // SIDEBAR: CARD 1: GREGORIAN DATE BANNER (TRMNL High Contrast Black Fill)
   // ==========================================
   const dayName = WEEKDAYS_HE_FULL[date.getDay()];
   const dateBannerStr = `\u202Bיום ${dayName}\u202C`;
@@ -254,11 +263,11 @@ function generateSvg({ date, events, tasks, weather }) {
   svg += `
     <!-- Date Banner Container -->
     <g transform="translate(${rightX}, ${pad})">
-      <rect x="0" y="0" width="${rightWidth}" height="60" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      <rect x="0" y="0" width="${rightWidth}" height="60" rx="12" ry="12" fill="black" />
       
       <!-- Gregorian Date Banner -->
-      <text x="92" y="24" class="bold" font-size="16" text-anchor="middle" fill="black">${dateBannerStr}</text>
-      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="black">${dateSubStr}</text>
+      <text x="92" y="24" class="bold" font-size="16.5" text-anchor="middle" fill="white">${dateBannerStr}</text>
+      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="white">${dateSubStr}</text>
     </g>
   `;
 
@@ -296,7 +305,7 @@ function generateSvg({ date, events, tasks, weather }) {
   `;
 
   // ==========================================
-  // SIDEBAR: CARD 3: DAILY SCHEDULE (Bottom-Right, 252px Height)
+  // SIDEBAR: CARD 3: DAILY SCHEDULE (TRMNL Black Title Band & Checklist Checkboxes)
   // ==========================================
   const displayDateStr = `${date.getDate()}/${month}`;
   const scheduleHeight = 252;
@@ -306,9 +315,11 @@ function generateSvg({ date, events, tasks, weather }) {
     <g transform="translate(${rightX}, ${pad + 60 + gap + 120 + gap})">
       <rect x="0" y="0" width="${rightWidth}" height="${scheduleHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Section Title -->
-      <text x="172" y="26" class="bold" font-size="15" text-anchor="end" fill="black">לוז להיום - ${displayDateStr}</text>
-      <line x1="12" y1="34" x2="172" y2="34" stroke="black" stroke-width="1.5" />
+      <!-- Section Title Header Band -->
+      <g clip-path="url(#right-card-clip)">
+        <rect x="0" y="0" width="${rightWidth}" height="34" fill="black" />
+        <text x="92" y="22" class="bold" font-size="13.5" text-anchor="middle" fill="white">לוז להיום - ${displayDateStr}</text>
+      </g>
   `;
 
   if (tasks.length === 0) {
@@ -316,24 +327,24 @@ function generateSvg({ date, events, tasks, weather }) {
   } else {
     // Render up to 5 items
     tasks.slice(0, 5).forEach((task, idx) => {
-      const rowY = 58 + idx * 40;
+      const rowY = 62 + idx * 40;
       const cleanDesc = stripNikud(task.description);
-      const displayText = truncateText(cleanDesc, 17);
+      const displayText = truncateText(cleanDesc, 16);
       const rleText = `\u202B${displayText}\u202C`;
       
       // Draw hour
       svg += `<text x="172" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
-      // Dot separator
-      svg += `<circle cx="130" cy="${rowY - 4}" r="2" fill="black" />`;
+      // Checkbox Border instead of dot
+      svg += `<rect x="126" y="${rowY - 11}" width="11" height="11" rx="2.5" fill="none" stroke="black" stroke-width="1.5" />`;
       // Draw task desc
-      svg += `<text x="120" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${rleText}</text>`;
+      svg += `<text x="116" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${rleText}</text>`;
     });
   }
 
   svg += `</g>`;
 
   // ==========================================
-  // MAIN SECTION: CARD 4: WEEKLY AGENDA HORIZON (Left Section, 7 Rows)
+  // MAIN SECTION: CARD 4: WEEKLY AGENDA HORIZON (TRMNL Black Title Band & Day Progress Bar)
   // ==========================================
   const startOfWeek = weekDates[0];
   const endOfWeek = weekDates[6];
@@ -352,19 +363,37 @@ function generateSvg({ date, events, tasks, weather }) {
     }
   }
 
+  // Day Progress Calculation (08:00 to 22:00 = 14 hours total)
+  const currentHour = date.getHours() + date.getMinutes() / 60;
+  const startHour = 8;
+  const endHour = 22;
+  let progressFraction = 0;
+  if (currentHour >= startHour && currentHour <= endHour) {
+    progressFraction = (currentHour - startHour) / (endHour - startHour);
+  } else if (currentHour > endHour) {
+    progressFraction = 1;
+  }
+
   svg += `
     <!-- Weekly Agenda Card Container -->
     <g transform="translate(${leftX}, ${pad})">
       <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Weekly Range Header -->
-      <text x="565" y="22" class="bold" font-size="15.5" text-anchor="end" fill="black">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
-      <line x1="15" y1="29" x2="565" y2="29" stroke="black" stroke-width="1.5" />
+      <!-- Section Title Header Band with Day Progress Bar -->
+      <g clip-path="url(#left-card-clip)">
+        <rect x="0" y="0" width="${leftWidth}" height="34" fill="black" />
+        <text x="565" y="22" class="bold" font-size="13.5" text-anchor="end" fill="white">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
+        
+        <!-- Day Progress Bar -->
+        <text x="15" y="21" class="regular" font-size="9" text-anchor="start" fill="white">התקדמות יומית:</text>
+        <rect x="90" y="13" width="70" height="7" rx="2" fill="none" stroke="white" stroke-width="1" />
+        <rect x="92" y="15" width="${Math.round(66 * progressFraction)}" height="3" rx="1" fill="white" />
+      </g>
   `;
 
-  // Draw 7 horizontal rows cleanly fitted in available card height (32px to 452px)
-  const rowStartHeight = 31;
-  const rowHeight = (452 - 31) / 7; // 60.14px per row
+  // Draw 7 horizontal rows cleanly fitted in available card height (34px to 452px)
+  const rowStartHeight = 34;
+  const rowHeight = (452 - 34) / 7; // 59.7px per row
   
   for (let i = 0; i < 7; i++) {
     const d = weekDates[i];
