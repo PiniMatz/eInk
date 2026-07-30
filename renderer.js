@@ -329,15 +329,15 @@ function generateSvg({ date, events, tasks, weather }) {
     tasks.slice(0, 5).forEach((task, idx) => {
       const rowY = 62 + idx * 40;
       const cleanDesc = stripNikud(task.description);
-      const displayText = truncateText(cleanDesc, 16);
+      const displayText = truncateText(cleanDesc, 13);
       const rleText = `\u202B${displayText}\u202C`;
       
-      // Draw hour
-      svg += `<text x="172" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
-      // Checkbox Border instead of dot
-      svg += `<rect x="126" y="${rowY - 11}" width="11" height="11" rx="2.5" fill="none" stroke="black" stroke-width="1.5" />`;
-      // Draw task desc
-      svg += `<text x="116" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${rleText}</text>`;
+      // Checkbox Border on the far right (ends at 172, starts at 161)
+      svg += `<rect x="161" y="${rowY - 11}" width="11" height="11" rx="2.5" fill="none" stroke="black" stroke-width="1.5" />`;
+      // Hour text to the left of the checkbox (ends at 150)
+      svg += `<text x="150" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
+      // Description text to the left of the hour (ends at 105)
+      svg += `<text x="105" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${rleText}</text>`;
     });
   }
 
@@ -409,11 +409,11 @@ function generateSvg({ date, events, tasks, weather }) {
     // Day Label (RTL) - Right part of the row
     const dayLabelStr = `\u202B${WEEKDAYS_HE_FULL[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}\u202C`;
     if (isToday) {
-      // Draw highlighted black pill for today
-      svg += `<rect x="468" y="${rowY + 6}" width="90" height="38" rx="6" ry="6" fill="black" />`;
-      svg += `<text x="513" y="${rowY + 30}" class="bold" font-size="13" text-anchor="middle" fill="white">${dayLabelStr}</text>`;
+      // Draw highlighted black pill for today (spans 458 to 558, giving 10px padding on the right to 548)
+      svg += `<rect x="458" y="${rowY + 6}" width="100" height="38" rx="6" ry="6" fill="black" />`;
+      svg += `<text x="548" y="${rowY + 30}" class="bold" font-size="13" text-anchor="end" fill="white">${dayLabelStr}</text>`;
     } else {
-      svg += `<text x="558" y="${rowY + 30}" class="bold" font-size="13" text-anchor="end" fill="black">${dayLabelStr}</text>`;
+      svg += `<text x="548" y="${rowY + 30}" class="bold" font-size="13" text-anchor="end" fill="black">${dayLabelStr}</text>`;
     }
     
     // Day column divider
