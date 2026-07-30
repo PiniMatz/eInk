@@ -220,7 +220,6 @@ function generateSvg({ date, events, tasks, weather }) {
 
   // Hebrew weekday full and short lists
   const WEEKDAYS_HE_FULL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-
   // Layout Grid Dimensions (Option 1: Main Left 70%, Sidebar Right 30%)
   const pad = 12;
   const gap = 12;
@@ -241,7 +240,10 @@ function generateSvg({ date, events, tasks, weather }) {
     <defs>
       <!-- Clip paths for card headers -->
       <clipPath id="right-card-clip">
-        <rect x="0" y="0" width="${rightWidth}" height="252" rx="12" ry="12" />
+        <rect x="0" y="0" width="${rightWidth}" height="234" rx="12" ry="12" />
+      </clipPath>
+      <clipPath id="weather-card-clip">
+        <rect x="0" y="0" width="${rightWidth}" height="138" rx="12" ry="12" />
       </clipPath>
       <clipPath id="left-card-clip">
         <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" />
@@ -252,6 +254,9 @@ function generateSvg({ date, events, tasks, weather }) {
       .regular { font-family: 'Rubik Light', sans-serif; font-weight: 600; }
     </style>
   `;
+
+  // Vertical column separator line in the grid gutter
+  svg += `<line x1="598" y1="12" x2="598" y2="468" stroke="black" stroke-width="1.5" />`;
 
   // ==========================================
   // SIDEBAR: CARD 1: GREGORIAN DATE BANNER (TRMNL High Contrast Black Fill)
@@ -272,7 +277,7 @@ function generateSvg({ date, events, tasks, weather }) {
   `;
 
   // ==========================================
-  // SIDEBAR: CARD 2: WEATHER CARD (Middle-Right, 120px Height)
+  // SIDEBAR: CARD 2: WEATHER CARD (TRMNL Black Title Band, 138px Height)
   // ==========================================
   const wTemp = weather.temp !== undefined ? `${Math.round(weather.temp)}°C` : '--°C';
   const wTempMin = weather.tempMin !== undefined ? `${Math.round(weather.tempMin)}` : '--';
@@ -285,49 +290,55 @@ function generateSvg({ date, events, tasks, weather }) {
   svg += `
     <!-- Weather Card Container -->
     <g transform="translate(${rightX}, ${pad + 60 + gap})">
-      <rect x="0" y="0" width="${rightWidth}" height="120" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      <rect x="0" y="0" width="${rightWidth}" height="138" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      
+      <!-- Section Title Header Band -->
+      <g clip-path="url(#weather-card-clip)">
+        <rect x="0" y="0" width="${rightWidth}" height="32" fill="black" />
+        <text x="92" y="21" class="bold" font-size="13" text-anchor="middle" fill="white">מזג אוויר</text>
+      </g>
       
       <!-- Temperature (Top Right) -->
-      <text x="172" y="42" class="bold" font-size="24" text-anchor="end" fill="black">${wTemp}</text>
+      <text x="172" y="72" class="bold" font-size="24" text-anchor="end" fill="black">${wTemp}</text>
       <!-- Min/Max Temp Range (Below Temp) -->
-      <text x="172" y="64" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
+      <text x="172" y="92" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Weather Icon Placement (Center-Left Centered) -->
-      <g transform="translate(46, 40) scale(0.9)">
+      <g transform="translate(15, 42) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description centered under the Icon -->
-      <text x="46" y="80" class="bold" font-size="10.5" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
+      <text x="50" y="94" class="bold" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
-      <text x="92" y="104" class="regular" font-size="9" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
+      <text x="92" y="124" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
     </g>
   `;
 
   // ==========================================
-  // SIDEBAR: CARD 3: DAILY SCHEDULE (TRMNL Black Title Band & Checklist Checkboxes)
+  // SIDEBAR: CARD 3: DAILY SCHEDULE (TRMNL Black Title Band & Checklist Checkboxes, 234px Height)
   // ==========================================
   const displayDateStr = `${date.getDate()}/${month}`;
-  const scheduleHeight = 252;
+  const scheduleHeight = 234;
   
   svg += `
     <!-- Schedule Card Container -->
-    <g transform="translate(${rightX}, ${pad + 60 + gap + 120 + gap})">
+    <g transform="translate(${rightX}, ${pad + 60 + gap + 138 + gap})">
       <rect x="0" y="0" width="${rightWidth}" height="${scheduleHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Section Title Header Band -->
       <g clip-path="url(#right-card-clip)">
-        <rect x="0" y="0" width="${rightWidth}" height="34" fill="black" />
-        <text x="92" y="22" class="bold" font-size="13.5" text-anchor="middle" fill="white">לוז להיום - ${displayDateStr}</text>
+        <rect x="0" y="0" width="${rightWidth}" height="32" fill="black" />
+        <text x="92" y="21" class="bold" font-size="13" text-anchor="middle" fill="white">לוז להיום - ${displayDateStr}</text>
       </g>
   `;
 
   if (tasks.length === 0) {
-    svg += `<text x="92" y="140" class="bold" font-size="14.5" text-anchor="middle" fill="black">\u202Bאין משימות להיום\u202C</text>`;
+    svg += `<text x="92" y="130" class="bold" font-size="14.5" text-anchor="middle" fill="black">\u202Bאין משימות להיום\u202C</text>`;
   } else {
-    // Render up to 5 items
+    // Render up to 5 items spaced for the shorter card height
     tasks.slice(0, 5).forEach((task, idx) => {
-      const rowY = 62 + idx * 40;
+      const rowY = 56 + idx * 38;
       const cleanDesc = stripNikud(task.description);
       const displayText = truncateText(cleanDesc, 13);
       const rleText = `\u202B${displayText}\u202C`;
@@ -465,6 +476,11 @@ function generateSvg({ date, events, tasks, weather }) {
       }
     }
   }
+  // status footer: last sync timestamp
+  const syncHour = String(date.getHours()).padStart(2, '0');
+  const syncMin = String(date.getMinutes()).padStart(2, '0');
+  const syncTimeStr = `${syncHour}:${syncMin}`;
+  svg += `<text x="${leftX}" y="474" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: ${syncTimeStr}</text>`;
 
   svg += `</g>`;
   svg += `</svg>`;
