@@ -246,7 +246,7 @@ function generateSvg({ date, events, tasks, weather }) {
         <rect x="0" y="0" width="${rightWidth}" height="138" rx="12" ry="12" />
       </clipPath>
       <clipPath id="left-card-clip">
-        <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" />
+        <rect x="0" y="0" width="${leftWidth}" height="450" rx="12" ry="12" />
       </clipPath>
     </defs>
     <style>
@@ -304,14 +304,14 @@ function generateSvg({ date, events, tasks, weather }) {
       <text x="172" y="92" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
       
       <!-- Weather Icon Placement (Center-Left Centered) -->
-      <g transform="translate(46, 48) scale(0.85)">
+      <g transform="translate(46, 66) scale(0.85)">
         ${getWeatherIconSvg(wIcon)}
       </g>
       <!-- Description centered under the Icon -->
-      <text x="46" y="94" class="bold" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
+      <text x="46" y="98" class="bold" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
-      <text x="92" y="124" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
+      <text x="92" y="122" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
     </g>
   `;
 
@@ -399,7 +399,7 @@ function generateSvg({ date, events, tasks, weather }) {
   svg += `
     <!-- Weekly Agenda Card Container -->
     <g transform="translate(${leftX}, ${pad})">
-      <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      <rect x="0" y="0" width="${leftWidth}" height="450" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
       <!-- Section Title Header Band -->
       <g clip-path="url(#left-card-clip)">
@@ -408,9 +408,9 @@ function generateSvg({ date, events, tasks, weather }) {
       </g>
   `;
 
-  // Draw 7 horizontal rows cleanly fitted in available card height (34px to 452px)
+  // Draw 7 horizontal rows cleanly fitted in available card height (34px to 446px)
   const rowStartHeight = 34;
-  const rowHeight = (452 - 34) / 7; // 59.7px per row
+  const rowHeight = (446 - 34) / 7; // 58.85px per row
   
   for (let i = 0; i < 7; i++) {
     const d = weekDates[i];
@@ -482,7 +482,7 @@ function generateSvg({ date, events, tasks, weather }) {
   const syncHour = String(date.getHours()).padStart(2, '0');
   const syncMin = String(date.getMinutes()).padStart(2, '0');
   const syncTimeStr = `${syncHour}:${syncMin}`;
-  svg += `<text x="${leftX}" y="473" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: ${syncTimeStr}</text>`;
+  svg += `<text x="20" y="473" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: ${syncTimeStr}</text>`;
 
   svg += `</svg>`;
   return svg;
