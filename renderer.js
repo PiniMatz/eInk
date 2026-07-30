@@ -332,8 +332,29 @@ function generateSvg({ date, events, tasks, weather }) {
       const displayText = truncateText(cleanDesc, 13);
       const rleText = `\u202B${displayText}\u202C`;
       
+      // Calculate if the task time has passed by 30+ minutes
+      let isPast = false;
+      if (task.time && task.time.includes(':')) {
+        const [tHourStr, tMinStr] = task.time.split(':');
+        const tHour = parseInt(tHourStr, 10);
+        const tMin = parseInt(tMinStr, 10);
+        if (!isNaN(tHour) && !isNaN(tMin)) {
+          const taskTimeInMinutes = tHour * 60 + tMin;
+          const currentHour = date.getHours();
+          const currentMin = date.getMinutes();
+          const currentTimeInMinutes = currentHour * 60 + currentMin;
+          isPast = (currentTimeInMinutes >= taskTimeInMinutes + 30);
+        }
+      }
+      
       // Checkbox Border on the far right (ends at 172, starts at 161)
       svg += `<rect x="161" y="${rowY - 11}" width="11" height="11" rx="2.5" fill="none" stroke="black" stroke-width="1.5" />`;
+      
+      // Draw Checkmark if task is completed (time passed + 30 minutes)
+      if (isPast) {
+        svg += `<path d="M 163.5 ${rowY - 5.5} L 166.5 ${rowY - 2.5} L 169.5 ${rowY - 8.5}" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />`;
+      }
+      
       // Hour text to the left of the checkbox (ends at 150)
       svg += `<text x="150" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
       // Description text to the left of the hour (ends at 105)
