@@ -297,22 +297,31 @@ app.get('/api/screen', async (req, res) => {
     }
 
     let dateStr;
+    let reqDate;
     if (req.query.date) {
       dateStr = req.query.date;
+      const [year, month, day] = dateStr.split('-').map(Number);
+      // Default query dates to 12:00 (midday) for predictable renders
+      reqDate = new Date(year, month - 1, day, 12, 0);
     } else {
       const parts = new Intl.DateTimeFormat('en-US', {
         timeZone: 'Asia/Jerusalem',
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit'
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
       }).formatToParts(new Date());
-      const y = parts.find(p => p.type === 'year').value;
-      const m = parts.find(p => p.type === 'month').value;
-      const d = parts.find(p => p.type === 'day').value;
-      dateStr = `${y}-${m}-${d}`;
+      const y = parseInt(parts.find(p => p.type === 'year').value, 10);
+      const m = parseInt(parts.find(p => p.type === 'month').value, 10);
+      const d = parseInt(parts.find(p => p.type === 'day').value, 10);
+      const h = parseInt(parts.find(p => p.type === 'hour').value, 10);
+      const min = parseInt(parts.find(p => p.type === 'minute').value, 10);
+      
+      dateStr = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      reqDate = new Date(y, m - 1, d, h, min);
     }
-    const [year, month, day] = dateStr.split('-').map(Number);
-    const reqDate = new Date(year, month - 1, day);
 
     // Calculate the start and end of the 7-day window (yesterday to yesterday + 6 days)
     const startRangeDate = new Date(reqDate);

@@ -384,31 +384,16 @@ function generateSvg({ date, events, tasks, weather }) {
     }
   }
 
-  // Day Progress Calculation (08:00 to 22:00 = 14 hours total)
-  const currentHour = date.getHours() + date.getMinutes() / 60;
-  const startHour = 8;
-  const endHour = 22;
-  let progressFraction = 0;
-  if (currentHour >= startHour && currentHour <= endHour) {
-    progressFraction = (currentHour - startHour) / (endHour - startHour);
-  } else if (currentHour > endHour) {
-    progressFraction = 1;
-  }
 
   svg += `
     <!-- Weekly Agenda Card Container -->
     <g transform="translate(${leftX}, ${pad})">
       <rect x="0" y="0" width="${leftWidth}" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Section Title Header Band with Day Progress Bar -->
+      <!-- Section Title Header Band -->
       <g clip-path="url(#left-card-clip)">
         <rect x="0" y="0" width="${leftWidth}" height="34" fill="black" />
         <text x="565" y="22" class="bold" font-size="13.5" text-anchor="end" fill="white">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
-        
-        <!-- Day Progress Bar -->
-        <text x="15" y="21" class="regular" font-size="9" text-anchor="start" fill="white">התקדמות יומית:</text>
-        <rect x="90" y="13" width="70" height="7" rx="2" fill="none" stroke="white" stroke-width="1" />
-        <rect x="92" y="15" width="${Math.round(66 * progressFraction)}" height="3" rx="1" fill="white" />
       </g>
   `;
 
