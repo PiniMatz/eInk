@@ -1,0 +1,10 @@
+const { HDate } = require('@hebcal/core');
+const hdate = new HDate(new Date());
+console.log('getDate:', hdate.getDate());
+console.log('getMonth:', hdate.getMonth());
+console.log('getMonthName:', hdate.getMonthName());
+console.log('getFullYear:', hdate.getFullYear());
+console.log('renderGematriya(getDate):', hdate.renderGematriya(hdate.getDate()));
+console.log('renderGematriya(getFullYear):', hdate.renderGematriya(hdate.getFullYear()));
+console.log('hdate.render():', hdate.render());
+console.log('hdate.render("he"):', hdate.render('he'));
