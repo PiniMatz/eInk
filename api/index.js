@@ -1,5 +1,4 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 
@@ -11,7 +10,7 @@ const { renderBmp } = require('../renderer');
 const { getWeather } = require('../weather');
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Serve static dashboard UI
 app.get('/', (req, res) => {
