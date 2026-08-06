@@ -449,13 +449,17 @@ function generateSvg({ date, events, tasks, weather }) {
     if (hol) items.push({ title: simplifyHoliday(hol), isHoliday: true, isTimed: false });
     dayEvents.forEach(e => items.push(e));
     
+    const hasWeather = weather && weather.forecast && weather.forecast[i] && items.length <= 2;
+
     if (items.length === 0) {
       svg += `<text x="446" y="${rowY + 30}" class="regular" font-size="12.5" text-anchor="end" fill="black">\u202Bאין אירועים\u202C</text>`;
     } else if (items.length === 1) {
-      svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], 60);
+      const maxLen = hasWeather ? 48 : 60;
+      svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], maxLen);
     } else if (items.length === 2) {
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 58);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[1], 58);
+      const maxLen = hasWeather ? 46 : 58;
+      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], maxLen);
+      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[1], maxLen);
     } else if (items.length === 3) {
       svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 26);
       svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 23);
@@ -474,6 +478,19 @@ function generateSvg({ date, events, tasks, weather }) {
       if (items.length >= 6) {
         svg = renderSingleEventCol(svg, 210, rowY + 40, 10, items[5], 22);
       }
+    }
+
+    // Draw integrated weather forecast on the far left if the day is not too busy
+    if (hasWeather) {
+      const f = weather.forecast[i];
+      svg += `
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, ${rowY + 28}) scale(0.6)">
+          ${getWeatherIconSvg(f.icon)}
+        </g>
+        <text x="54" y="${rowY + 33}" class="bold" font-size="11.5" text-anchor="start" fill="black">${f.tempMin}°-${f.tempMax}°</text>
+        <line x1="102" y1="${rowY + 12}" x2="102" y2="${rowY + 46}" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      `;
     }
   }
   svg += `</g>`;

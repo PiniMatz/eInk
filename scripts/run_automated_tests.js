@@ -77,8 +77,8 @@ test('Layout-Aware Text Truncation limits in renderer.js', () => {
   const content = fs.readFileSync(rendererPath, 'utf8');
   
   // Verify correct max lengths for different row item counts are configured
-  assert.match(content, /items\[0\],\s*60\);/); // Single item = 60
-  assert.match(content, /items\[0\],\s*58\);/); // 2 items = 58
+  assert.match(content, /maxLen\s*=\s*hasWeather\s*\?\s*48\s*:\s*60/); // Single item dynamic len
+  assert.match(content, /maxLen\s*=\s*hasWeather\s*\?\s*46\s*:\s*58/); // 2 items dynamic len
   assert.match(content, /items\[1\],\s*23\);/); // Multicol item 2 = 23
   assert.match(content, /items\[2\],\s*26\);/); // Multicol item 3 = 26
   assert.match(content, /items\[4\],\s*24\);/); // 5+ items = 24

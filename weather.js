@@ -6,7 +6,8 @@ const defaultWeather = {
   city: 'פרדסיה',
   icon: '01d',
   sunrise: '05:42',
-  sunset: '19:48'
+  sunset: '19:48',
+  forecast: Array(7).fill({ tempMin: 21, tempMax: 28, icon: '01d' })
 };
 
 function translateWeatherCode(code) {
@@ -39,7 +40,7 @@ async function getWeather() {
   const lon = '34.912';
   
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Asia%2FJerusalem&forecast_days=1`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,weather_code&timezone=Asia%2FJerusalem&past_days=1&forecast_days=6`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -48,19 +49,27 @@ async function getWeather() {
     
     const data = await response.json();
     
-    // Parse Sunrise/Sunset times: "2026-07-15T05:42" -> "05:42"
-    const sunriseStr = data.daily.sunrise[0] ? data.daily.sunrise[0].split('T')[1] : '05:40';
-    const sunsetStr = data.daily.sunset[0] ? data.daily.sunset[0].split('T')[1] : '19:50';
+    // Parse Sunrise/Sunset times for Today (index 1 when past_days=1)
+    const sunriseStr = data.daily.sunrise[1] ? data.daily.sunrise[1].split('T')[1] : '05:42';
+    const sunsetStr = data.daily.sunset[1] ? data.daily.sunset[1].split('T')[1] : '19:48';
+    
+    // Map 7 days of forecast (index 0 is yesterday, 1 is today, etc.)
+    const forecast = data.daily.time.map((time, idx) => ({
+      tempMin: Math.round(data.daily.temperature_2m_min[idx]),
+      tempMax: Math.round(data.daily.temperature_2m_max[idx]),
+      icon: getWeatherIconCode(data.daily.weather_code[idx])
+    }));
     
     return {
       temp: data.current.temperature_2m,
-      tempMin: data.daily.temperature_2m_min[0],
-      tempMax: data.daily.temperature_2m_max[0],
+      tempMin: data.daily.temperature_2m_min[1],
+      tempMax: data.daily.temperature_2m_max[1],
       description: translateWeatherCode(data.current.weather_code),
       city: 'פרדסיה',
       icon: getWeatherIconCode(data.current.weather_code),
       sunrise: sunriseStr,
-      sunset: sunsetStr
+      sunset: sunsetStr,
+      forecast
     };
   } catch (err) {
     console.error('Error fetching weather from Open-Meteo:', err.message);

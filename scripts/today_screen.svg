@@ -1,29 +1,47 @@
 <svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">
+    <defs>
+      <!-- Clip paths for card headers -->
+      <clipPath id="right-card-clip">
+        <rect x="0" y="0" width="184" height="234" rx="12" ry="12" />
+      </clipPath>
+      <clipPath id="weather-card-clip">
+        <rect x="0" y="0" width="184" height="138" rx="12" ry="12" />
+      </clipPath>
+      <clipPath id="left-card-clip">
+        <rect x="0" y="0" width="580" height="450" rx="12" ry="12" />
+      </clipPath>
+    </defs>
     <style>
       .bold { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
       .regular { font-family: 'Rubik Light', sans-serif; font-weight: 600; }
     </style>
-  
+  <line x1="598" y1="12" x2="598" y2="468" stroke="black" stroke-width="1.5" />
     <!-- Date Banner Container -->
     <g transform="translate(604, 12)">
-      <rect x="0" y="0" width="184" height="60" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      <rect x="0" y="0" width="184" height="60" rx="12" ry="12" fill="black" />
       
       <!-- Gregorian Date Banner -->
-      <text x="92" y="24" class="bold" font-size="16" text-anchor="middle" fill="black">‫יום שני‬</text>
-      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="black">‫20.7.2026‬</text>
+      <text x="92" y="24" class="bold" font-size="16.5" text-anchor="middle" fill="white">‫יום שני‬</text>
+      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="white">‫20.7.2026‬</text>
     </g>
   
     <!-- Weather Card Container -->
     <g transform="translate(604, 84)">
-      <rect x="0" y="0" width="184" height="120" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      <rect x="0" y="0" width="184" height="138" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      
+      <!-- Section Title Header Band -->
+      <g clip-path="url(#weather-card-clip)">
+        <rect x="0" y="0" width="184" height="32" fill="black" />
+        <text x="92" y="21" class="bold" font-size="13" text-anchor="middle" fill="white">מזג אוויר</text>
+      </g>
       
       <!-- Temperature (Top Right) -->
-      <text x="172" y="42" class="bold" font-size="24" text-anchor="end" fill="black">31°C</text>
+      <text x="172" y="72" class="bold" font-size="24" text-anchor="end" fill="black">26°C</text>
       <!-- Min/Max Temp Range (Below Temp) -->
-      <text x="172" y="64" class="regular" font-size="11.5" text-anchor="end" fill="black">21° - 32°</text>
+      <text x="172" y="92" class="regular" font-size="11.5" text-anchor="end" fill="black">24° - 32°</text>
       
       <!-- Weather Icon Placement (Center-Left Centered) -->
-      <g transform="translate(46, 40) scale(0.9)">
+      <g transform="translate(46, 66) scale(0.85)">
         
         <g transform="translate(-8, -6)">
           <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
@@ -36,25 +54,125 @@
       
       </g>
       <!-- Description centered under the Icon -->
-      <text x="46" y="80" class="bold" font-size="10.5" text-anchor="middle" fill="black">‫מעונן חלקית‬</text>
+      <text x="46" y="98" class="bold" font-size="11" text-anchor="middle" fill="black">‫מעונן חלקית‬</text>
       
       <!-- Sunrise & Sunset (Bottom Row Centered) -->
-      <text x="92" y="104" class="regular" font-size="9" text-anchor="middle" fill="black">‫זריחה: 05:47  •  שקיעה: 19:45‬</text>
+      <text x="92" y="122" class="regular" font-size="9.5" text-anchor="middle" fill="black">‫זריחה: 05:57  •  שקיעה: 19:34‬</text>
     </g>
   
     <!-- Schedule Card Container -->
-    <g transform="translate(604, 216)">
-      <rect x="0" y="0" width="184" height="252" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+    <g transform="translate(604, 234)">
+      <rect x="0" y="0" width="184" height="234" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Section Title -->
-      <text x="172" y="26" class="bold" font-size="15" text-anchor="end" fill="black">לוז להיום - 20/7</text>
-      <line x1="12" y1="34" x2="172" y2="34" stroke="black" stroke-width="1.5" />
-  <text x="92" y="140" class="bold" font-size="14.5" text-anchor="middle" fill="black">‫אין משימות להיום‬</text></g>
+      <!-- Section Title Header Band -->
+      <g clip-path="url(#right-card-clip)">
+        <rect x="0" y="0" width="184" height="32" fill="black" />
+        <text x="92" y="21" class="bold" font-size="13" text-anchor="middle" fill="white">לוז להיום - 20/7</text>
+      </g>
+  <text x="92" y="130" class="bold" font-size="14.5" text-anchor="middle" fill="black">‫אין משימות להיום‬</text></g>
     <!-- Weekly Agenda Card Container -->
     <g transform="translate(12, 12)">
-      <rect x="0" y="0" width="580" height="456" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
+      <rect x="0" y="0" width="580" height="450" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
       
-      <!-- Weekly Range Header -->
-      <text x="565" y="22" class="bold" font-size="15.5" text-anchor="end" fill="black">‫לוח שבועי: 19 - 25 יולי 2026‬</text>
-      <line x1="15" y1="29" x2="565" y2="29" stroke="black" stroke-width="1.5" />
-  <line x1="15" y1="91.14285714285714" x2="565" y2="91.14285714285714" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="558" y="61" class="bold" font-size="13" text-anchor="end" fill="black">‫ראשון 19/7‬</text><line x1="458" y1="36" x2="458" y2="86.14285714285714" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="49" class="bold" font-size="11" text-anchor="end" fill="black">14:00</text><circle cx="408" cy="45.5" r="1.5" fill="black" /><text x="401" y="49" class="regular" font-size="11" text-anchor="end" fill="black">‫זריקה לאבא של פיני‬</text><text x="446" y="69" class="bold" font-size="11" text-anchor="end" fill="black">19:00</text><circle cx="408" cy="65.5" r="1.5" fill="black" /><text x="401" y="69" class="regular" font-size="11" text-anchor="end" fill="black">‫כדורסל הורים וילדים‬</text><line x1="15" y1="151.28571428571428" x2="565" y2="151.28571428571428" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><rect x="468" y="97.14285714285714" width="90" height="38" rx="6" ry="6" fill="black" /><text x="513" y="121.14285714285714" class="bold" font-size="13" text-anchor="middle" fill="white">‫שני 20/7‬</text><line x1="458" y1="96.14285714285714" x2="458" y2="146.28571428571428" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="109.14285714285714" class="bold" font-size="11" text-anchor="end" fill="black">15:30</text><circle cx="408" cy="105.64285714285714" r="1.5" fill="black" /><text x="401" y="109.14285714285714" class="regular" font-size="11" text-anchor="end" fill="black">‫Riskfield phone interview‬</text><text x="446" y="129.14285714285714" class="bold" font-size="11" text-anchor="end" fill="black">17:30</text><circle cx="408" cy="125.64285714285714" r="1.5" fill="black" /><text x="401" y="129.14285714285714" class="regular" font-size="11" text-anchor="end" fill="black">‫ביקור בגינה קהילתית אבן יהודה‬</text><line x1="15" y1="211.42857142857142" x2="565" y2="211.42857142857142" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="558" y="181.28571428571428" class="bold" font-size="13" text-anchor="end" fill="black">‫שלישי 21/7‬</text><line x1="458" y1="156.28571428571428" x2="458" y2="206.42857142857142" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="169.28571428571428" class="bold" font-size="11" text-anchor="end" fill="black">‫ע׳ תשעה באב‬</text><text x="446" y="189.28571428571428" class="bold" font-size="11" text-anchor="end" fill="black">19:30</text><circle cx="408" cy="185.78571428571428" r="1.5" fill="black" /><text x="401" y="189.28571428571428" class="regular" font-size="11" text-anchor="end" fill="black">‫מפגש באופק סביבה דיגיטאלית‬</text><line x1="15" y1="271.5714285714286" x2="565" y2="271.5714285714286" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="558" y="241.42857142857144" class="bold" font-size="13" text-anchor="end" fill="black">‫רביעי 22/7‬</text><line x1="458" y1="216.42857142857144" x2="458" y2="266.5714285714286" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="229.42857142857144" class="bold" font-size="11" text-anchor="end" fill="black">‫תשעה באב‬</text><text x="446" y="249.42857142857144" class="bold" font-size="11" text-anchor="end" fill="black">14:45</text><circle cx="408" cy="245.92857142857144" r="1.5" fill="black" /><text x="401" y="249.42857142857144" class="regular" font-size="11" text-anchor="end" fill="black">‫סהר - חוג כדורסל‬</text><line x1="15" y1="331.7142857142857" x2="565" y2="331.7142857142857" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="558" y="301.57142857142856" class="bold" font-size="13" text-anchor="end" fill="black">‫חמישי 23/7‬</text><line x1="458" y1="276.57142857142856" x2="458" y2="326.7142857142857" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="301.57142857142856" class="regular" font-size="12.5" text-anchor="end" fill="black">‫אין אירועים‬</text><line x1="15" y1="391.8571428571429" x2="565" y2="391.8571428571429" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="558" y="361.7142857142857" class="bold" font-size="13" text-anchor="end" fill="black">‫שישי 24/7‬</text><line x1="458" y1="336.7142857142857" x2="458" y2="386.8571428571429" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="349.7142857142857" class="bold" font-size="11" text-anchor="end" fill="black">09:00</text><circle cx="408" cy="346.2142857142857" r="1.5" fill="black" /><text x="401" y="349.7142857142857" class="regular" font-size="11" text-anchor="end" fill="black">‫פיני בקורס נגרות‬</text><text x="446" y="369.7142857142857" class="bold" font-size="11" text-anchor="end" fill="black">12:30</text><circle cx="408" cy="366.2142857142857" r="1.5" fill="black" /><text x="401" y="369.7142857142857" class="regular" font-size="11" text-anchor="end" fill="black">‫בת מצווה אריאל שגיא‬</text><text x="558" y="421.8571428571429" class="bold" font-size="13" text-anchor="end" fill="black">‫שבת 25/7‬</text><line x1="458" y1="396.8571428571429" x2="458" y2="447.00000000000006" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="421.8571428571429" class="regular" font-size="12.5" text-anchor="end" fill="black">‫אין אירועים‬</text></g></svg>
+      <!-- Section Title Header Band -->
+      <g clip-path="url(#left-card-clip)">
+        <rect x="0" y="0" width="580" height="34" fill="black" />
+        <text x="565" y="22" class="bold" font-size="13.5" text-anchor="end" fill="white">‫לוח שבועי: 19 - 25 יולי 2026‬</text>
+      </g>
+  <line x1="15" y1="92.85714285714286" x2="565" y2="92.85714285714286" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="548" y="64" class="bold" font-size="13" text-anchor="end" fill="black">‫ראשון 19/7‬</text><line x1="458" y1="39" x2="458" y2="87.85714285714286" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="52" class="bold" font-size="11" text-anchor="end" fill="black">14:00</text><circle cx="408" cy="48.5" r="1.5" fill="black" /><text x="401" y="52" class="regular" font-size="11" text-anchor="end" fill="black">‫זריקה לאבא של פיני‬</text><text x="446" y="72" class="bold" font-size="11" text-anchor="end" fill="black">19:00</text><circle cx="408" cy="68.5" r="1.5" fill="black" /><text x="401" y="72" class="regular" font-size="11" text-anchor="end" fill="black">‫כדורסל הורים וילדים‬</text>
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, 62) scale(0.6)">
+          
+        <g transform="translate(-8, -6)">
+          <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
+          <line x1="0" y1="-11" x2="0" y2="-14" stroke="black" stroke-width="2" />
+          <line x1="11" y1="0" x2="14" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+          <line x1="8" y1="-8" x2="10" y2="-10" stroke="black" stroke-width="2" />
+        </g>
+        <path d="M-10,12 C-16,12 -19,8 -16,2 C-19,-4 -12,-9 -6,-7 C-3,-12 6,-12 9,-7 C15,-9 20,-4 18,2 C21,8 16,12 10,12 Z" 
+              fill="white" stroke="black" stroke-width="3" stroke-linejoin="round" />
+      
+        </g>
+        <text x="54" y="67" class="bold" font-size="11.5" text-anchor="start" fill="black">24°-32°</text>
+        <line x1="102" y1="46" x2="102" y2="80" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      <line x1="15" y1="151.71428571428572" x2="565" y2="151.71428571428572" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><rect x="458" y="98.85714285714286" width="100" height="38" rx="6" ry="6" fill="black" /><text x="548" y="122.85714285714286" class="bold" font-size="13" text-anchor="end" fill="white">‫שני 20/7‬</text><line x1="458" y1="97.85714285714286" x2="458" y2="146.71428571428572" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="110.85714285714286" class="bold" font-size="11" text-anchor="end" fill="black">15:30</text><circle cx="408" cy="107.35714285714286" r="1.5" fill="black" /><text x="401" y="110.85714285714286" class="regular" font-size="11" text-anchor="end" fill="black">‫Riskfield phone interview‬</text><text x="446" y="130.85714285714286" class="bold" font-size="11" text-anchor="end" fill="black">17:30</text><circle cx="408" cy="127.35714285714286" r="1.5" fill="black" /><text x="401" y="130.85714285714286" class="regular" font-size="11" text-anchor="end" fill="black">‫ביקור בגינה קהילתית אבן יהודה‬</text>
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, 120.85714285714286) scale(0.6)">
+          
+        <g transform="translate(-8, -6)">
+          <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
+          <line x1="0" y1="-11" x2="0" y2="-14" stroke="black" stroke-width="2" />
+          <line x1="11" y1="0" x2="14" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+          <line x1="8" y1="-8" x2="10" y2="-10" stroke="black" stroke-width="2" />
+        </g>
+        <path d="M-10,12 C-16,12 -19,8 -16,2 C-19,-4 -12,-9 -6,-7 C-3,-12 6,-12 9,-7 C15,-9 20,-4 18,2 C21,8 16,12 10,12 Z" 
+              fill="white" stroke="black" stroke-width="3" stroke-linejoin="round" />
+      
+        </g>
+        <text x="54" y="125.85714285714286" class="bold" font-size="11.5" text-anchor="start" fill="black">24°-32°</text>
+        <line x1="102" y1="104.85714285714286" x2="102" y2="138.85714285714286" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      <line x1="15" y1="210.57142857142858" x2="565" y2="210.57142857142858" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="548" y="181.71428571428572" class="bold" font-size="13" text-anchor="end" fill="black">‫שלישי 21/7‬</text><line x1="458" y1="156.71428571428572" x2="458" y2="205.57142857142858" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="169.71428571428572" class="bold" font-size="11" text-anchor="end" fill="black">‫ע׳ תשעה באב‬</text><text x="446" y="189.71428571428572" class="bold" font-size="11" text-anchor="end" fill="black">19:30</text><circle cx="408" cy="186.21428571428572" r="1.5" fill="black" /><text x="401" y="189.71428571428572" class="regular" font-size="11" text-anchor="end" fill="black">‫מפגש באופק סביבה דיגיטאלית‬</text>
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, 179.71428571428572) scale(0.6)">
+          
+        <g transform="translate(-8, -6)">
+          <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
+          <line x1="0" y1="-11" x2="0" y2="-14" stroke="black" stroke-width="2" />
+          <line x1="11" y1="0" x2="14" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+          <line x1="8" y1="-8" x2="10" y2="-10" stroke="black" stroke-width="2" />
+        </g>
+        <path d="M-10,12 C-16,12 -19,8 -16,2 C-19,-4 -12,-9 -6,-7 C-3,-12 6,-12 9,-7 C15,-9 20,-4 18,2 C21,8 16,12 10,12 Z" 
+              fill="white" stroke="black" stroke-width="3" stroke-linejoin="round" />
+      
+        </g>
+        <text x="54" y="184.71428571428572" class="bold" font-size="11.5" text-anchor="start" fill="black">24°-33°</text>
+        <line x1="102" y1="163.71428571428572" x2="102" y2="197.71428571428572" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      <line x1="15" y1="269.4285714285714" x2="565" y2="269.4285714285714" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="548" y="240.57142857142856" class="bold" font-size="13" text-anchor="end" fill="black">‫רביעי 22/7‬</text><line x1="458" y1="215.57142857142856" x2="458" y2="264.4285714285714" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="228.57142857142856" class="bold" font-size="11" text-anchor="end" fill="black">‫תשעה באב‬</text><text x="210" y="228.57142857142856" class="bold" font-size="11" text-anchor="end" fill="black">09:30</text><circle cx="172" cy="225.07142857142856" r="1.5" fill="black" /><text x="165" y="228.57142857142856" class="regular" font-size="11" text-anchor="end" fill="black">‫Interview with Riskifi..‬</text><text x="446" y="248.57142857142856" class="bold" font-size="11" text-anchor="end" fill="black">15:00</text><circle cx="408" cy="245.07142857142856" r="1.5" fill="black" /><text x="401" y="248.57142857142856" class="regular" font-size="11" text-anchor="end" fill="black">‫סהר - חוג כדורסל‬</text><line x1="15" y1="328.2857142857143" x2="565" y2="328.2857142857143" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="548" y="299.42857142857144" class="bold" font-size="13" text-anchor="end" fill="black">‫חמישי 23/7‬</text><line x1="458" y1="274.42857142857144" x2="458" y2="323.2857142857143" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="299.42857142857144" class="regular" font-size="12.5" text-anchor="end" fill="black">‫אין אירועים‬</text>
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, 297.42857142857144) scale(0.6)">
+          
+        <g transform="translate(-8, -6)">
+          <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
+          <line x1="0" y1="-11" x2="0" y2="-14" stroke="black" stroke-width="2" />
+          <line x1="11" y1="0" x2="14" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+          <line x1="8" y1="-8" x2="10" y2="-10" stroke="black" stroke-width="2" />
+        </g>
+        <path d="M-10,12 C-16,12 -19,8 -16,2 C-19,-4 -12,-9 -6,-7 C-3,-12 6,-12 9,-7 C15,-9 20,-4 18,2 C21,8 16,12 10,12 Z" 
+              fill="white" stroke="black" stroke-width="3" stroke-linejoin="round" />
+      
+        </g>
+        <text x="54" y="302.42857142857144" class="bold" font-size="11.5" text-anchor="start" fill="black">25°-32°</text>
+        <line x1="102" y1="281.42857142857144" x2="102" y2="315.42857142857144" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      <line x1="15" y1="387.1428571428571" x2="565" y2="387.1428571428571" stroke="black" stroke-dasharray="3,3" stroke-width="1" /><text x="548" y="358.2857142857143" class="bold" font-size="13" text-anchor="end" fill="black">‫שישי 24/7‬</text><line x1="458" y1="333.2857142857143" x2="458" y2="382.1428571428571" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="346.2857142857143" class="bold" font-size="11" text-anchor="end" fill="black">09:00</text><circle cx="408" cy="342.7857142857143" r="1.5" fill="black" /><text x="401" y="346.2857142857143" class="regular" font-size="11" text-anchor="end" fill="black">‫פיני בקורס נגרות‬</text><text x="446" y="366.2857142857143" class="bold" font-size="11" text-anchor="end" fill="black">12:30</text><circle cx="408" cy="362.7857142857143" r="1.5" fill="black" /><text x="401" y="366.2857142857143" class="regular" font-size="11" text-anchor="end" fill="black">‫בת מצווה אריאל שגיא‬</text>
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, 356.2857142857143) scale(0.6)">
+          
+        <g transform="translate(-8, -6)">
+          <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
+          <line x1="0" y1="-11" x2="0" y2="-14" stroke="black" stroke-width="2" />
+          <line x1="11" y1="0" x2="14" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+          <line x1="8" y1="-8" x2="10" y2="-10" stroke="black" stroke-width="2" />
+        </g>
+        <path d="M-10,12 C-16,12 -19,8 -16,2 C-19,-4 -12,-9 -6,-7 C-3,-12 6,-12 9,-7 C15,-9 20,-4 18,2 C21,8 16,12 10,12 Z" 
+              fill="white" stroke="black" stroke-width="3" stroke-linejoin="round" />
+      
+        </g>
+        <text x="54" y="361.2857142857143" class="bold" font-size="11.5" text-anchor="start" fill="black">25°-32°</text>
+        <line x1="102" y1="340.2857142857143" x2="102" y2="374.2857142857143" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      <text x="548" y="417.1428571428571" class="bold" font-size="13" text-anchor="end" fill="black">‫שבת 25/7‬</text><line x1="458" y1="392.1428571428571" x2="458" y2="440.99999999999994" stroke="black" stroke-dasharray="2,2" stroke-width="1" /><text x="446" y="417.1428571428571" class="regular" font-size="12.5" text-anchor="end" fill="black">‫אין אירועים‬</text>
+        <!-- Day Weather Widget -->
+        <g transform="translate(25, 415.1428571428571) scale(0.6)">
+          
+        <g transform="translate(-8, -6)">
+          <circle cx="0" cy="0" r="8" fill="none" stroke="black" stroke-width="2" />
+          <line x1="0" y1="-11" x2="0" y2="-14" stroke="black" stroke-width="2" />
+          <line x1="11" y1="0" x2="14" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+          <line x1="8" y1="-8" x2="10" y2="-10" stroke="black" stroke-width="2" />
+        </g>
+        <path d="M-10,12 C-16,12 -19,8 -16,2 C-19,-4 -12,-9 -6,-7 C-3,-12 6,-12 9,-7 C15,-9 20,-4 18,2 C21,8 16,12 10,12 Z" 
+              fill="white" stroke="black" stroke-width="3" stroke-linejoin="round" />
+      
+        </g>
+        <text x="54" y="420.1428571428571" class="bold" font-size="11.5" text-anchor="start" fill="black">23°-32°</text>
+        <line x1="102" y1="399.1428571428571" x2="102" y2="433.1428571428571" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+      </g><text x="20" y="473" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: 12:00</text></svg>
