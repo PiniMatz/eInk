@@ -489,7 +489,7 @@ function generateSvg({ date, events, tasks, weather }) {
           ${getWeatherIconSvg(f.icon)}
         </g>
         <text x="54" y="${rowY + 33}" class="bold" font-size="11.5" text-anchor="start" fill="black">${f.tempMin}°-${f.tempMax}°</text>
-        <line x1="102" y1="${rowY + 12}" x2="102" y2="${rowY + 46}" stroke="black" stroke-width="0.8" stroke-dasharray="1,2" />
+        <line x1="102" y1="${rowY + 12}" x2="102" y2="${rowY + 46}" stroke="black" stroke-width="1" stroke-dasharray="2,2" />
       `;
     }
   }
