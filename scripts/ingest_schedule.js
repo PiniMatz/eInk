@@ -54,7 +54,8 @@ async function ingestSchedule(scheduleItems, options = {}) {
             kid: item.kid,
             title: item.title,
             date: item.date,
-            time: item.time
+            time: item.time,
+            durationMinutes: item.durationMinutes
           });
           console.log(`Successfully synced event "${formattedTitle}" to Google Calendar (${calId})`);
         } catch (gErr) {
