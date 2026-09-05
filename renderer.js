@@ -424,13 +424,50 @@ function generateSvg({ date, events, tasks, weather }) {
     // Sahar Column (x: 404 to 606)
     panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
     panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    // Helper to render No-School graphic & message
+    const renderNoSchoolBox = (kid, xCenter, panelDate) => {
+      const msg = getNoSchoolMessage(kid, panelDate);
+      const isHoliday = msg.includes('—') && !msg.includes('שבת') && !msg.includes('שישי');
+      const isWeekend = msg.includes('שבת') || msg.includes('שישי');
+
+      let iconSvg = '';
+      if (isHoliday) {
+        // Party / Holiday Palm & Celebration Icon
+        iconSvg = `<path d="M-15,10 C-5,-10 5,-10 15,10 M-10,-5 L10,-5 M0,-15 L0,5" stroke="black" stroke-width="2" fill="none" transform="translate(${xCenter}, 100)" />
+                   <circle cx="${xCenter}" cy="90" r="14" fill="none" stroke="black" stroke-width="2" />
+                   <path d="M${xCenter-8},90 Q${xCenter},82 ${xCenter+8},90" stroke="black" stroke-width="1.5" fill="none" />`;
+      } else if (isWeekend) {
+        // Moon & Stars Weekend Icon
+        iconSvg = `<path d="M${xCenter-6},85 A12,12 0 1,0 ${xCenter+12},101 A15,15 0 1,1 ${xCenter-6},85 Z" fill="black" />
+                   <text x="${xCenter+12}" y="90" font-family="sans-serif" font-size="10" font-weight="bold" fill="black">z</text>
+                   <text x="${xCenter+18}" y="84" font-family="sans-serif" font-size="8" font-weight="bold" fill="black">z</text>`;
+      } else {
+        // Backpack / Rest Day Icon
+        iconSvg = `<rect x="${xCenter-12}" y="85" width="24" height="20" rx="4" fill="none" stroke="black" stroke-width="2" />
+                   <path d="M${xCenter-6},85 C${xCenter-6},78 ${xCenter+6},78 ${xCenter+6},85" fill="none" stroke="black" stroke-width="2" />
+                   <line x1="${xCenter-12}" y1="95" x2="${xCenter+12}" y2="95" stroke="black" stroke-width="1.5" />`;
+      }
+
+      let boxHtml = `<g>`;
+      boxHtml += iconSvg;
+      boxHtml += `<text x="${xCenter}" y="128" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
+      boxHtml += `</g>`;
+      return boxHtml;
+    };
+
+    // Sahar Column (x: 404 to 606)
+    panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
+    panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     if (!dayEvents.saharSchool || dayEvents.saharSchool.length === 0) {
-      const msg = getNoSchoolMessage('סהר', panelDate);
-      panel += `<text x="${mainW - colW / 2}" y="120" class="regular" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
+      panel += renderNoSchoolBox('סהר', mainW - colW / 2, panelDate);
     } else {
-      dayEvents.saharSchool.slice(0, 5).forEach((item, idx) => {
-        const iy = 68 + idx * 30;
-        panel += `<text x="${mainW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+      const list = dayEvents.saharSchool.slice(0, 7);
+      const step = list.length > 5 ? 23 : 30;
+      const startY = list.length > 5 ? 65 : 68;
+      const fontSz = list.length > 5 ? "10.5" : "11.5";
+      list.forEach((item, idx) => {
+        const iy = startY + idx * step;
+        panel += `<text x="${mainW - 12}" y="${iy}" class="regular" font-size="${fontSz}" text-anchor="end" fill="black">\u202B${item.time} ${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
       });
     }
 
@@ -438,21 +475,29 @@ function generateSvg({ date, events, tasks, weather }) {
     panel += `<text x="${colW * 1.5}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סול</text>`;
     panel += `<line x1="${colW}" y1="30" x2="${colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     if (!dayEvents.solSchool || dayEvents.solSchool.length === 0) {
-      const msg = getNoSchoolMessage('סול', panelDate);
-      panel += `<text x="${colW * 1.5}" y="120" class="regular" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
+      panel += renderNoSchoolBox('סול', colW * 1.5, panelDate);
     } else {
-      dayEvents.solSchool.slice(0, 5).forEach((item, idx) => {
-        const iy = 68 + idx * 30;
-        panel += `<text x="${mainW - colW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+      const list = dayEvents.solSchool.slice(0, 7);
+      const step = list.length > 5 ? 23 : 30;
+      const startY = list.length > 5 ? 65 : 68;
+      const fontSz = list.length > 5 ? "10.5" : "11.5";
+      list.forEach((item, idx) => {
+        const iy = startY + idx * step;
+        panel += `<text x="${mainW - colW - 12}" y="${iy}" class="regular" font-size="${fontSz}" text-anchor="end" fill="black">\u202B${item.time} ${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
       });
     }
 
     // Afternoon Column (x: 0 to 202)
     panel += `<text x="${colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">פעילות אחה"צ</text>`;
     if (!dayEvents.afternoonActivities || dayEvents.afternoonActivities.length === 0) {
-      panel += `<text x="${colW / 2}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין פעילות</text>`;
+      panel += `<g>
+                  <circle cx="${colW / 2}" cy="92" r="12" fill="none" stroke="black" stroke-width="1.5" />
+                  <path d="M${colW / 2 - 6},92 L${colW / 2 + 6},92" stroke="black" stroke-width="1.5" />
+                  <text x="${colW / 2}" y="124" class="regular" font-size="11.5" text-anchor="middle" fill="black">אין פעילות</text>
+                </g>`;
     } else {
-      dayEvents.afternoonActivities.slice(0, 5).forEach((item, idx) => {
+      const list = dayEvents.afternoonActivities.slice(0, 5);
+      list.forEach((item, idx) => {
         const iy = 68 + idx * 30;
         const kidBadge = item.kid ? `[${item.kid}] ` : '';
         panel += `<text x="${colW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${kidBadge}${truncateText(stripNikud(item.title), 12)}\u202C</text>`;
