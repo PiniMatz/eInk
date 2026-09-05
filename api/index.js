@@ -281,11 +281,11 @@ app.delete('/api/calendars/:id', async (req, res) => {
   }
 });
 
-// API: Trigger calendar sync manually
-app.post('/api/calendars/sync', async (req, res) => {
+// API: Trigger calendar sync manually or via Vercel Cron (runs every 8 hours)
+app.all('/api/calendars/sync', async (req, res) => {
   try {
     await db.syncCalendars();
-    res.status(200).json({ success: true });
+    res.status(200).json({ success: true, message: 'Calendars synced successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
