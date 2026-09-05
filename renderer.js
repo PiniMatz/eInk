@@ -325,6 +325,34 @@ function getNoSchoolMessage(kid, panelDate) {
   return 'אין לימודים';
 }
 
+function addMinutesToTime(timeStr, mins) {
+  if (!timeStr || !timeStr.includes(':')) return timeStr;
+  const [h, m] = timeStr.split(':').map(Number);
+  const totalMins = h * 60 + m + mins;
+  const endH = Math.floor(totalMins / 60);
+  const endM = totalMins % 60;
+  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+}
+
+function getSchoolTimeRange(eventsList) {
+  if (!eventsList || eventsList.length === 0) return '';
+  const sorted = [...eventsList].filter(e => e.time).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  if (sorted.length === 0) return '';
+  const firstTime = sorted[0].time;
+  const lastEvent = sorted[sorted.length - 1];
+  let endTimeStr = '';
+  if (lastEvent.endTime) {
+    endTimeStr = lastEvent.endTime;
+  } else if (lastEvent.durationMinutes) {
+    endTimeStr = addMinutesToTime(lastEvent.time, lastEvent.durationMinutes);
+  } else if (lastEvent.rawItem && lastEvent.rawItem.durationMinutes) {
+    endTimeStr = addMinutesToTime(lastEvent.time, lastEvent.rawItem.durationMinutes);
+  } else {
+    endTimeStr = addMinutesToTime(lastEvent.time, 45);
+  }
+  return `(${firstTime}-${endTimeStr})`;
+}
+
 function generateSvg({ date, events, tasks, weather }) {
   const todayDate = date;
   const tomorrowDate = new Date(todayDate);
@@ -358,6 +386,8 @@ function generateSvg({ date, events, tasks, weather }) {
   // ==========================================
   const wTemp = (weather && weather.temp !== undefined) ? `${Math.round(weather.temp)}°C` : '--°C';
   const wDesc = stripNikud((weather && weather.description) || 'שמש חלקית');
+  const wSunrise = (weather && weather.sunrise) || '05:42';
+  const wSunset = (weather && weather.sunset) || '19:48';
 
   svg += `
     <g transform="translate(12, 10)">
@@ -368,9 +398,10 @@ function generateSvg({ date, events, tasks, weather }) {
       </g>
       
       <!-- Current Main Temp Block -->
-      <text x="78" y="60" class="bold" font-size="22" text-anchor="middle" fill="black">${wTemp}</text>
-      <text x="78" y="78" class="regular" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
-      <line x1="12" y1="92" x2="144" y2="92" stroke="black" stroke-width="1" />
+      <text x="78" y="56" class="bold" font-size="21" text-anchor="middle" fill="black">${wTemp}</text>
+      <text x="78" y="74" class="regular" font-size="10.5" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
+      <text x="78" y="93" class="regular" font-size="10" text-anchor="middle" fill="black">\u202B🌅 ${wSunrise}   🌇 ${wSunset}\u202C</text>
+      <line x1="12" y1="102" x2="144" y2="102" stroke="black" stroke-width="1" />
   `;
 
   // Build 3-Day Forecast Items
@@ -390,16 +421,16 @@ function generateSvg({ date, events, tasks, weather }) {
   }
 
   forecast3Day.forEach((w, idx) => {
-    const wy = 104 + idx * 114;
+    const wy = 108 + idx * 114;
     if (idx > 0) {
       svg += `<line x1="12" y1="${wy - 8}" x2="144" y2="${wy - 8}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     }
     const dayTitle = w.day || (idx === 0 ? `היום (${todayDate.getDate()}.${todayDate.getMonth()+1})` : idx === 1 ? `מחר (${tomorrowDate.getDate()}.${tomorrowDate.getMonth()+1})` : `${day2Name} (${day2Date.getDate()}.${day2Date.getMonth()+1})`);
     const fDesc = stripNikud(w.description || w.desc || '');
-    svg += `<text x="78" y="${wy + 14}" class="bold" font-size="11.5" text-anchor="middle" fill="black">${dayTitle}</text>`;
-    svg += `<g transform="translate(78, ${wy + 40}) scale(0.65)">${getWeatherIconSvg(w.icon)}</g>`;
-    svg += `<text x="78" y="${wy + 72}" class="regular" font-size="10.5" text-anchor="middle" fill="black">${fDesc}</text>`;
-    svg += `<text x="78" y="${wy + 92}" class="bold" font-size="12" text-anchor="middle" fill="black">${Math.round(w.tempMin)}° - ${Math.round(w.tempMax)}°</text>`;
+    svg += `<text x="78" y="${wy + 14}" class="bold" font-size="11" text-anchor="middle" fill="black">${dayTitle}</text>`;
+    svg += `<g transform="translate(78, ${wy + 40}) scale(0.6)">${getWeatherIconSvg(w.icon)}</g>`;
+    svg += `<text x="78" y="${wy + 68}" class="regular" font-size="10" text-anchor="middle" fill="black">${fDesc}</text>`;
+    svg += `<text x="78" y="${wy + 88}" class="bold" font-size="11.5" text-anchor="middle" fill="black">${Math.round(w.tempMin)}° - ${Math.round(w.tempMax)}°</text>`;
   });
 
   svg += `</g>`;
@@ -421,9 +452,6 @@ function generateSvg({ date, events, tasks, weather }) {
         </g>
     `;
 
-    // Sahar Column (x: 404 to 606)
-    panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
-    panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     // Helper to get multi-day holiday emoji or randomized fun emoji from pool
     const getHolidayEmoji = (msg, panelDate, kid) => {
       if (!msg) return '🎒';
@@ -465,20 +493,22 @@ function generateSvg({ date, events, tasks, weather }) {
       return funPool[dateHash];
     };
 
-    // Helper to render No-School graphic & message
+    // Helper to render No-School graphic & message with empty line space
     const renderNoSchoolBox = (kid, xCenter, panelDate) => {
       const msg = getNoSchoolMessage(kid, panelDate);
       const emoji = getHolidayEmoji(msg, panelDate, kid);
 
       let boxHtml = `<g>`;
-      boxHtml += `<text x="${xCenter}" y="92" font-family="sans-serif" font-size="24" text-anchor="middle" fill="black">${emoji}</text>`;
-      boxHtml += `<text x="${xCenter}" y="128" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
+      boxHtml += `<text x="${xCenter}" y="82" font-family="sans-serif" font-size="26" text-anchor="middle" fill="black">${emoji}</text>`;
+      boxHtml += `<text x="${xCenter}" y="142" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
       boxHtml += `</g>`;
       return boxHtml;
     };
 
-    // Sahar Column (x: 404 to 606)
-    panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
+    // Sahar Column Header & List (x: 404 to 606)
+    const saharTimeRange = getSchoolTimeRange(dayEvents.saharSchool);
+    const saharHeader = saharTimeRange ? `סהר ${saharTimeRange}` : 'סהר';
+    panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${saharHeader}\u202C</text>`;
     panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     if (!dayEvents.saharSchool || dayEvents.saharSchool.length === 0) {
       panel += renderNoSchoolBox('סהר', mainW - colW / 2, panelDate);
@@ -493,8 +523,10 @@ function generateSvg({ date, events, tasks, weather }) {
       });
     }
 
-    // Sol Column (x: 202 to 404)
-    panel += `<text x="${colW * 1.5}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סול</text>`;
+    // Sol Column Header & List (x: 202 to 404)
+    const solTimeRange = getSchoolTimeRange(dayEvents.solSchool);
+    const solHeader = solTimeRange ? `סול ${solTimeRange}` : 'סול';
+    panel += `<text x="${colW * 1.5}" y="48" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${solHeader}\u202C</text>`;
     panel += `<line x1="${colW}" y1="30" x2="${colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     if (!dayEvents.solSchool || dayEvents.solSchool.length === 0) {
       panel += renderNoSchoolBox('סול', colW * 1.5, panelDate);
