@@ -35,6 +35,21 @@ function getAuthClient() {
   return cachedAuth;
 }
 
+function getJerusalemIsoString(dateStr, timeStr) {
+  const d = new Date(`${dateStr}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Jerusalem',
+    timeZoneName: 'shortOffset'
+  }).formatToParts(d);
+  const tzPart = parts.find(p => p.type === 'timeZoneName');
+  let offsetStr = '+03:00';
+  if (tzPart && tzPart.value) {
+    if (tzPart.value.includes('+2') || tzPart.value.includes('GMT+2')) offsetStr = '+02:00';
+    if (tzPart.value.includes('+3') || tzPart.value.includes('GMT+3')) offsetStr = '+03:00';
+  }
+  return `${dateStr}T${timeStr}:00${offsetStr}`;
+}
+
 /**
  * Creates an event in Google Calendar (e.g. hugim.kid@gmail.com).
  */
@@ -43,17 +58,20 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
   await auth.authorize();
   const calendar = google.calendar({ version: 'v3', auth });
 
+  const cleanTitle = (title || '').replace(/[,:\s]+$/, '').trim();
   const kidTag = kid ? `[${kid}] ` : '';
-  const fullTitle = title.startsWith('[') ? title : `${kidTag}${title}`;
+  const fullTitle = cleanTitle.startsWith('[') ? cleanTitle : `${kidTag}${cleanTitle}`;
 
   let startDateTime;
   let endDateTime;
 
   if (time && time.includes(':')) {
     const [h, m] = time.split(':').map(Number);
-    const start = new Date(`${date}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00+03:00`);
+    const formattedTime = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    const startIso = getJerusalemIsoString(date, formattedTime);
+    const start = new Date(startIso);
     const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
-    startDateTime = { dateTime: start.toISOString(), timeZone: 'Asia/Jerusalem' };
+    startDateTime = { dateTime: startIso, timeZone: 'Asia/Jerusalem' };
     endDateTime = { dateTime: end.toISOString(), timeZone: 'Asia/Jerusalem' };
   } else {
     // All-day event
@@ -76,9 +94,11 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
       timeMax: `${date}T23:59:59Z`,
       singleEvents: true
     });
+    const items = existing.data ? (existing.data.items || []) : [];
     const targetMs = new Date(startDateTime.dateTime || `${startDateTime.date}T00:00:00Z`).getTime();
     const duplicate = items.find(e => {
-      if (e.summary !== fullTitle || !e.start) return false;
+      const cleanSummary = (e.summary || '').replace(/[,:\s]+$/, '').trim();
+      if (cleanSummary !== fullTitle || !e.start) return false;
       const evMs = new Date(e.start.dateTime || `${e.start.date}T00:00:00Z`).getTime();
       return Math.abs(evMs - targetMs) < 60000;
     });
@@ -104,22 +124,37 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
  */
 async function deleteGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', eventId }) {
   const auth = getAuthClient();
+  await auth.authorize();
   const calendar = google.calendar({ version: 'v3', auth });
 
-  await calendar.events.delete({
-    calendarId,
-    eventId
-  });
+  let retries = 5;
+  let delay = 2000;
+  while (retries > 0) {
+    try {
+      await calendar.events.delete({
+        calendarId,
+        eventId
+      });
+      break;
+    } catch (err) {
+      retries--;
+      if (retries === 0) throw err;
+      console.warn(`Delete failed for event ID ${eventId} (${err.message}). Retrying in ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+      delay *= 2;
+    }
+  }
 
   console.log(`Deleted Google Calendar event ID ${eventId}`);
   return { success: true };
 }
 
 /**
- * Lists upcoming events from Google Calendar.
+ * Lists upcoming events from Google Calendar with retry handling.
  */
-async function listGoogleCalendarEvents({ calendarId = 'hugim.kid@gmail.com', timeMin, timeMax }) {
+async function listGoogleCalendarEvents({ calendarId = 'hugim.kid@gmail.com', timeMin, timeMax } = {}) {
   const auth = getAuthClient();
+  await auth.authorize();
   const calendar = google.calendar({ version: 'v3', auth });
 
   let allItems = [];
@@ -136,7 +171,22 @@ async function listGoogleCalendarEvents({ calendarId = 'hugim.kid@gmail.com', ti
     };
     if (pageToken) params.pageToken = pageToken;
 
-    const response = await calendar.events.list(params);
+    let retries = 5;
+    let delay = 2000;
+    let response;
+    while (retries > 0) {
+      try {
+        response = await calendar.events.list(params);
+        break;
+      } catch (err) {
+        retries--;
+        if (retries === 0) throw err;
+        console.warn(`listGoogleCalendarEvents quota limit (${err.message}). Retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2;
+      }
+    }
+
     const items = response.data.items || [];
     allItems = allItems.concat(items);
     pageToken = response.data.nextPageToken;
@@ -160,7 +210,7 @@ async function updateGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', e
 
   const patchBody = {};
   if (summary) {
-    patchBody.summary = summary;
+    patchBody.summary = summary.replace(/[,:\s]+$/, '').trim();
   }
 
   if (eventData && eventData.attendees && eventData.attendees.length > 0) {
@@ -197,9 +247,59 @@ async function updateGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', e
   return response.data;
 }
 
+/**
+ * Bulk patches events in Google Calendar with rate-limiting and concurrency control.
+ */
+async function bulkPatchGoogleCalendarEvents(patchItems, concurrency = 1) {
+  const auth = getAuthClient();
+  await auth.authorize();
+  const calendar = google.calendar({ version: 'v3', auth });
+
+  const results = [];
+  for (let i = 0; i < patchItems.length; i += concurrency) {
+    const chunk = patchItems.slice(i, i + concurrency);
+    const chunkResults = await Promise.all(chunk.map(async (item) => {
+      const { calendarId = 'hugim.kid@gmail.com', eventId, summary, start, end } = item;
+      const patchBody = {};
+      if (summary) {
+        patchBody.summary = summary.replace(/[,:\s]+$/, '').trim();
+      }
+      if (start) patchBody.start = start;
+      if (end) patchBody.end = end;
+
+      let retries = 5;
+      let delay = 2000;
+      while (retries > 0) {
+        try {
+          const res = await calendar.events.patch({
+            calendarId,
+            eventId,
+            requestBody: patchBody
+          });
+          return res.data;
+        } catch (err) {
+          retries--;
+          if (retries === 0) {
+            console.error(`Bulk patch failed for event ${eventId}:`, err.message);
+            return null;
+          }
+          console.warn(`Patch rate limited for event ${eventId} (${err.message}). Retrying in ${delay}ms...`);
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2;
+        }
+      }
+    }));
+    results.push(...chunkResults);
+    await new Promise(r => setTimeout(r, 350));
+  }
+  return results.filter(Boolean);
+}
+
 module.exports = {
   addGoogleCalendarEvent,
   deleteGoogleCalendarEvent,
   listGoogleCalendarEvents,
-  updateGoogleCalendarEvent
+  updateGoogleCalendarEvent,
+  bulkPatchGoogleCalendarEvents,
+  getJerusalemIsoString
 };

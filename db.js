@@ -634,14 +634,16 @@ const db = {
               const minute = tParts.find(p => p.type === 'minute').value;
               const hourStr = `${hour}:${minute}`;
               
-              let matchedTask = existingTasks.find(t => t.date === dateStr && t.time === hourStr && t.source === cal.id && areTitlesSimilar(t.description, occ.summary || 'פעילות'));
+              const cleanOccSummary = (occ.summary || 'פעילות').replace(/[,:\s]+$/, '').trim();
+
+              let matchedTask = existingTasks.find(t => t.date === dateStr && t.time === hourStr && t.source === cal.id && areTitlesSimilar(t.description, cleanOccSummary));
               if (!matchedTask) {
-                matchedTask = existingTasks.find(t => t.date === dateStr && t.time === hourStr && areTitlesSimilar(t.description, occ.summary || 'פעילות'));
+                matchedTask = existingTasks.find(t => t.date === dateStr && t.time === hourStr && areTitlesSimilar(t.description, cleanOccSummary));
               }
 
               let matchedEvent = existingEvents.find(e => e.date === dateStr && e.time === hourStr && e.source === cal.id && e.isTimed === true);
               if (!matchedEvent) {
-                matchedEvent = existingEvents.find(e => e.date === dateStr && e.time === hourStr && e.isTimed === true && areTitlesSimilar(e.title, occ.summary || 'פעילות'));
+                matchedEvent = existingEvents.find(e => e.date === dateStr && e.time === hourStr && e.isTimed === true && areTitlesSimilar(e.title, cleanOccSummary));
               }
 
               if (matchedTask && matchedEvent) {
@@ -653,9 +655,9 @@ const db = {
                   taskUpdate.uid = occUid;
                   matchedTask.uid = occUid;
                 }
-                if (matchedTask.description !== (occ.summary || 'פעילות')) {
-                  taskUpdate.description = occ.summary || 'פעילות';
-                  matchedTask.description = occ.summary || 'פעילות';
+                if (matchedTask.description !== cleanOccSummary) {
+                  taskUpdate.description = cleanOccSummary;
+                  matchedTask.description = cleanOccSummary;
                 }
                 if (resolvedAuthor === 'נדיה' && matchedTask.author !== 'נדיה') {
                   taskUpdate.author = 'נדיה';
@@ -666,7 +668,7 @@ const db = {
                 }
 
                 const eventUpdate = {};
-                const newTitle = await summarizeTitle(occ.summary || 'פעילות');
+                const newTitle = await summarizeTitle(cleanOccSummary);
                 if (matchedEvent.title !== newTitle) {
                   eventUpdate.title = newTitle;
                   matchedEvent.title = newTitle;
@@ -690,7 +692,7 @@ const db = {
                     taskId = docRef.id;
                     const newTask = {
                       id: taskId,
-                      description: occ.summary || 'פעילות',
+                      description: cleanOccSummary,
                       date: dateStr,
                       time: hourStr,
                       author: resolvedAuthor,
@@ -710,7 +712,7 @@ const db = {
                     taskId = Math.random().toString(36).substring(2, 9);
                     const newTask = {
                       id: taskId,
-                      description: occ.summary || 'פעילות',
+                      description: cleanOccSummary,
                       date: dateStr,
                       time: hourStr,
                       author: resolvedAuthor,
