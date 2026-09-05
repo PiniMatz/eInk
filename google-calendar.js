@@ -137,11 +137,23 @@ async function updateGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', e
     patchBody.attendees = [{ email: calendarId, responseStatus: 'accepted' }];
   }
 
-  const response = await calendar.events.patch({
-    calendarId,
-    eventId,
-    requestBody: patchBody
-  });
+  let retries = 3;
+  let response;
+  while (retries > 0) {
+    try {
+      response = await calendar.events.patch({
+        calendarId,
+        eventId,
+        requestBody: patchBody
+      });
+      break;
+    } catch (err) {
+      retries--;
+      if (retries === 0) throw err;
+      console.warn(`Patch failed for event ${eventId} (${err.message}). Retrying in 1.5s...`);
+      await new Promise(r => setTimeout(r, 1500));
+    }
+  }
 
   console.log(`Updated & Auto-Accepted Google Calendar event ID ${eventId} -> "${summary || 'accepted'}"`);
   return response.data;
