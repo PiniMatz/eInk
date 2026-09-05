@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
-const { getJewishHolidays } = require('./holidays');
+const { getJewishHolidays, getSchoolHoliday } = require('./holidays');
 
 
 const MONTHS_HE = [
@@ -264,12 +264,60 @@ function parseKidEvents(events, tasks, reqDateStr) {
     }
   });
 
-  const sortByTime = (a, b) => (a.time || '').localeCompare(b.time || '');
-  saharSchool.sort(sortByTime);
-  solSchool.sort(sortByTime);
-  afternoonActivities.sort(sortByTime);
+  const dedupList = (list) => {
+    const unique = [];
+    list.forEach(item => {
+      const exists = unique.some(u => {
+        const titleMatch = u.title.trim().toLowerCase() === item.title.trim().toLowerCase() || areTitlesSimilar(u.title, item.title);
+        const timeMatch = (u.time || '') === (item.time || '');
+        const kidMatch = u.kid === item.kid;
+        return titleMatch && timeMatch && kidMatch;
+      });
+      if (!exists) {
+        unique.push(item);
+      }
+    });
+    return unique;
+  };
 
-  return { saharSchool, solSchool, afternoonActivities };
+  const dedupSahar = dedupList(saharSchool);
+  const dedupSol = dedupList(solSchool);
+  const dedupAfternoon = dedupList(afternoonActivities);
+
+  const sortByTime = (a, b) => (a.time || '').localeCompare(b.time || '');
+  dedupSahar.sort(sortByTime);
+  dedupSol.sort(sortByTime);
+  dedupAfternoon.sort(sortByTime);
+
+  return { saharSchool: dedupSahar, solSchool: dedupSol, afternoonActivities: dedupAfternoon };
+}
+
+function areTitlesSimilar(a, b) {
+  if (!a || !b) return false;
+  const clean = s => s.toLowerCase().replace(/[^\u0590-\u05FFa-z0-9]/g, '').trim();
+  return clean(a) === clean(b);
+}
+
+function getNoSchoolMessage(kid, panelDate) {
+  // Check 1: Jewish Holiday with no school (First item wins)
+  const holiday = getSchoolHoliday(panelDate);
+  if (holiday) {
+    return `${holiday} — אין לימודים`;
+  }
+
+  // Check 2: Saturday
+  const dayOfWeek = panelDate.getDay();
+  if (dayOfWeek === 6) {
+    return 'יום שבת — אין לימודים';
+  }
+
+  // Check 3: Friday for Sol only
+  if (kid === 'סול' && dayOfWeek === 5) {
+    return 'יום שישי — אין לימודים';
+  }
+
+  // Fallback
+  return 'אין לימודים';
 }
 
 function generateSvg({ date, events, tasks, weather }) {
@@ -358,7 +406,7 @@ function generateSvg({ date, events, tasks, weather }) {
   const mainW = 606;
   const colW = mainW / 3;
 
-  const renderDayPanel = (y, titleStr, dayEvents, clipId) => {
+  const renderDayPanel = (y, titleStr, dayEvents, clipId, panelDate) => {
     let panel = `
       <g transform="translate(${mainX}, ${y})">
         <rect x="0" y="0" width="${mainW}" height="224" rx="10" ry="10" fill="none" stroke="black" stroke-width="2" />
@@ -372,7 +420,8 @@ function generateSvg({ date, events, tasks, weather }) {
     panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
     panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     if (!dayEvents.saharSchool || dayEvents.saharSchool.length === 0) {
-      panel += `<text x="${mainW - colW / 2}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין לימודים</text>`;
+      const msg = getNoSchoolMessage('סהר', panelDate);
+      panel += `<text x="${mainW - colW / 2}" y="120" class="regular" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
     } else {
       dayEvents.saharSchool.slice(0, 5).forEach((item, idx) => {
         const iy = 68 + idx * 30;
@@ -384,7 +433,8 @@ function generateSvg({ date, events, tasks, weather }) {
     panel += `<text x="${colW * 1.5}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סול</text>`;
     panel += `<line x1="${colW}" y1="30" x2="${colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
     if (!dayEvents.solSchool || dayEvents.solSchool.length === 0) {
-      panel += `<text x="${colW * 1.5}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין לימודים</text>`;
+      const msg = getNoSchoolMessage('סול', panelDate);
+      panel += `<text x="${colW * 1.5}" y="120" class="regular" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
     } else {
       dayEvents.solSchool.slice(0, 5).forEach((item, idx) => {
         const iy = 68 + idx * 30;
@@ -400,7 +450,7 @@ function generateSvg({ date, events, tasks, weather }) {
       dayEvents.afternoonActivities.slice(0, 5).forEach((item, idx) => {
         const iy = 68 + idx * 30;
         const kidBadge = item.kid ? `[${item.kid}] ` : '';
-        panel += `<text x="${colW - 12}" y="${iy}" class="regular" font-size="11" text-anchor="end" fill="black">\u202B${item.time} ${kidBadge}${truncateText(stripNikud(item.title), 12)}\u202C</text>`;
+        panel += `<text x="${colW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${kidBadge}${truncateText(stripNikud(item.title), 12)}\u202C</text>`;
       });
     }
 
@@ -408,8 +458,8 @@ function generateSvg({ date, events, tasks, weather }) {
     return panel;
   };
 
-  svg += renderDayPanel(10, todayStr, todayEvents, "top-card-clip");
-  svg += renderDayPanel(242, tomorrowStr, tomorrowEvents, "bot-card-clip");
+  svg += renderDayPanel(10, todayStr, todayEvents, "top-card-clip", todayDate);
+  svg += renderDayPanel(242, tomorrowStr, tomorrowEvents, "bot-card-clip", tomorrowDate);
 
   // Status Footer
   const syncHour = String(date.getHours()).padStart(2, '0');

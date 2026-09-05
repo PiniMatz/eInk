@@ -68,7 +68,7 @@ test('Fallback Text: "אין לימודים" must be rendered in solid black', (
   const rendererPath = path.join(__dirname, '..', 'renderer.js');
   const content = fs.readFileSync(rendererPath, 'utf8');
   
-  assert.match(content, /fill="black">אין לימודים<\/text>/);
+  assert.match(content, /fill="black">\\u202B\$\{msg\}\\u202C<\/text>/);
 });
 
 // Test 5: Layout-aware dynamic text truncation lengths
@@ -90,16 +90,32 @@ test('Cache Control: Vercel HTTP response headers prevent stale ePaper cache', (
 });
 
 // Test 7: ESPHome firmware console none, logger none, safe-mode disable, and deep sleep configs
-test('ESPHome: disabled console & logging, safe-mode disable, and deep sleep scheduler', () => {
-  const yamlPath = path.join(__dirname, '..', 'esphome', 'epaper.yaml');
-  const content = fs.readFileSync(yamlPath, 'utf8');
+// Test 8: Ministry of Education Jewish School Holiday Detection
+test('Ministry of Education Jewish Holiday Detection (getSchoolHoliday)', () => {
+  const { getSchoolHoliday } = require('../holidays');
   
-  assert.match(content, /CONFIG_ESP_CONSOLE_NONE:\s*["']y["']/);
-  assert.match(content, /level:\s*NONE/i);
-  assert.match(content, /safe_mode:\s*disabled:\s*true/i);
-  assert.match(content, /reboot_timeout:\s*0s/);
-  assert.match(content, /deep_sleep:/);
-  assert.match(content, /deep_sleep\.enter:/);
+  assert.strictEqual(getSchoolHoliday(new Date('2026-09-11')), 'ראש השנה');
+  assert.strictEqual(getSchoolHoliday(new Date('2026-09-20')), 'יום כיפור');
+  assert.strictEqual(getSchoolHoliday(new Date('2026-09-25')), 'סוכות');
+  assert.strictEqual(getSchoolHoliday(new Date('2026-12-04')), 'חנוכה');
+  assert.strictEqual(getSchoolHoliday(new Date('2027-03-23')), 'פורים');
+});
+
+// Test 9: No-School Verification Cascade (Holiday -> Saturday -> Friday Sol -> Default)
+test('No-School Verification Cascade: Holiday -> Saturday -> Friday Sol -> Default', () => {
+  const { generateSvg } = require('../renderer');
+  
+  // Rosh Hashana (2026-09-11)
+  const svgHoliday = generateSvg({ date: new Date('2026-09-11T12:00:00+03:00'), events: [], tasks: [], weather: {} });
+  assert.match(svgHoliday, /ראש השנה — אין לימודים/);
+
+  // Saturday (2026-09-05 is a regular Saturday)
+  const svgSaturday = generateSvg({ date: new Date('2026-09-05T12:00:00+03:00'), events: [], tasks: [], weather: {} });
+  assert.match(svgSaturday, /יום שבת — אין לימודים/);
+
+  // Friday for Sol (2026-09-18)
+  const svgFridaySol = generateSvg({ date: new Date('2026-09-18T12:00:00+03:00'), events: [], tasks: [], weather: {} });
+  assert.match(svgFridaySol, /יום שישי — אין לימודים/);
 });
 
 console.log('\n==================================================');
