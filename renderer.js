@@ -378,133 +378,142 @@ function getSunsetIconSvg() {
   `;
 }
 
+function getMoonZzzGraphicSvg() {
+  return `
+    <g transform="translate(-4, 0)">
+      <path d="M-6,-12 A12,12 0 1,0 10,6 A14,14 0 1,1 -6,-12 Z" fill="black" />
+      <text x="7" y="-2" class="bold" font-size="10" fill="black">z</text>
+      <text x="13" y="-8" class="bold" font-size="8" fill="black">z</text>
+    </g>
+  `;
+}
+
+function getSmilingSunGraphicSvg() {
+  return `
+    <g transform="translate(0, 0)">
+      <circle cx="0" cy="0" r="11" fill="none" stroke="black" stroke-width="2" />
+      <line x1="0" y1="-15" x2="0" y2="-18" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="0" y1="15" x2="0" y2="18" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="-15" y1="0" x2="-18" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="15" y1="0" x2="18" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="-11" y1="-11" x2="-13" y2="-13" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="11" y1="-11" x2="13" y2="-13" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="-11" y1="11" x2="-13" y2="13" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <line x1="11" y1="11" x2="13" y2="13" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <circle cx="-4" cy="-3" r="1.5" fill="black" />
+      <circle cx="4" cy="-3" r="1.5" fill="black" />
+      <path d="M-5,2 Q0,7 5,2" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+    </g>
+  `;
+}
+
+function getSparkleStarGraphicSvg() {
+  return `
+    <g transform="translate(0, 0)">
+      <polygon points="0,-14 4,-4 14,-4 6,2 9,12 0,6 -9,12 -6,2 -14,-4 -4,-4" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
+    </g>
+  `;
+}
+
+function getCozyMugGraphicSvg() {
+  return `
+    <g transform="translate(-2, 0)">
+      <rect x="-8" y="-4" width="16" height="16" rx="3" fill="none" stroke="black" stroke-width="2" />
+      <path d="M8,-1 C12,-1 12,11 8,11" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
+      <path d="M-4,-9 Q-2,-7 -4,-5 M0,-10 Q2,-8 0,-6 M4,-9 Q6,-7 4,-5" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" />
+    </g>
+  `;
+}
+
+function getRoshHashanaGraphicSvg(dayNum) {
+  if (dayNum === 1) {
+    return `
+      <g transform="translate(0, 0)">
+        <path d="M0,-8 C-8,-14 -16,-5 -16,3 C-16,11 -5,15 0,10 C5,15 16,11 16,3 C16,-5 8,-14 0,-8 Z" fill="none" stroke="black" stroke-width="2.2" stroke-linejoin="round" />
+        <path d="M0,-8 C0,-12 3,-15 5,-15" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
+        <path d="M2,-12 C7,-15 12,-12 9,-8 Z" fill="black" />
+      </g>
+    `;
+  } else {
+    return `
+      <g transform="translate(0, 0)">
+        <path d="M-14,9 C-9,9 -5,4 -1,-2 C3,-8 9,-13 16,-11 C18,-10 16,-5 9,-1 C3,3 -3,14 -12,12 Z" fill="none" stroke="black" stroke-width="2.2" stroke-linejoin="round" />
+        <line x1="-14" y1="9" x2="-12" y2="12" stroke="black" stroke-width="2" stroke-linecap="round" />
+      </g>
+    `;
+  }
+}
+
+function getSukkotGraphicSvg() {
+  return `
+    <g transform="translate(0, 0)">
+      <polygon points="0,-14 -15,12 15,12" fill="none" stroke="black" stroke-width="2.2" stroke-linejoin="round" />
+      <line x1="0" y1="-14" x2="0" y2="12" stroke="black" stroke-width="1.8" />
+      <path d="M-11,-9 L-4,-14 M-2,-14 L4,-11 M2,-14 L9,-9" stroke="black" stroke-width="2" stroke-linecap="round" />
+    </g>
+  `;
+}
+
+function getTorahScrollGraphicSvg() {
+  return `
+    <g transform="translate(0, 0)">
+      <rect x="-10" y="-11" width="20" height="22" rx="2" ry="2" fill="none" stroke="black" stroke-width="2.2" />
+      <line x1="-15" y1="-11" x2="-15" y2="11" stroke="black" stroke-width="2.8" stroke-linecap="round" />
+      <line x1="15" y1="-11" x2="15" y2="11" stroke="black" stroke-width="2.8" stroke-linecap="round" />
+      <line x1="-5" y1="-4" x2="5" y2="-4" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+      <line x1="-5" y1="3" x2="5" y2="3" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+    </g>
+  `;
+}
+
+function getStarOfDavidGraphicSvg() {
+  return `
+    <g transform="translate(0, 0)">
+      <polygon points="0,-14 13,8 -13,8" fill="none" stroke="black" stroke-width="2.2" stroke-linejoin="round" />
+      <polygon points="0,14 13,-8 -13,-8" fill="none" stroke="black" stroke-width="2.2" stroke-linejoin="round" />
+    </g>
+  `;
+}
+
 function getNoSchoolVectorGraphic(msg, panelDate, kid) {
   if (!msg) msg = '';
 
   // 1. Rosh Hashana
   if (msg.includes('ראש השנה')) {
     const dayNum = panelDate.getDate() % 2;
-    if (dayNum === 1) {
-      return `
-        <g transform="translate(0, -2)">
-          <path d="M-4,-6 C-9,-10 -15,-3 -15,3 C-15,10 -6,14 -4,10 C-2,14 7,10 7,3 C7,-3 1,-10 -4,-6 Z" fill="none" stroke="black" stroke-width="2" />
-          <path d="M-4,-6 C-4,-10 -2,-12 0,-12" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
-          <path d="M-2,-10 C2,-13 6,-10 4,-7 Z" fill="black" />
-          <path d="M8,0 L18,0 L17,12 Q13,15 9,12 Z" fill="none" stroke="black" stroke-width="1.8" stroke-linejoin="round" />
-          <line x1="7" y1="0" x2="19" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
-        </g>
-      `;
-    } else {
-      return `
-        <g transform="translate(0, 0)">
-          <path d="M-14,8 C-10,8 -6,4 -2,-2 C2,-8 8,-12 14,-10 C16,-9 14,-4 8,0 C2,4 -4,14 -12,12 Z" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
-          <line x1="-14" y1="8" x2="-12" y2="12" stroke="black" stroke-width="2" stroke-linecap="round" />
-        </g>
-      `;
-    }
+    return getRoshHashanaGraphicSvg(dayNum);
   }
 
   // 2. Yom Kippur
   if (msg.includes('כיפור')) {
-    return `
-      <g transform="translate(0, 0)">
-        <path d="M-14,8 C-10,8 -6,4 -2,-2 C2,-8 8,-12 14,-10 C16,-9 14,-4 8,0 C2,4 -4,14 -12,12 Z" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
-        <line x1="-14" y1="8" x2="-12" y2="12" stroke="black" stroke-width="2" stroke-linecap="round" />
-      </g>
-    `;
+    return getRoshHashanaGraphicSvg(0);
   }
 
   // 3. Sukkot
   if (msg.includes('סוכות')) {
-    return `
-      <g transform="translate(0, -2)">
-        <polygon points="0,-14 -15,12 15,12" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
-        <line x1="0" y1="-14" x2="0" y2="12" stroke="black" stroke-width="1.5" />
-        <path d="M-10,-10 L-4,-14 M-2,-14 L4,-11 M2,-14 L8,-10" stroke="black" stroke-width="1.8" stroke-linecap="round" />
-      </g>
-    `;
+    return getSukkotGraphicSvg();
   }
 
-  // 4. Hanukkah / Purim / Simchat Torah
+  // 4. Hanukkah / Purim / Simchat Torah / Shmini Atzeret
   if (msg.includes('חנוכה') || msg.includes('פורים') || msg.includes('תורה') || msg.includes('עצרת')) {
-    return `
-      <g transform="translate(0, -2)">
-        <rect x="-10" y="-10" width="20" height="20" rx="2" ry="2" fill="none" stroke="black" stroke-width="2" />
-        <line x1="-14" y1="-10" x2="-14" y2="10" stroke="black" stroke-width="2.5" stroke-linecap="round" />
-        <line x1="14" y1="-10" x2="14" y2="10" stroke="black" stroke-width="2.5" stroke-linecap="round" />
-        <line x1="-5" y1="-4" x2="5" y2="-4" stroke="black" stroke-width="1.5" stroke-linecap="round" />
-        <line x1="-5" y1="2" x2="5" y2="2" stroke="black" stroke-width="1.5" stroke-linecap="round" />
-      </g>
-    `;
+    return getTorahScrollGraphicSvg();
   }
 
   // 5. Independence Day
   if (msg.includes('עצמאות')) {
-    return `
-      <g transform="translate(0, -2)">
-        <polygon points="0,-14 12,7 -12,7" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
-        <polygon points="0,14 12,-7 -12,-7" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
-      </g>
-    `;
+    return getStarOfDavidGraphicSvg();
   }
 
-  // 6. Generic Weekend / Vacation Vector Pool
-  const vectorPool = [
-    // Sleeping face
-    `
-      <g transform="translate(0, 0)">
-        <circle cx="0" cy="0" r="14" fill="none" stroke="black" stroke-width="2" />
-        <path d="M-7,-2 Q-4,-6 -1,-2" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
-        <path d="M1,-2 Q4,-6 7,-2" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
-        <path d="M-5,4 Q0,9 5,4" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
-        <text x="10" y="-4" class="bold" font-size="9" fill="black">z</text>
-        <text x="15" y="-10" class="bold" font-size="11" fill="black">Z</text>
-      </g>
-    `,
-    // Sun & Palm Tree / Beach
-    `
-      <g transform="translate(0, 0)">
-        <circle cx="-6" cy="-6" r="6" fill="none" stroke="black" stroke-width="1.8" />
-        <g stroke="black" stroke-width="1.5" stroke-linecap="round">
-          <line x1="-6" y1="-14" x2="-6" y2="-16" />
-          <line x1="-14" y1="-6" x2="-16" y2="-6" />
-          <line x1="3" y1="-6" x2="5" y2="-6" />
-        </g>
-        <path d="M5,13 C4,5 8,-1 7,-6" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" />
-        <path d="M7,-6 Q-1,-11 -6,-7 M7,-6 Q3,-13 8,-13 M7,-6 Q14,-11 17,-7 M7,-6 Q12,-2 14,2" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
-      </g>
-    `,
-    // Gamepad
-    `
-      <g transform="translate(0, 0)">
-        <rect x="-14" y="-8" width="28" height="16" rx="6" ry="6" fill="none" stroke="black" stroke-width="2" />
-        <path d="M-8,-3 L-8,3 M-11,0 L-5,0" stroke="black" stroke-width="2" stroke-linecap="round" />
-        <circle cx="5" cy="-2" r="1.5" fill="black" />
-        <circle cx="9" cy="2" r="1.5" fill="black" />
-      </g>
-    `,
-    // Sports ball
-    `
-      <g transform="translate(0, 0)">
-        <circle cx="0" cy="0" r="13" fill="none" stroke="black" stroke-width="2" />
-        <path d="M-13,0 C-4,-4 4,-4 13,0" fill="none" stroke="black" stroke-width="1.5" />
-        <path d="M-13,0 C-4,4 4,4 13,0" fill="none" stroke="black" stroke-width="1.5" />
-        <line x1="0" y1="-13" x2="0" y2="13" stroke="black" stroke-width="1.5" />
-      </g>
-    `,
-    // Backpack Off
-    `
-      <g transform="translate(0, -2)">
-        <path d="M-4,-9 C-4,-13 4,-13 4,-9" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
-        <rect x="-10" y="-9" width="20" height="21" rx="4" ry="4" fill="none" stroke="black" stroke-width="2" />
-        <rect x="-6" y="0" width="12" height="8" rx="2" ry="2" fill="none" stroke="black" stroke-width="1.5" />
-        <line x1="-10" y1="-3" x2="10" y2="-3" stroke="black" stroke-width="1.5" />
-      </g>
-    `
+  // 6. Generic Weekend & Rest Days Pool (Moon & ZZZ, Smiling Sun, Cozy Mug, Sparkle Star)
+  const weekendPool = [
+    getMoonZzzGraphicSvg(),
+    getSmilingSunGraphicSvg(),
+    getCozyMugGraphicSvg(),
+    getSparkleStarGraphicSvg()
   ];
 
-  const dateHash = (panelDate.getDate() * 7 + (panelDate.getMonth() + 1) * 13 + (kid === 'סול' ? 3 : 11)) % vectorPool.length;
-  return vectorPool[dateHash];
+  const idx = (panelDate.getDate() + (kid === 'סול' ? 1 : 0)) % weekendPool.length;
+  return weekendPool[idx];
 }
 
 function generateSvg({ date, events, tasks, weather }) {
@@ -665,9 +674,8 @@ function generateSvg({ date, events, tasks, weather }) {
     panel += `<text x="${colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">פעילות אחה"צ</text>`;
     if (!dayEvents.afternoonActivities || dayEvents.afternoonActivities.length === 0) {
       panel += `<g>
-                  <circle cx="${colW / 2}" cy="92" r="12" fill="none" stroke="black" stroke-width="1.5" />
-                  <path d="M${colW / 2 - 6},92 L${colW / 2 + 6},92" stroke="black" stroke-width="1.5" />
-                  <text x="${colW / 2}" y="124" class="regular" font-size="11.5" text-anchor="middle" fill="black">אין פעילות</text>
+                  <g transform="translate(${colW / 2}, 82)">${getSparkleStarGraphicSvg()}</g>
+                  <text x="${colW / 2}" y="142" class="bold" font-size="11.5" text-anchor="middle" fill="black">אין פעילות</text>
                 </g>`;
     } else {
       const list = dayEvents.afternoonActivities.slice(0, 5);
