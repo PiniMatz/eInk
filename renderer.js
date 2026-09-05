@@ -424,32 +424,54 @@ function generateSvg({ date, events, tasks, weather }) {
     // Sahar Column (x: 404 to 606)
     panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
     panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    // Helper to get multi-day holiday emoji or randomized fun emoji from pool
+    const getHolidayEmoji = (msg, panelDate, kid) => {
+      if (!msg) return '🎒';
+
+      // 1. Dedicated Multi-day Holiday Emojis
+      if (msg.includes('ראש השנה')) {
+        const dayNum = panelDate.getDate() % 2;
+        return dayNum === 1 ? '🍎🍯' : '📯';
+      }
+      if (msg.includes('יום כיפור')) return '🕯️';
+      if (msg.includes('סוכות')) {
+        const sukkotEmojis = ['🌿', '⛺', '🍋', '🌴', '🎪', '🌾'];
+        return sukkotEmojis[panelDate.getDate() % sukkotEmojis.length];
+      }
+      if (msg.includes('שמחת תורה') || msg.includes('שמיני עצרת')) return '📜';
+      if (msg.includes('חנוכה')) {
+        const chanukahEmojis = ['🕎', '🍩', '🪀', '🪙', '🕎✨', '🍩🪀', '🪙🕎', '🕎🎉'];
+        return chanukahEmojis[panelDate.getDate() % chanukahEmojis.length];
+      }
+      if (msg.includes('פורים')) {
+        const purimEmojis = ['🎭', '🥟', '📜'];
+        return purimEmojis[panelDate.getDate() % purimEmojis.length];
+      }
+      if (msg.includes('פסח')) {
+        const pesachEmojis = ['🍷', '🫓', '🌿', '🍷🫓', '🌊', '🕊️', '🍷🎉'];
+        return pesachEmojis[panelDate.getDate() % pesachEmojis.length];
+      }
+      if (msg.includes('שבועות')) {
+        const shavuotEmojis = ['🌾', '🧀'];
+        return shavuotEmojis[panelDate.getDate() % shavuotEmojis.length];
+      }
+      if (msg.includes('עצמאות')) return '🇮🇱';
+      if (msg.includes('בעומר')) return '🔥';
+      if (msg.includes('בשבט')) return '🌳';
+
+      // 2. Weekend & Generic No-School Fun Emoji Pool (Stable per date & kid)
+      const funPool = ['🏖️', '⚽', '🎮', '🚴', '🍕', '🎈', '🎨', '🍿', '🎒', '🌈', '☀️', '🏄', '🍦', '⛺', '🚀', '🎸', '💤', '😴', '🥳', '🧩'];
+      const dateHash = (panelDate.getDate() * 7 + (panelDate.getMonth() + 1) * 13 + (kid === 'סול' ? 3 : 11)) % funPool.length;
+      return funPool[dateHash];
+    };
+
     // Helper to render No-School graphic & message
     const renderNoSchoolBox = (kid, xCenter, panelDate) => {
       const msg = getNoSchoolMessage(kid, panelDate);
-      const isHoliday = msg.includes('—') && !msg.includes('שבת') && !msg.includes('שישי');
-      const isWeekend = msg.includes('שבת') || msg.includes('שישי');
-
-      let iconSvg = '';
-      if (isHoliday) {
-        // Party / Holiday Palm & Celebration Icon
-        iconSvg = `<path d="M-15,10 C-5,-10 5,-10 15,10 M-10,-5 L10,-5 M0,-15 L0,5" stroke="black" stroke-width="2" fill="none" transform="translate(${xCenter}, 100)" />
-                   <circle cx="${xCenter}" cy="90" r="14" fill="none" stroke="black" stroke-width="2" />
-                   <path d="M${xCenter-8},90 Q${xCenter},82 ${xCenter+8},90" stroke="black" stroke-width="1.5" fill="none" />`;
-      } else if (isWeekend) {
-        // Moon & Stars Weekend Icon
-        iconSvg = `<path d="M${xCenter-6},85 A12,12 0 1,0 ${xCenter+12},101 A15,15 0 1,1 ${xCenter-6},85 Z" fill="black" />
-                   <text x="${xCenter+12}" y="90" font-family="sans-serif" font-size="10" font-weight="bold" fill="black">z</text>
-                   <text x="${xCenter+18}" y="84" font-family="sans-serif" font-size="8" font-weight="bold" fill="black">z</text>`;
-      } else {
-        // Backpack / Rest Day Icon
-        iconSvg = `<rect x="${xCenter-12}" y="85" width="24" height="20" rx="4" fill="none" stroke="black" stroke-width="2" />
-                   <path d="M${xCenter-6},85 C${xCenter-6},78 ${xCenter+6},78 ${xCenter+6},85" fill="none" stroke="black" stroke-width="2" />
-                   <line x1="${xCenter-12}" y1="95" x2="${xCenter+12}" y2="95" stroke="black" stroke-width="1.5" />`;
-      }
+      const emoji = getHolidayEmoji(msg, panelDate, kid);
 
       let boxHtml = `<g>`;
-      boxHtml += iconSvg;
+      boxHtml += `<text x="${xCenter}" y="92" font-family="sans-serif" font-size="24" text-anchor="middle" fill="black">${emoji}</text>`;
       boxHtml += `<text x="${xCenter}" y="128" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
       boxHtml += `</g>`;
       return boxHtml;
