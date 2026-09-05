@@ -353,6 +353,160 @@ function getSchoolTimeRange(eventsList) {
   return `(${firstTime}-${endTimeStr})`;
 }
 
+function getSunriseIconSvg() {
+  return `
+    <g stroke="black" stroke-width="1.5" stroke-linecap="round" fill="none">
+      <line x1="-9" y1="3" x2="9" y2="3" stroke-width="1.8" />
+      <path d="M-6,3 A6,6 0 0,1 6,3" stroke-width="1.5" />
+      <line x1="0" y1="-2" x2="0" y2="-6" stroke-width="1.5" />
+      <line x1="-4" y1="-1" x2="-6" y2="-4" />
+      <line x1="4" y1="-1" x2="6" y2="-4" />
+    </g>
+  `;
+}
+
+function getSunsetIconSvg() {
+  return `
+    <g stroke="black" stroke-width="1.5" stroke-linecap="round" fill="none">
+      <line x1="-9" y1="3" x2="9" y2="3" stroke-width="1.8" />
+      <path d="M-6,3 A6,6 0 0,1 6,3" stroke-width="1.5" stroke-dasharray="2,1" />
+      <line x1="0" y1="-1" x2="0" y2="3" stroke-width="1.5" />
+      <polyline points="-2.5,1 0,3.5 2.5,1" stroke-width="1.3" />
+      <line x1="-4" y1="-1" x2="-6" y2="-4" />
+      <line x1="4" y1="-1" x2="6" y2="-4" />
+    </g>
+  `;
+}
+
+function getNoSchoolVectorGraphic(msg, panelDate, kid) {
+  if (!msg) msg = '';
+
+  // 1. Rosh Hashana
+  if (msg.includes('ראש השנה')) {
+    const dayNum = panelDate.getDate() % 2;
+    if (dayNum === 1) {
+      return `
+        <g transform="translate(0, -2)">
+          <path d="M-4,-6 C-9,-10 -15,-3 -15,3 C-15,10 -6,14 -4,10 C-2,14 7,10 7,3 C7,-3 1,-10 -4,-6 Z" fill="none" stroke="black" stroke-width="2" />
+          <path d="M-4,-6 C-4,-10 -2,-12 0,-12" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+          <path d="M-2,-10 C2,-13 6,-10 4,-7 Z" fill="black" />
+          <path d="M8,0 L18,0 L17,12 Q13,15 9,12 Z" fill="none" stroke="black" stroke-width="1.8" stroke-linejoin="round" />
+          <line x1="7" y1="0" x2="19" y2="0" stroke="black" stroke-width="2" stroke-linecap="round" />
+        </g>
+      `;
+    } else {
+      return `
+        <g transform="translate(0, 0)">
+          <path d="M-14,8 C-10,8 -6,4 -2,-2 C2,-8 8,-12 14,-10 C16,-9 14,-4 8,0 C2,4 -4,14 -12,12 Z" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
+          <line x1="-14" y1="8" x2="-12" y2="12" stroke="black" stroke-width="2" stroke-linecap="round" />
+        </g>
+      `;
+    }
+  }
+
+  // 2. Yom Kippur
+  if (msg.includes('כיפור')) {
+    return `
+      <g transform="translate(0, 0)">
+        <path d="M-14,8 C-10,8 -6,4 -2,-2 C2,-8 8,-12 14,-10 C16,-9 14,-4 8,0 C2,4 -4,14 -12,12 Z" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
+        <line x1="-14" y1="8" x2="-12" y2="12" stroke="black" stroke-width="2" stroke-linecap="round" />
+      </g>
+    `;
+  }
+
+  // 3. Sukkot
+  if (msg.includes('סוכות')) {
+    return `
+      <g transform="translate(0, -2)">
+        <polygon points="0,-14 -15,12 15,12" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
+        <line x1="0" y1="-14" x2="0" y2="12" stroke="black" stroke-width="1.5" />
+        <path d="M-10,-10 L-4,-14 M-2,-14 L4,-11 M2,-14 L8,-10" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+      </g>
+    `;
+  }
+
+  // 4. Hanukkah / Purim / Simchat Torah
+  if (msg.includes('חנוכה') || msg.includes('פורים') || msg.includes('תורה') || msg.includes('עצרת')) {
+    return `
+      <g transform="translate(0, -2)">
+        <rect x="-10" y="-10" width="20" height="20" rx="2" ry="2" fill="none" stroke="black" stroke-width="2" />
+        <line x1="-14" y1="-10" x2="-14" y2="10" stroke="black" stroke-width="2.5" stroke-linecap="round" />
+        <line x1="14" y1="-10" x2="14" y2="10" stroke="black" stroke-width="2.5" stroke-linecap="round" />
+        <line x1="-5" y1="-4" x2="5" y2="-4" stroke="black" stroke-width="1.5" stroke-linecap="round" />
+        <line x1="-5" y1="2" x2="5" y2="2" stroke="black" stroke-width="1.5" stroke-linecap="round" />
+      </g>
+    `;
+  }
+
+  // 5. Independence Day
+  if (msg.includes('עצמאות')) {
+    return `
+      <g transform="translate(0, -2)">
+        <polygon points="0,-14 12,7 -12,7" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
+        <polygon points="0,14 12,-7 -12,-7" fill="none" stroke="black" stroke-width="2" stroke-linejoin="round" />
+      </g>
+    `;
+  }
+
+  // 6. Generic Weekend / Vacation Vector Pool
+  const vectorPool = [
+    // Sleeping face
+    `
+      <g transform="translate(0, 0)">
+        <circle cx="0" cy="0" r="14" fill="none" stroke="black" stroke-width="2" />
+        <path d="M-7,-2 Q-4,-6 -1,-2" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
+        <path d="M1,-2 Q4,-6 7,-2" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
+        <path d="M-5,4 Q0,9 5,4" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
+        <text x="10" y="-4" class="bold" font-size="9" fill="black">z</text>
+        <text x="15" y="-10" class="bold" font-size="11" fill="black">Z</text>
+      </g>
+    `,
+    // Sun & Palm Tree / Beach
+    `
+      <g transform="translate(0, 0)">
+        <circle cx="-6" cy="-6" r="6" fill="none" stroke="black" stroke-width="1.8" />
+        <g stroke="black" stroke-width="1.5" stroke-linecap="round">
+          <line x1="-6" y1="-14" x2="-6" y2="-16" />
+          <line x1="-14" y1="-6" x2="-16" y2="-6" />
+          <line x1="3" y1="-6" x2="5" y2="-6" />
+        </g>
+        <path d="M5,13 C4,5 8,-1 7,-6" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" />
+        <path d="M7,-6 Q-1,-11 -6,-7 M7,-6 Q3,-13 8,-13 M7,-6 Q14,-11 17,-7 M7,-6 Q12,-2 14,2" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+      </g>
+    `,
+    // Gamepad
+    `
+      <g transform="translate(0, 0)">
+        <rect x="-14" y="-8" width="28" height="16" rx="6" ry="6" fill="none" stroke="black" stroke-width="2" />
+        <path d="M-8,-3 L-8,3 M-11,0 L-5,0" stroke="black" stroke-width="2" stroke-linecap="round" />
+        <circle cx="5" cy="-2" r="1.5" fill="black" />
+        <circle cx="9" cy="2" r="1.5" fill="black" />
+      </g>
+    `,
+    // Sports ball
+    `
+      <g transform="translate(0, 0)">
+        <circle cx="0" cy="0" r="13" fill="none" stroke="black" stroke-width="2" />
+        <path d="M-13,0 C-4,-4 4,-4 13,0" fill="none" stroke="black" stroke-width="1.5" />
+        <path d="M-13,0 C-4,4 4,4 13,0" fill="none" stroke="black" stroke-width="1.5" />
+        <line x1="0" y1="-13" x2="0" y2="13" stroke="black" stroke-width="1.5" />
+      </g>
+    `,
+    // Backpack Off
+    `
+      <g transform="translate(0, -2)">
+        <path d="M-4,-9 C-4,-13 4,-13 4,-9" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" />
+        <rect x="-10" y="-9" width="20" height="21" rx="4" ry="4" fill="none" stroke="black" stroke-width="2" />
+        <rect x="-6" y="0" width="12" height="8" rx="2" ry="2" fill="none" stroke="black" stroke-width="1.5" />
+        <line x1="-10" y1="-3" x2="10" y2="-3" stroke="black" stroke-width="1.5" />
+      </g>
+    `
+  ];
+
+  const dateHash = (panelDate.getDate() * 7 + (panelDate.getMonth() + 1) * 13 + (kid === 'סול' ? 3 : 11)) % vectorPool.length;
+  return vectorPool[dateHash];
+}
+
 function generateSvg({ date, events, tasks, weather }) {
   const todayDate = date;
   const tomorrowDate = new Date(todayDate);
@@ -398,9 +552,16 @@ function generateSvg({ date, events, tasks, weather }) {
       </g>
       
       <!-- Current Main Temp Block -->
-      <text x="78" y="56" class="bold" font-size="21" text-anchor="middle" fill="black">${wTemp}</text>
-      <text x="78" y="74" class="regular" font-size="10.5" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
-      <text x="78" y="93" class="regular" font-size="10" text-anchor="middle" fill="black">\u202B🌅 ${wSunrise}   🌇 ${wSunset}\u202C</text>
+      <text x="78" y="54" class="bold" font-size="21" text-anchor="middle" fill="black">${wTemp}</text>
+      <text x="78" y="70" class="regular" font-size="10.5" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
+      
+      <!-- Sunrise & Sunset Vector Icons + Times -->
+      <g transform="translate(36, 88)">${getSunriseIconSvg()}</g>
+      <text x="49" y="91" class="regular" font-size="9.5" fill="black">${wSunrise}</text>
+      
+      <g transform="translate(95, 88)">${getSunsetIconSvg()}</g>
+      <text x="108" y="91" class="regular" font-size="9.5" fill="black">${wSunset}</text>
+
       <line x1="12" y1="102" x2="144" y2="102" stroke="black" stroke-width="1" />
   `;
 
@@ -452,54 +613,13 @@ function generateSvg({ date, events, tasks, weather }) {
         </g>
     `;
 
-    // Helper to get multi-day holiday emoji or randomized fun emoji from pool
-    const getHolidayEmoji = (msg, panelDate, kid) => {
-      if (!msg) return '🎒';
-
-      // 1. Dedicated Multi-day Holiday Emojis
-      if (msg.includes('ראש השנה')) {
-        const dayNum = panelDate.getDate() % 2;
-        return dayNum === 1 ? '🍎🍯' : '📯';
-      }
-      if (msg.includes('יום כיפור')) return '🕯️';
-      if (msg.includes('סוכות')) {
-        const sukkotEmojis = ['🌿', '⛺', '🍋', '🌴', '🎪', '🌾'];
-        return sukkotEmojis[panelDate.getDate() % sukkotEmojis.length];
-      }
-      if (msg.includes('שמחת תורה') || msg.includes('שמיני עצרת')) return '📜';
-      if (msg.includes('חנוכה')) {
-        const chanukahEmojis = ['🕎', '🍩', '🪀', '🪙', '🕎✨', '🍩🪀', '🪙🕎', '🕎🎉'];
-        return chanukahEmojis[panelDate.getDate() % chanukahEmojis.length];
-      }
-      if (msg.includes('פורים')) {
-        const purimEmojis = ['🎭', '🥟', '📜'];
-        return purimEmojis[panelDate.getDate() % purimEmojis.length];
-      }
-      if (msg.includes('פסח')) {
-        const pesachEmojis = ['🍷', '🫓', '🌿', '🍷🫓', '🌊', '🕊️', '🍷🎉'];
-        return pesachEmojis[panelDate.getDate() % pesachEmojis.length];
-      }
-      if (msg.includes('שבועות')) {
-        const shavuotEmojis = ['🌾', '🧀'];
-        return shavuotEmojis[panelDate.getDate() % shavuotEmojis.length];
-      }
-      if (msg.includes('עצמאות')) return '🇮🇱';
-      if (msg.includes('בעומר')) return '🔥';
-      if (msg.includes('בשבט')) return '🌳';
-
-      // 2. Weekend & Generic No-School Fun Emoji Pool (Stable per date & kid)
-      const funPool = ['🏖️', '⚽', '🎮', '🚴', '🍕', '🎈', '🎨', '🍿', '🎒', '🌈', '☀️', '🏄', '🍦', '⛺', '🚀', '🎸', '💤', '😴', '🥳', '🧩'];
-      const dateHash = (panelDate.getDate() * 7 + (panelDate.getMonth() + 1) * 13 + (kid === 'סול' ? 3 : 11)) % funPool.length;
-      return funPool[dateHash];
-    };
-
     // Helper to render No-School graphic & message with empty line space
     const renderNoSchoolBox = (kid, xCenter, panelDate) => {
       const msg = getNoSchoolMessage(kid, panelDate);
-      const emoji = getHolidayEmoji(msg, panelDate, kid);
+      const graphicSvg = getNoSchoolVectorGraphic(msg, panelDate, kid);
 
       let boxHtml = `<g>`;
-      boxHtml += `<text x="${xCenter}" y="82" font-family="sans-serif" font-size="26" text-anchor="middle" fill="black">${emoji}</text>`;
+      boxHtml += `<g transform="translate(${xCenter}, 82)">${graphicSvg}</g>`;
       boxHtml += `<text x="${xCenter}" y="142" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${msg}\u202C</text>`;
       boxHtml += `</g>`;
       return boxHtml;
