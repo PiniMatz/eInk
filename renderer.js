@@ -238,13 +238,17 @@ function parseKidEvents(events, tasks, reqDateStr) {
 
     let timeStr = item.time || '';
     let hour = 8;
+    let minute = 0;
     if (timeStr && timeStr.includes(':')) {
-      hour = parseInt(timeStr.split(':')[0], 10);
+      const parts = timeStr.split(':').map(Number);
+      hour = parts[0];
+      minute = parts[1] || 0;
     }
+    const timeInMinutes = hour * 60 + minute;
 
     const titleLower = cleanTitle.toLowerCase();
-    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה');
-    const isAfternoon = hour >= 13 || isAfternoonKeyword;
+    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה') || cleanTitle.includes('קט-סל') || cleanTitle.includes('אתלטיקה');
+    const isAfternoon = timeInMinutes >= 930 || isAfternoonKeyword;
 
     const formattedItem = {
       title: cleanTitle,
@@ -443,9 +447,9 @@ function generateSvg({ date, events, tasks, weather }) {
     }
 
     // Afternoon Column (x: 0 to 202)
-    panel += `<text x="${colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">חוגים אחה"צ</text>`;
+    panel += `<text x="${colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">פעילות אחה"צ</text>`;
     if (!dayEvents.afternoonActivities || dayEvents.afternoonActivities.length === 0) {
-      panel += `<text x="${colW / 2}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין חוגים</text>`;
+      panel += `<text x="${colW / 2}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין פעילות</text>`;
     } else {
       dayEvents.afternoonActivities.slice(0, 5).forEach((item, idx) => {
         const iy = 68 + idx * 30;
