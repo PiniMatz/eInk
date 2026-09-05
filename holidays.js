@@ -78,11 +78,16 @@ function getSchoolHoliday(dateInput) {
       if (desc.includes('Shavuot') || desc === 'Erev Shavuot') return 'שבועות';
     }
 
+    // Tishrei vacation (Erev Yom Kippur 9 Tishrei through 22 Tishrei Sukkot; 23 Tishrei Oct 4th has school)
+    if (monthName === 'Tishrei' && day >= 9 && day <= 22) {
+      if (day <= 10) return 'יום כיפור';
+      return 'סוכות';
+    }
+
     // Pesach vacation (Nisan 6 through Nisan 22 Isru Chag)
     if (monthName === 'Nisan' && day >= 6 && day <= 22) return 'פסח';
 
-    // Isru Chag Sukkot (23 Tishrei) and Isru Chag Shavuot (7 Sivan)
-    if (monthName === 'Tishrei' && day === 23) return 'סוכות';
+    // Isru Chag Shavuot (7 Sivan)
     if (monthName === 'Sivan' && day === 7) return 'שבועות';
 
     return null;

@@ -4,7 +4,11 @@ const path = require('path');
 
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
+let cachedAuth = null;
+
 function getAuthClient() {
+  if (cachedAuth) return cachedAuth;
+
   let credentials;
   if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
     credentials = {
@@ -22,13 +26,13 @@ function getAuthClient() {
     throw new Error('Google Calendar Auth Credentials (Firebase_Key.json or env vars) not found.');
   }
 
-  const auth = new google.auth.JWT({
+  cachedAuth = new google.auth.JWT({
     email: credentials.client_email,
     key: credentials.private_key,
     scopes: SCOPES
   });
 
-  return auth;
+  return cachedAuth;
 }
 
 /**

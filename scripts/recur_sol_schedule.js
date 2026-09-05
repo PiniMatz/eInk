@@ -39,7 +39,7 @@ const SOL_WEEKLY_TEMPLATE = {
     { title: 'חינוך גופני', time: '10:45', durationMinutes: 30 },
     { title: 'מפתח לרוח', time: '11:15', durationMinutes: 45 },
     { title: 'לשון', time: '12:15', durationMinutes: 45 },
-    { title: 'תל"ת רובוטיקה', time: '13:00', durationMinutes: 45 }
+    { title: 'לימודי העשרה', time: '13:00', durationMinutes: 45 }
   ],
   // Thursday (4)
   4: [
@@ -54,6 +54,22 @@ const SOL_WEEKLY_TEMPLATE = {
 
 async function generateSolFullYearSchedule() {
   console.log('Generating Sol\'s full year schedule (Sept 6, 2026 -> June 20, 2027)...');
+
+  // Purge previous Sol events across 2026/2027
+  console.log('Purging existing Sol events from Firestore...');
+  const months = [
+    { year: 2026, month: 9 }, { year: 2026, month: 10 }, { year: 2026, month: 11 }, { year: 2026, month: 12 },
+    { year: 2027, month: 1 }, { year: 2027, month: 2 }, { year: 2027, month: 3 }, { year: 2027, month: 4 }, { year: 2027, month: 5 }, { year: 2027, month: 6 }
+  ];
+  for (const { year, month } of months) {
+    const evs = await db.getEvents(year, month);
+    const solEvs = evs.filter(e => e.author === 'סול' || (e.title && e.title.includes('סול')));
+    for (let i = 0; i < solEvs.length; i += 20) {
+      const chunk = solEvs.slice(i, i + 20);
+      await Promise.all(chunk.map(e => db.deleteEvent(e.id)));
+    }
+  }
+  console.log('Purge of previous Sol events complete.');
 
   const startDate = new Date('2026-09-06T12:00:00+03:00');
   const endDate = new Date('2027-06-20T12:00:00+03:00');

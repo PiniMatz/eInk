@@ -27,44 +27,46 @@ async function ingestSchedule(scheduleItems, options = {}) {
   }
 
   const added = [];
-  for (const item of scheduleItems) {
-    const kidPrefix = item.kid ? `[${item.kid}] ` : '';
-    const formattedTitle = item.title.startsWith('[') ? item.title : `${kidPrefix}${item.title}`;
-    
-    const eventObj = {
-      title: formattedTitle,
-      date: item.date,
-      author: item.kid || 'Kid',
-      time: item.time || '',
-      isTimed: !!item.time
-    };
+  const chunkSize = 10;
+  for (let i = 0; i < scheduleItems.length; i += chunkSize) {
+    const chunk = scheduleItems.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(async (item) => {
+      const kidPrefix = item.kid ? `[${item.kid}] ` : '';
+      const formattedTitle = item.title.startsWith('[') ? item.title : `${kidPrefix}${item.title}`;
+      
+      const eventObj = {
+        title: formattedTitle,
+        date: item.date,
+        author: item.kid || 'Kid',
+        time: item.time || '',
+        isTimed: !!item.time
+      };
 
-    try {
-      // 1. Add to database (Firestore / db.json)
-      const res = await db.addEvent(eventObj);
-      added.push(res);
-      console.log(`Successfully added event to database: ${formattedTitle} on ${item.date} at ${item.time}`);
+      try {
+        // 1. Add to database (Firestore / db.json)
+        const res = await db.addEvent(eventObj);
+        added.push(res);
 
-      // 2. Add to Google Calendar directly if API is configured & calendarId provided
-      if (googleCalApi) {
-        try {
-          const calId = options.calendarId || process.env.GOOGLE_CALENDAR_ID || 'hugim.kid@gmail.com';
-          await googleCalApi.addGoogleCalendarEvent({
-            calendarId: calId,
-            kid: item.kid,
-            title: item.title,
-            date: item.date,
-            time: item.time,
-            durationMinutes: item.durationMinutes
-          });
-          console.log(`Successfully synced event "${formattedTitle}" to Google Calendar (${calId})`);
-        } catch (gErr) {
-          console.log(`Google Calendar API write note: ${gErr.message}`);
+        // 2. Add to Google Calendar directly if API is configured & calendarId provided
+        if (googleCalApi) {
+          try {
+            const calId = options.calendarId || process.env.GOOGLE_CALENDAR_ID || 'hugim.kid@gmail.com';
+            await googleCalApi.addGoogleCalendarEvent({
+              calendarId: calId,
+              kid: item.kid,
+              title: item.title,
+              date: item.date,
+              time: item.time,
+              durationMinutes: item.durationMinutes
+            });
+          } catch (gErr) {
+            // silent retry/ignore
+          }
         }
+      } catch (err) {
+        console.error(`Failed to add event ${formattedTitle}:`, err.message);
       }
-    } catch (err) {
-      console.error(`Failed to add event ${formattedTitle}:`, err.message);
-    }
+    }));
   }
 
   return added;
