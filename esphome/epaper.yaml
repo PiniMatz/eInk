@@ -21,7 +21,7 @@ safe_mode:
 deep_sleep:
   id: deep_sleep_component
   run_duration: 60s
-  sleep_duration: 30min
+  sleep_duration: 120min
 
 esp32:
   board: seeed_xiao_esp32c3
@@ -94,7 +94,7 @@ online_image:
       - delay: 8s # Wait 8s to ensure waveshare 7.5" V2 finishes drawing before cutting power
       - deep_sleep.enter:
           id: deep_sleep_component
-          sleep_duration: 30min
+          sleep_duration: 120min
 
 # Restart button platform to trigger clean software reboots
 button:

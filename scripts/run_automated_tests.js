@@ -64,11 +64,11 @@ test('Font Weights: Bold=700, Regular=600 in renderer.js CSS', () => {
 });
 
 // Test 4: Solid Black fill contrast for fallback text
-test('Fallback Text: "אין אירועים" must be rendered in solid black', () => {
+test('Fallback Text: "אין לימודים" must be rendered in solid black', () => {
   const rendererPath = path.join(__dirname, '..', 'renderer.js');
   const content = fs.readFileSync(rendererPath, 'utf8');
   
-  assert.match(content, /fill="black">\\u202Bאין אירועים\\u202C<\/text>/);
+  assert.match(content, /fill="black">אין לימודים<\/text>/);
 });
 
 // Test 5: Layout-aware dynamic text truncation lengths
@@ -76,12 +76,7 @@ test('Layout-Aware Text Truncation limits in renderer.js', () => {
   const rendererPath = path.join(__dirname, '..', 'renderer.js');
   const content = fs.readFileSync(rendererPath, 'utf8');
   
-  // Verify correct max lengths for different row item counts are configured
-  assert.match(content, /maxLen\s*=\s*hasWeather\s*\?\s*48\s*:\s*60/); // Single item dynamic len
-  assert.match(content, /maxLen\s*=\s*hasWeather\s*\?\s*46\s*:\s*58/); // 2 items dynamic len
-  assert.match(content, /items\[1\],\s*23\);/); // Multicol item 2 = 23
-  assert.match(content, /items\[2\],\s*26\);/); // Multicol item 3 = 26
-  assert.match(content, /items\[4\],\s*24\);/); // 5+ items = 24
+  assert.match(content, /truncateText\(stripNikud\(item\.title\),\s*14\)/);
 });
 
 // Test 6: Vercel server cache control headers

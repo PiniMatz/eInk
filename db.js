@@ -65,13 +65,31 @@ function writeLocal(data) {
   fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2));
 }
 
+function formatKidTitle(title, author) {
+  if (!title) return title;
+  if (title.startsWith('[')) return title;
+
+  let kidName = author;
+  if (title.includes('סהר')) kidName = 'סהר';
+  else if (title.includes('סול')) kidName = 'סול';
+  else if (title.includes('פיני')) kidName = 'פיני';
+  else if (title.includes('נדיה')) kidName = 'נדיה';
+
+  if (kidName && (kidName === 'סהר' || kidName === 'סול' || kidName === 'פיני' || kidName === 'נדיה')) {
+    const cleanTitle = title.replace(/^(סהר|סול|פיני|נדיה)\s*[-:]\s*/, '').trim();
+    return `[${kidName}] ${cleanTitle}`;
+  }
+
+  return title;
+}
+
 // Unified Database API
 const db = {
+  formatKidTitle,
   // --- EVENTS (Calendar) ---
   async getEvents(year, month) {
     const monthStr = String(month).padStart(2, '0');
     const startRange = `${year}-${monthStr}-01`;
-    // Standard calendar grid could display dates up to 31st
     const endRange = `${year}-${monthStr}-31`;
 
     if (firestore) {
@@ -98,6 +116,8 @@ const db = {
   },
 
   async addEvent(event) {
+    const formattedTitle = formatKidTitle(event.title, event.author);
+    const updatedEvent = { ...event, title: formattedTitle };
     // event: { date ("YYYY-MM-DD"), title (Hebrew string), author, isTimed, time, source }
     if (firestore) {
       try {
@@ -242,22 +262,31 @@ const db = {
 
   // --- CALENDARS (Google Calendar Links) ---
   async getCalendars() {
+    let calendars = [];
     if (firestore) {
       try {
         const snapshot = await firestore.collection('calendars').get();
-        const calendars = [];
         snapshot.forEach(doc => {
           calendars.push({ id: doc.id, ...doc.data() });
         });
-        return calendars;
       } catch (err) {
         console.error('Firestore getCalendars failed:', err);
-        return [];
       }
     } else {
       const data = readLocal();
-      return data.calendars || [];
+      calendars = data.calendars || [];
     }
+
+    const envCalUrl = process.env.GOOGLE_CALENDAR_ICS_URL || process.env.KIDS_CALENDAR_ICS_URL;
+    if (envCalUrl && !calendars.some(c => c.url === envCalUrl)) {
+      calendars.push({
+        id: 'env-kids-calendar',
+        name: 'hugim.kid@gmail.com',
+        url: envCalUrl
+      });
+    }
+
+    return calendars;
   },
 
   async addCalendar(cal) {

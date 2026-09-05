@@ -190,316 +190,231 @@ function getWeatherIconSvg(iconCode) {
   return iconSvg;
 }
 
-function generateSvg({ date, events, tasks, weather }) {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  
-  // Calculate rolling 7-day window starting from yesterday
-  const yesterdayDate = new Date(date);
-  yesterdayDate.setDate(date.getDate() - 1);
-  
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(yesterdayDate);
-    d.setDate(yesterdayDate.getDate() + i);
-    weekDates.push(d);
+function parseKidEvents(events, tasks, reqDateStr) {
+  const saharSchool = [];
+  const solSchool = [];
+  const afternoonActivities = [];
+
+  const dayItems = [];
+
+  if (Array.isArray(events)) {
+    events.forEach(e => {
+      if (e.date === reqDateStr) {
+        dayItems.push(e);
+      }
+    });
   }
 
-  const startWeek = weekDates[0];
-  const endWeek = weekDates[6];
-
-  // Fetch Jewish Holidays for the week range (could span two months)
-  let holidays = {};
-  if (startWeek.getMonth() === endWeek.getMonth()) {
-    holidays = getJewishHolidays(startWeek.getFullYear(), startWeek.getMonth() + 1);
-  } else {
-    const h1 = getJewishHolidays(startWeek.getFullYear(), startWeek.getMonth() + 1);
-    const h2 = getJewishHolidays(endWeek.getFullYear(), endWeek.getMonth() + 1);
-    holidays = { ...h1, ...h2 };
+  if (Array.isArray(tasks)) {
+    tasks.forEach(t => {
+      if (t.date === reqDateStr) {
+        dayItems.push(t);
+      }
+    });
   }
 
-  // Hebrew weekday full and short lists
-  const WEEKDAYS_HE_FULL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
-  // Layout Grid Dimensions (Option 1: Main Left 70%, Sidebar Right 30%)
-  const pad = 12;
-  const gap = 12;
-  
-  // Left Section (Weekly Horizon): X: 12, Width: 580px
-  const leftX = pad;
-  const leftWidth = 580;
-  
-  // Right Section (Sidebar): X: 604, Width: 184px
-  const rightX = leftX + leftWidth + gap; // 12 + 580 + 12 = 604
-  const rightWidth = 184;
-  
-  // Start constructing SVG string
-  let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
+  dayItems.forEach(item => {
+    let rawTitle = item.title || item.summary || item.description || '';
+    let author = item.author || '';
+    let kidName = author;
+    let cleanTitle = rawTitle;
 
-  // Global styling rules & defs
-  svg += `
-    <defs>
-      <!-- Clip paths for card headers -->
-      <clipPath id="right-card-clip">
-        <rect x="0" y="0" width="${rightWidth}" height="234" rx="12" ry="12" />
-      </clipPath>
-      <clipPath id="weather-card-clip">
-        <rect x="0" y="0" width="${rightWidth}" height="138" rx="12" ry="12" />
-      </clipPath>
-      <clipPath id="left-card-clip">
-        <rect x="0" y="0" width="${leftWidth}" height="450" rx="12" ry="12" />
-      </clipPath>
-    </defs>
-    <style>
-      .bold { font-family: 'Rubik Light', sans-serif; font-weight: 700; }
-      .regular { font-family: 'Rubik Light', sans-serif; font-weight: 600; }
-    </style>
-  `;
-
-  // Vertical column separator line in the grid gutter
-  svg += `<line x1="598" y1="12" x2="598" y2="468" stroke="black" stroke-width="1.5" />`;
-
-  // ==========================================
-  // SIDEBAR: CARD 1: GREGORIAN DATE BANNER (TRMNL High Contrast Black Fill)
-  // ==========================================
-  const dayName = WEEKDAYS_HE_FULL[date.getDay()];
-  const dateBannerStr = `\u202Bיום ${dayName}\u202C`;
-  const dateSubStr = `\u202B${date.getDate()}.${month}.${year}\u202C`;
-
-  svg += `
-    <!-- Date Banner Container -->
-    <g transform="translate(${rightX}, ${pad})">
-      <rect x="0" y="0" width="${rightWidth}" height="60" rx="12" ry="12" fill="black" />
-      
-      <!-- Gregorian Date Banner -->
-      <text x="92" y="24" class="bold" font-size="16.5" text-anchor="middle" fill="white">${dateBannerStr}</text>
-      <text x="92" y="45" class="regular" font-size="13" text-anchor="middle" fill="white">${dateSubStr}</text>
-    </g>
-  `;
-
-  // ==========================================
-  // SIDEBAR: CARD 2: WEATHER CARD (TRMNL Black Title Band, 138px Height)
-  // ==========================================
-  const wTemp = weather.temp !== undefined ? `${Math.round(weather.temp)}°C` : '--°C';
-  const wTempMin = weather.tempMin !== undefined ? `${Math.round(weather.tempMin)}` : '--';
-  const wTempMax = weather.tempMax !== undefined ? `${Math.round(weather.tempMax)}` : '--';
-  const wDesc = stripNikud(weather.description || 'בהיר');
-  const wIcon = weather.icon || '01d';
-  const wSunrise = weather.sunrise || '05:42';
-  const wSunset = weather.sunset || '19:48';
-
-  svg += `
-    <!-- Weather Card Container -->
-    <g transform="translate(${rightX}, ${pad + 60 + gap})">
-      <rect x="0" y="0" width="${rightWidth}" height="138" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
-      
-      <!-- Section Title Header Band -->
-      <g clip-path="url(#weather-card-clip)">
-        <rect x="0" y="0" width="${rightWidth}" height="32" fill="black" />
-        <text x="92" y="21" class="bold" font-size="13" text-anchor="middle" fill="white">מזג אוויר</text>
-      </g>
-      
-      <!-- Temperature (Top Right) -->
-      <text x="172" y="72" class="bold" font-size="24" text-anchor="end" fill="black">${wTemp}</text>
-      <!-- Min/Max Temp Range (Below Temp) -->
-      <text x="172" y="92" class="regular" font-size="11.5" text-anchor="end" fill="black">${wTempMin}° - ${wTempMax}°</text>
-      
-      <!-- Weather Icon Placement (Center-Left Centered) -->
-      <g transform="translate(46, 66) scale(0.85)">
-        ${getWeatherIconSvg(wIcon)}
-      </g>
-      <!-- Description centered under the Icon -->
-      <text x="46" y="98" class="bold" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
-      
-      <!-- Sunrise & Sunset (Bottom Row Centered) -->
-      <text x="92" y="122" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202Bזריחה: ${wSunrise}  •  שקיעה: ${wSunset}\u202C</text>
-    </g>
-  `;
-
-  // ==========================================
-  // SIDEBAR: CARD 3: DAILY SCHEDULE (TRMNL Black Title Band & Checklist Checkboxes, 234px Height)
-  // ==========================================
-  const displayDateStr = `${date.getDate()}/${month}`;
-  const scheduleHeight = 234;
-  
-  svg += `
-    <!-- Schedule Card Container -->
-    <g transform="translate(${rightX}, ${pad + 60 + gap + 138 + gap})">
-      <rect x="0" y="0" width="${rightWidth}" height="${scheduleHeight}" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
-      
-      <!-- Section Title Header Band -->
-      <g clip-path="url(#right-card-clip)">
-        <rect x="0" y="0" width="${rightWidth}" height="32" fill="black" />
-        <text x="92" y="21" class="bold" font-size="13" text-anchor="middle" fill="white">לוז להיום - ${displayDateStr}</text>
-      </g>
-  `;
-
-  if (tasks.length === 0) {
-    svg += `<text x="92" y="130" class="bold" font-size="14.5" text-anchor="middle" fill="black">\u202Bאין משימות להיום\u202C</text>`;
-  } else {
-    // Render up to 5 items spaced for the shorter card height
-    tasks.slice(0, 5).forEach((task, idx) => {
-      const rowY = 56 + idx * 38;
-      const cleanDesc = stripNikud(task.description);
-      const displayText = truncateText(cleanDesc, 13);
-      const rleText = `\u202B${displayText}\u202C`;
-      
-      // Calculate if the task time has passed by 30+ minutes
-      let isPast = false;
-      if (task.time && task.time.includes(':')) {
-        const [tHourStr, tMinStr] = task.time.split(':');
-        const tHour = parseInt(tHourStr, 10);
-        const tMin = parseInt(tMinStr, 10);
-        if (!isNaN(tHour) && !isNaN(tMin)) {
-          const taskTimeInMinutes = tHour * 60 + tMin;
-          const currentHour = date.getHours();
-          const currentMin = date.getMinutes();
-          const currentTimeInMinutes = currentHour * 60 + currentMin;
-          isPast = (currentTimeInMinutes >= taskTimeInMinutes + 30);
+    const bracketMatch = rawTitle.match(/^\[([^\]]+)\]\s*(.*)$/);
+    if (bracketMatch) {
+      kidName = bracketMatch[1].trim();
+      cleanTitle = bracketMatch[2].trim();
+    } else {
+      const colonMatch = rawTitle.match(/^([^:]+):\s*(.*)$/);
+      if (colonMatch) {
+        const potentialKid = colonMatch[1].trim();
+        if (potentialKid === 'סהר' || potentialKid === 'סול' || potentialKid === 'חוגים') {
+          if (potentialKid !== 'חוגים') {
+            kidName = potentialKid;
+          }
+          cleanTitle = colonMatch[2].trim();
         }
       }
-      
-      // Checkbox Border on the far right (ends at 172, starts at 161)
-      svg += `<rect x="161" y="${rowY - 11}" width="11" height="11" rx="2.5" fill="none" stroke="black" stroke-width="1.5" />`;
-      
-      // Draw Checkmark if task is completed (time passed + 30 minutes)
-      if (isPast) {
-        svg += `<path d="M 163.5 ${rowY - 5.5} L 166.5 ${rowY - 2.5} L 169.5 ${rowY - 8.5}" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />`;
-      }
-      
-      // Hour text to the left of the checkbox (ends at 150)
-      svg += `<text x="150" y="${rowY}" class="bold" font-size="12.5" text-anchor="end" fill="black">${task.time}</text>`;
-      // Description text to the left of the hour (ends at 105)
-      svg += `<text x="105" y="${rowY}" class="regular" font-size="12.5" text-anchor="end" fill="black">${rleText}</text>`;
-    });
-  }
-
-  svg += `</g>`;
-
-  // ==========================================
-  // MAIN SECTION: CARD 4: WEEKLY AGENDA HORIZON (TRMNL Black Title Band & Day Progress Bar)
-  // ==========================================
-  const startOfWeek = weekDates[0];
-  const endOfWeek = weekDates[6];
-  const startMonthName = MONTHS_HE[startOfWeek.getMonth()];
-  const endMonthName = MONTHS_HE[endOfWeek.getMonth()];
-  let weekRangeStr = "";
-  if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
-    weekRangeStr = `${startOfWeek.getDate()} - ${endOfWeek.getDate()} ${startMonthName} ${startOfWeek.getFullYear()}`;
-  } else {
-    const startYear = startOfWeek.getFullYear();
-    const endYear = endOfWeek.getFullYear();
-    if (startYear === endYear) {
-      weekRangeStr = `${startOfWeek.getDate()} ${startMonthName} - ${endOfWeek.getDate()} ${endMonthName} ${endYear}`;
-    } else {
-      weekRangeStr = `${startOfWeek.getDate()} ${startMonthName} ${startYear} - ${endOfWeek.getDate()} ${endMonthName} ${endYear}`;
     }
-  }
 
+    let timeStr = item.time || '';
+    let hour = 8;
+    if (timeStr && timeStr.includes(':')) {
+      hour = parseInt(timeStr.split(':')[0], 10);
+    }
+
+    const titleLower = cleanTitle.toLowerCase();
+    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה');
+    const isAfternoon = hour >= 13 || isAfternoonKeyword;
+
+    const formattedItem = {
+      title: cleanTitle,
+      time: timeStr,
+      kid: kidName || (titleLower.includes('סול') ? 'סול' : 'סהר'),
+      rawItem: item
+    };
+
+    if (isAfternoon) {
+      afternoonActivities.push(formattedItem);
+    } else {
+      if (formattedItem.kid === 'סול') {
+        solSchool.push(formattedItem);
+      } else {
+        saharSchool.push(formattedItem);
+      }
+    }
+  });
+
+  const sortByTime = (a, b) => (a.time || '').localeCompare(b.time || '');
+  saharSchool.sort(sortByTime);
+  solSchool.sort(sortByTime);
+  afternoonActivities.sort(sortByTime);
+
+  return { saharSchool, solSchool, afternoonActivities };
+}
+
+function generateSvg({ date, events, tasks, weather }) {
+  const todayDate = date;
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(todayDate.getDate() + 1);
+
+  const WEEKDAYS_HE_FULL = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+  const MONTHS_HE_NAMES = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
+
+  const todayName = WEEKDAYS_HE_FULL[todayDate.getDay()];
+  const tomorrowName = WEEKDAYS_HE_FULL[tomorrowDate.getDay()];
+
+  const todayStr = `היום — יום ${todayName}, ${todayDate.getDate()} ב${MONTHS_HE_NAMES[todayDate.getMonth()]}`;
+  const tomorrowStr = `מחר — יום ${tomorrowName}, ${tomorrowDate.getDate()} ב${MONTHS_HE_NAMES[tomorrowDate.getMonth()]}`;
+
+  const todayDateStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+  const tomorrowDateStr = `${tomorrowDate.getFullYear()}-${String(tomorrowDate.getMonth() + 1).padStart(2, '0')}-${String(tomorrowDate.getDate()).padStart(2, '0')}`;
+
+  const todayEvents = parseKidEvents(events, tasks, todayDateStr);
+  const tomorrowEvents = parseKidEvents(events, tasks, tomorrowDateStr);
+
+  let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
+  svg += `<style>.bold{font-family:'Rubik Light', sans-serif;font-weight:700;}.regular{font-family:'Rubik Light', sans-serif;font-weight:600;}</style>`;
+  svg += `<defs>
+    <clipPath id="top-card-clip"><rect x="0" y="0" width="606" height="224" rx="10" ry="10" /></clipPath>
+    <clipPath id="bot-card-clip"><rect x="0" y="0" width="606" height="224" rx="10" ry="10" /></clipPath>
+    <clipPath id="weather-sidebar-clip"><rect x="0" y="0" width="156" height="456" rx="10" ry="10" /></clipPath>
+  </defs>`;
+
+  // ==========================================
+  // LEFT SIDEBAR: COMPACT 3-DAY WEATHER (x: 12, width: 156, height: 456)
+  // ==========================================
+  const wTemp = (weather && weather.temp !== undefined) ? `${Math.round(weather.temp)}°C` : '--°C';
+  const wDesc = stripNikud((weather && weather.description) || 'שמש חלקית');
 
   svg += `
-    <!-- Weekly Agenda Card Container -->
-    <g transform="translate(${leftX}, ${pad})">
-      <rect x="0" y="0" width="${leftWidth}" height="450" rx="12" ry="12" fill="none" stroke="black" stroke-width="2" />
-      
-      <!-- Section Title Header Band -->
-      <g clip-path="url(#left-card-clip)">
-        <rect x="0" y="0" width="${leftWidth}" height="34" fill="black" />
-        <text x="565" y="22" class="bold" font-size="13.5" text-anchor="end" fill="white">\u202Bלוח שבועי: ${weekRangeStr}\u202C</text>
+    <g transform="translate(12, 10)">
+      <rect x="0" y="0" width="156" height="456" rx="10" ry="10" fill="none" stroke="black" stroke-width="2" />
+      <g clip-path="url(#weather-sidebar-clip)">
+        <rect x="0" y="0" width="156" height="30" fill="black" />
+        <text x="78" y="20" class="bold" font-size="12.5" text-anchor="middle" fill="white">מזג אוויר 3 ימים</text>
       </g>
+      
+      <!-- Current Main Temp Block -->
+      <text x="78" y="60" class="bold" font-size="22" text-anchor="middle" fill="black">${wTemp}</text>
+      <text x="78" y="78" class="regular" font-size="11" text-anchor="middle" fill="black">\u202B${wDesc}\u202C</text>
+      <line x1="12" y1="92" x2="144" y2="92" stroke="black" stroke-width="1" />
   `;
 
-  // Draw 7 horizontal rows cleanly fitted in available card height (34px to 446px)
-  const rowStartHeight = 34;
-  const rowHeight = (446 - 34) / 7; // 58.85px per row
-  
-  for (let i = 0; i < 7; i++) {
-    const d = weekDates[i];
-    const rowY = rowStartHeight + i * rowHeight;
-    const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const isToday = isSameDay(dStr, date);
-    
-    // Draw row bottom divider (except last)
-    if (i < 6) {
-      svg += `<line x1="15" y1="${rowY + rowHeight}" x2="565" y2="${rowY + rowHeight}" stroke="black" stroke-dasharray="3,3" stroke-width="1" />`;
-    }
-    
-    // Day Label (RTL) - Right part of the row
-    const dayLabelStr = `\u202B${WEEKDAYS_HE_FULL[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}\u202C`;
-    if (isToday) {
-      // Draw highlighted black pill for today (spans 458 to 558, giving 10px padding on the right to 548)
-      svg += `<rect x="458" y="${rowY + 6}" width="100" height="38" rx="6" ry="6" fill="black" />`;
-      svg += `<text x="548" y="${rowY + 30}" class="bold" font-size="13" text-anchor="end" fill="white">${dayLabelStr}</text>`;
-    } else {
-      svg += `<text x="548" y="${rowY + 30}" class="bold" font-size="13" text-anchor="end" fill="black">${dayLabelStr}</text>`;
-    }
-    
-    // Day column divider
-    svg += `<line x1="458" y1="${rowY + 5}" x2="458" y2="${rowY + rowHeight - 5}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
-    
-    // Fetch and sort events for this day
-    const dayEvents = events.filter(e => e.date === dStr).sort((a, b) => {
-      if (!a.isTimed && b.isTimed) return -1;
-      if (a.isTimed && !b.isTimed) return 1;
-      if (a.isTimed && b.isTimed) return (a.time || '').localeCompare(b.time || '');
-      return 0;
-    });
-    
-    const hol = holidays[dStr];
-    const items = [];
-    if (hol) items.push({ title: simplifyHoliday(hol), isHoliday: true, isTimed: false });
-    dayEvents.forEach(e => items.push(e));
-    
-    const hasWeather = weather && weather.forecast && weather.forecast[i] && items.length <= 2;
+  // Build 3-Day Forecast Items
+  const day2Date = new Date(todayDate);
+  day2Date.setDate(todayDate.getDate() + 2);
+  const day2Name = WEEKDAYS_HE_FULL[day2Date.getDay()];
 
-    if (items.length === 0) {
-      svg += `<text x="446" y="${rowY + 30}" class="regular" font-size="12.5" text-anchor="end" fill="black">\u202Bאין אירועים\u202C</text>`;
-    } else if (items.length === 1) {
-      const maxLen = hasWeather ? 48 : 60;
-      svg = renderSingleEventCol(svg, 446, rowY + 30, 12.5, items[0], maxLen);
-    } else if (items.length === 2) {
-      const maxLen = hasWeather ? 46 : 58;
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], maxLen);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[1], maxLen);
-    } else if (items.length === 3) {
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 26);
-      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 23);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 26);
-    } else if (items.length === 4) {
-      svg = renderSingleEventCol(svg, 446, rowY + 18, 11, items[0], 26);
-      svg = renderSingleEventCol(svg, 210, rowY + 18, 11, items[1], 23);
-      svg = renderSingleEventCol(svg, 446, rowY + 38, 11, items[2], 26);
-      svg = renderSingleEventCol(svg, 210, rowY + 38, 11, items[3], 23);
-    } else {
-      svg = renderSingleEventCol(svg, 446, rowY + 14, 10, items[0], 24);
-      svg = renderSingleEventCol(svg, 210, rowY + 14, 10, items[1], 22);
-      svg = renderSingleEventCol(svg, 446, rowY + 27, 10, items[2], 24);
-      svg = renderSingleEventCol(svg, 210, rowY + 27, 10, items[3], 22);
-      svg = renderSingleEventCol(svg, 446, rowY + 40, 10, items[4], 24);
-      if (items.length >= 6) {
-        svg = renderSingleEventCol(svg, 210, rowY + 40, 10, items[5], 22);
-      }
-    }
-
-    // Draw integrated weather forecast on the far left if the day is not too busy
-    if (hasWeather) {
-      const f = weather.forecast[i];
-      svg += `
-        <!-- Day Weather Widget -->
-        <g transform="translate(25, ${rowY + 28}) scale(0.6)">
-          ${getWeatherIconSvg(f.icon)}
-        </g>
-        <text x="54" y="${rowY + 33}" class="bold" font-size="11.5" text-anchor="start" fill="black">${f.tempMin}°-${f.tempMax}°</text>
-        <line x1="102" y1="${rowY + 12}" x2="102" y2="${rowY + 46}" stroke="black" stroke-width="1" stroke-dasharray="2,2" />
-      `;
-    }
+  let forecast3Day = [];
+  if (weather && Array.isArray(weather.forecast) && weather.forecast.length >= 3) {
+    forecast3Day = weather.forecast.slice(0, 3);
+  } else {
+    forecast3Day = [
+      { day: `היום (${todayDate.getDate()}.${todayDate.getMonth()+1})`, icon: weather?.icon || '02d', tempMin: weather?.tempMin || 22, tempMax: weather?.tempMax || 31, description: weather?.description || 'מעונן חלקית' },
+      { day: `מחר (${tomorrowDate.getDate()}.${tomorrowDate.getMonth()+1})`, icon: '01d', tempMin: 23, tempMax: 32, description: 'בהיר' },
+      { day: `${day2Name} (${day2Date.getDate()}.${day2Date.getMonth()+1})`, icon: '01d', tempMin: 24, tempMax: 33, description: 'נאה' }
+    ];
   }
+
+  forecast3Day.forEach((w, idx) => {
+    const wy = 104 + idx * 114;
+    if (idx > 0) {
+      svg += `<line x1="12" y1="${wy - 8}" x2="144" y2="${wy - 8}" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    }
+    const dayTitle = w.day || (idx === 0 ? `היום (${todayDate.getDate()}.${todayDate.getMonth()+1})` : idx === 1 ? `מחר (${tomorrowDate.getDate()}.${tomorrowDate.getMonth()+1})` : `${day2Name} (${day2Date.getDate()}.${day2Date.getMonth()+1})`);
+    const fDesc = stripNikud(w.description || w.desc || '');
+    svg += `<text x="78" y="${wy + 14}" class="bold" font-size="11.5" text-anchor="middle" fill="black">${dayTitle}</text>`;
+    svg += `<g transform="translate(78, ${wy + 40}) scale(0.65)">${getWeatherIconSvg(w.icon)}</g>`;
+    svg += `<text x="78" y="${wy + 72}" class="regular" font-size="10.5" text-anchor="middle" fill="black">${fDesc}</text>`;
+    svg += `<text x="78" y="${wy + 92}" class="bold" font-size="12" text-anchor="middle" fill="black">${Math.round(w.tempMin)}° - ${Math.round(w.tempMax)}°</text>`;
+  });
+
   svg += `</g>`;
 
-  // status footer: last sync timestamp (placed outside of any card group to prevent coordinate shifting)
+  // ==========================================
+  // RIGHT MAIN PANEL: STACKED 2-DAY SCHEDULE (x: 182, width: 606)
+  // ==========================================
+  const mainX = 182;
+  const mainW = 606;
+  const colW = mainW / 3;
+
+  const renderDayPanel = (y, titleStr, dayEvents, clipId) => {
+    let panel = `
+      <g transform="translate(${mainX}, ${y})">
+        <rect x="0" y="0" width="${mainW}" height="224" rx="10" ry="10" fill="none" stroke="black" stroke-width="2" />
+        <g clip-path="url(#${clipId})">
+          <rect x="0" y="0" width="${mainW}" height="30" fill="black" />
+          <text x="${mainW / 2}" y="20" class="bold" font-size="13.5" text-anchor="middle" fill="white">\u202B${titleStr}\u202C</text>
+        </g>
+    `;
+
+    // Sahar Column (x: 404 to 606)
+    panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סהר</text>`;
+    panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    if (!dayEvents.saharSchool || dayEvents.saharSchool.length === 0) {
+      panel += `<text x="${mainW - colW / 2}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין לימודים</text>`;
+    } else {
+      dayEvents.saharSchool.slice(0, 5).forEach((item, idx) => {
+        const iy = 68 + idx * 30;
+        panel += `<text x="${mainW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+      });
+    }
+
+    // Sol Column (x: 202 to 404)
+    panel += `<text x="${colW * 1.5}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">סול</text>`;
+    panel += `<line x1="${colW}" y1="30" x2="${colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
+    if (!dayEvents.solSchool || dayEvents.solSchool.length === 0) {
+      panel += `<text x="${colW * 1.5}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין לימודים</text>`;
+    } else {
+      dayEvents.solSchool.slice(0, 5).forEach((item, idx) => {
+        const iy = 68 + idx * 30;
+        panel += `<text x="${mainW - colW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+      });
+    }
+
+    // Afternoon Column (x: 0 to 202)
+    panel += `<text x="${colW / 2}" y="48" class="bold" font-size="12" text-anchor="middle" fill="black">חוגים אחה"צ</text>`;
+    if (!dayEvents.afternoonActivities || dayEvents.afternoonActivities.length === 0) {
+      panel += `<text x="${colW / 2}" y="120" class="regular" font-size="12" text-anchor="middle" fill="black">אין חוגים</text>`;
+    } else {
+      dayEvents.afternoonActivities.slice(0, 5).forEach((item, idx) => {
+        const iy = 68 + idx * 30;
+        const kidBadge = item.kid ? `[${item.kid}] ` : '';
+        panel += `<text x="${colW - 12}" y="${iy}" class="regular" font-size="11" text-anchor="end" fill="black">\u202B${item.time} ${kidBadge}${truncateText(stripNikud(item.title), 12)}\u202C</text>`;
+      });
+    }
+
+    panel += `</g>`;
+    return panel;
+  };
+
+  svg += renderDayPanel(10, todayStr, todayEvents, "top-card-clip");
+  svg += renderDayPanel(242, tomorrowStr, tomorrowEvents, "bot-card-clip");
+
+  // Status Footer
   const syncHour = String(date.getHours()).padStart(2, '0');
   const syncMin = String(date.getMinutes()).padStart(2, '0');
-  const syncTimeStr = `${syncHour}:${syncMin}`;
-  svg += `<text x="20" y="473" class="regular" font-size="9" text-anchor="start" fill="black">סנכרון אחרון: ${syncTimeStr}</text>`;
+  svg += `<text x="20" y="474" class="regular" font-size="8.5" fill="black">סנכרון אחרון: ${syncHour}:${syncMin}</text>`;
 
   svg += `</svg>`;
   return svg;

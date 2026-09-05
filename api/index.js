@@ -168,13 +168,29 @@ app.get('/api/events', async (req, res) => {
 
 // API: Add event
 app.post('/api/events', async (req, res) => {
-  const { title, date, author, time } = req.body;
+  const { title, date, author, time, syncGoogle = false } = req.body;
   if (!title || !date) {
     return res.status(400).json({ error: 'Title and Date are required' });
   }
   try {
     const isTimed = !!time;
     const newEvent = await db.addEvent({ title, date, author, isTimed, time });
+    
+    if (syncGoogle) {
+      try {
+        const googleCal = require('../google-calendar');
+        await googleCal.addGoogleCalendarEvent({
+          calendarId: process.env.GOOGLE_CALENDAR_ID || 'hugim.kid@gmail.com',
+          kid: author,
+          title,
+          date,
+          time
+        });
+      } catch (gErr) {
+        console.error('Google Calendar API sync failed:', gErr.message);
+      }
+    }
+
     res.status(201).json(newEvent);
   } catch (err) {
     res.status(500).json({ error: err.message });
