@@ -68,6 +68,28 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
     end: endDateTime
   };
 
+  // Idempotency check: query existing events on the target date to avoid inserting duplicates
+  try {
+    const existing = await calendar.events.list({
+      calendarId,
+      timeMin: `${date}T00:00:00Z`,
+      timeMax: `${date}T23:59:59Z`,
+      singleEvents: true
+    });
+    const targetMs = new Date(startDateTime.dateTime || `${startDateTime.date}T00:00:00Z`).getTime();
+    const duplicate = items.find(e => {
+      if (e.summary !== fullTitle || !e.start) return false;
+      const evMs = new Date(e.start.dateTime || `${e.start.date}T00:00:00Z`).getTime();
+      return Math.abs(evMs - targetMs) < 60000;
+    });
+    if (duplicate) {
+      console.log(`Skipping existing Google Calendar event "${fullTitle}" (ID: ${duplicate.id})`);
+      return duplicate;
+    }
+  } catch (checkErr) {
+    // ignore query failure and fall through to insert
+  }
+
   const response = await calendar.events.insert({
     calendarId,
     requestBody: eventResource
@@ -100,15 +122,27 @@ async function listGoogleCalendarEvents({ calendarId = 'hugim.kid@gmail.com', ti
   const auth = getAuthClient();
   const calendar = google.calendar({ version: 'v3', auth });
 
-  const response = await calendar.events.list({
-    calendarId,
-    timeMin: timeMin || new Date().toISOString(),
-    timeMax: timeMax,
-    singleEvents: true,
-    orderBy: 'startTime'
-  });
+  let allItems = [];
+  let pageToken = null;
 
-  return response.data.items || [];
+  do {
+    const params = {
+      calendarId,
+      timeMin: timeMin || new Date().toISOString(),
+      timeMax: timeMax,
+      singleEvents: true,
+      orderBy: 'startTime',
+      maxResults: 250
+    };
+    if (pageToken) params.pageToken = pageToken;
+
+    const response = await calendar.events.list(params);
+    const items = response.data.items || [];
+    allItems = allItems.concat(items);
+    pageToken = response.data.nextPageToken;
+  } while (pageToken);
+
+  return allItems;
 }
 
 async function updateGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', eventId, summary }) {

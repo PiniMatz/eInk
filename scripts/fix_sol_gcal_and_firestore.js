@@ -57,8 +57,26 @@ const SCHOOL_TITLES = [
   'חינוך', 'תל"ת רובוטיקה', 'לימודי העשרה'
 ];
 
+function extractTimeStr(ev) {
+  if (!ev.start) return '';
+  if (ev.start.date) return '';
+  if (ev.start.dateTime) {
+    const dt = new Date(ev.start.dateTime);
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Jerusalem',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).formatToParts(dt);
+    const h = parts.find(p => p.type === 'hour').value;
+    const m = parts.find(p => p.type === 'minute').value;
+    return `${h}:${m}`;
+  }
+  return '';
+}
+
 async function fixSolFullYear() {
-  console.log('=== STEP 1: Fetching all Google Calendar events for Sol ===');
+  console.log('=== STEP 1: Fetching ALL Google Calendar pages for Sol (Sept 6, 2026 -> June 20, 2027) ===');
   const gcalEvents = await listGoogleCalendarEvents({
     calendarId: 'hugim.kid@gmail.com',
     timeMin: '2026-09-01T00:00:00Z',
@@ -67,42 +85,82 @@ async function fixSolFullYear() {
 
   const solGcalSchoolEvents = gcalEvents.filter(e => {
     if (!e.summary || !e.summary.includes('סול')) return false;
-    // Match any school subject item
-    return SCHOOL_TITLES.some(t => e.summary.includes(t));
+    return SCHOOL_TITLES.some(t => e.summary.includes(t)) || e.summary.includes('רובוטיקה');
   });
 
-  console.log(`Found ${solGcalSchoolEvents.length} Sol school events in Google Calendar to delete.`);
+  console.log(`Fetched total ${gcalEvents.length} events from Google Calendar, including ${solGcalSchoolEvents.length} Sol school events.`);
 
-  // Delete all Sol school events from Google Calendar
-  for (let i = 0; i < solGcalSchoolEvents.length; i++) {
-    const ev = solGcalSchoolEvents[i];
+  const gcalKeptSet = new Set();
+  const seenGcalKeys = new Map();
+  const gcalToDelete = [];
+
+  for (const ev of solGcalSchoolEvents) {
+    const cleanSummary = ev.summary.replace(/[,:\s]+$/, '').trim();
+    const startStr = ev.start ? (ev.start.dateTime || ev.start.date) : '';
+    const dateStr = startStr.split('T')[0];
+    const timeStr = extractTimeStr(ev);
+    const key = `${cleanSummary}_${dateStr}_${timeStr}`;
+
+    const d = new Date(dateStr + 'T12:00:00+03:00');
+    const holiday = getSchoolHoliday(d);
+
+    if (ev.summary.includes('רובוטיקה') || holiday || seenGcalKeys.has(key)) {
+      gcalToDelete.push(ev);
+    } else {
+      seenGcalKeys.set(key, ev);
+      gcalKeptSet.add(key);
+    }
+  }
+
+  console.log(`Identified ${gcalToDelete.length} duplicate/triplet or holiday Sol GCal events to delete.`);
+
+  for (let i = 0; i < gcalToDelete.length; i++) {
+    const ev = gcalToDelete[i];
     try {
       await deleteGoogleCalendarEvent({ calendarId: 'hugim.kid@gmail.com', eventId: ev.id });
-      console.log(`[${i+1}/${solGcalSchoolEvents.length}] Deleted GCal event: ${ev.summary} on ${ev.start.dateTime || ev.start.date}`);
     } catch (err) {
       console.error(`Failed deleting GCal event ${ev.id}:`, err.message);
     }
     await new Promise(r => setTimeout(r, 150));
   }
-  console.log('Google Calendar purge of old Sol school events complete.');
+  console.log('Google Calendar deduplication & purge complete.');
 
-  console.log('=== STEP 2: Purging Sol school events from Firestore ===');
+  console.log('=== STEP 2: Deduplicating and purging Sol school events in Firestore ===');
   const months = [
     { year: 2026, month: 9 }, { year: 2026, month: 10 }, { year: 2026, month: 11 }, { year: 2026, month: 12 },
     { year: 2027, month: 1 }, { year: 2027, month: 2 }, { year: 2027, month: 3 }, { year: 2027, month: 4 }, { year: 2027, month: 5 }, { year: 2027, month: 6 }
   ];
+
+  let fsDeletedCount = 0;
   for (const { year, month } of months) {
     const evs = await db.getEvents(year, month);
     const solEvs = evs.filter(e => e.author === 'סול' || (e.title && e.title.includes('סול')));
     const schoolEvs = solEvs.filter(e => SCHOOL_TITLES.some(t => e.title.includes(t)));
-    for (let i = 0; i < schoolEvs.length; i += 20) {
-      const chunk = schoolEvs.slice(i, i + 20);
+
+    const seenFsKeys = new Map();
+    const fsToDelete = [];
+
+    for (const e of schoolEvs) {
+      const key = `${e.title.trim()}_${e.date}_${e.time || ''}`;
+      const d = new Date(e.date + 'T12:00:00+03:00');
+      const holiday = getSchoolHoliday(d);
+
+      if (holiday || seenFsKeys.has(key)) {
+        fsToDelete.push(e);
+      } else {
+        seenFsKeys.set(key, e);
+      }
+    }
+
+    for (let i = 0; i < fsToDelete.length; i += 20) {
+      const chunk = fsToDelete.slice(i, i + 20);
       await Promise.all(chunk.map(e => db.deleteEvent(e.id)));
+      fsDeletedCount += chunk.length;
     }
   }
-  console.log('Firestore purge of old Sol school events complete.');
+  console.log(`Firestore deduplication complete. Deleted ${fsDeletedCount} stale/duplicate Firestore events.`);
 
-  console.log('=== STEP 3: Generating clean Sol schedule (Sept 6, 2026 -> June 20, 2027) ===');
+  console.log('=== STEP 3: Generating clean Sol schedule & filling missing dates (e.g. Nov 9th) ===');
   const startDate = new Date('2026-09-06T12:00:00+03:00');
   const endDate = new Date('2027-06-20T12:00:00+03:00');
 
@@ -122,7 +180,6 @@ async function fixSolFullYear() {
     const dateStr = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
 
     if (holiday) {
-      console.log(`Skipping holiday date ${dateStr} (${holiday})`);
       skippedHolidaysCount++;
       curr.setDate(curr.getDate() + 1);
       continue;
@@ -146,48 +203,61 @@ async function fixSolFullYear() {
 
   console.log(`Generated ${allItems.length} class items across ${skippedHolidaysCount} holiday dates skipped.`);
 
-  console.log('=== STEP 4: Ingesting clean items into Firestore and Google Calendar ===');
+  console.log('=== STEP 4: Ingesting clean missing items into Firestore and Google Calendar ===');
+  let addedFsCount = 0;
+  let addedGcalCount = 0;
+  const monthCache = new Map();
+
   for (let i = 0; i < allItems.length; i++) {
     const item = allItems[i];
     const formattedTitle = `[${item.kid}] ${item.title}`;
-    const eventObj = {
-      title: formattedTitle,
-      date: item.date,
-      author: item.kid,
-      time: item.time,
-      isTimed: true
-    };
+    
+    // Check Firestore cache
+    const monthKey = item.date.substring(0, 7);
+    let monthEvs = monthCache.get(monthKey);
+    if (!monthEvs) {
+      const [y, m] = item.date.split('-').map(Number);
+      monthEvs = await db.getEvents(y, m);
+      monthCache.set(monthKey, monthEvs);
+    }
 
-    try {
-      await db.addEvent(eventObj);
-      let retries = 3;
-      while (retries > 0) {
-        try {
-          await addGoogleCalendarEvent({
-            calendarId: 'hugim.kid@gmail.com',
-            kid: item.kid,
-            title: item.title,
-            date: item.date,
-            time: item.time,
-            durationMinutes: item.durationMinutes
-          });
-          break;
-        } catch (gErr) {
-          retries--;
-          if (retries === 0) console.error(`GCal insert note for ${formattedTitle}:`, gErr.message);
-          else await new Promise(r => setTimeout(r, 1000));
-        }
+    const existsInFs = monthEvs.some(e => e.date === item.date && e.time === item.time && (e.title === formattedTitle || e.title === item.title));
+
+    if (!existsInFs) {
+      const eventObj = {
+        title: formattedTitle,
+        date: item.date,
+        author: item.kid,
+        time: item.time,
+        isTimed: true
+      };
+      const added = await db.addEvent(eventObj);
+      monthEvs.push(added);
+      addedFsCount++;
+    }
+
+    // Check in-memory Google Calendar set
+    const itemGcalKey = `${formattedTitle}_${item.date}_${item.time}`;
+
+    if (!gcalKeptSet.has(itemGcalKey)) {
+      try {
+        await addGoogleCalendarEvent({
+          calendarId: 'hugim.kid@gmail.com',
+          kid: item.kid,
+          title: item.title,
+          date: item.date,
+          time: item.time,
+          durationMinutes: item.durationMinutes
+        });
+        gcalKeptSet.add(itemGcalKey);
+        addedGcalCount++;
+      } catch (gErr) {
+        console.error(`GCal insert error for ${formattedTitle}:`, gErr.message);
       }
-    } catch (err) {
-      console.error(`Error adding event ${formattedTitle} on ${item.date}:`, err.message);
     }
-    if ((i + 1) % 50 === 0 || i === allItems.length - 1) {
-      console.log(`Ingested ${i + 1} / ${allItems.length} items.`);
-    }
-    await new Promise(r => setTimeout(r, 100));
   }
 
-  console.log('=== ALL SOL SCHEDULE FIXES COMPLETE! ===');
+  console.log(`=== ALL SOL SCHEDULE FIXES COMPLETE! Added ${addedFsCount} missing Firestore events and ${addedGcalCount} missing GCal events. ===`);
 }
 
 if (require.main === module) {

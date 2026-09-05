@@ -63,7 +63,7 @@ function getSchoolHoliday(dateInput) {
     for (const ev of evs) {
       const desc = ev.getDesc();
       if (desc.includes('Rosh Hashana') || desc === 'Erev Rosh Hashana') return 'ראש השנה';
-      if (desc.includes('Yom Kippur') || desc === 'Erev Yom Kippur') return 'יום כיפור';
+      if (desc === 'Erev Yom Kippur' || (desc.includes('Yom Kippur') && !desc.includes('Katan'))) return 'יום כיפור';
       if (desc.includes('Sukkot') || desc.includes('Shmini Atzeret') || desc === 'Erev Sukkot' || desc === 'Hoshana Raba') return 'סוכות';
       if (desc.includes('Chanukah')) {
         // 1st candle is a regular school day; vacation starts 2nd candle (26 Kislev)

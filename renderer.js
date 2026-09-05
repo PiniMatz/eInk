@@ -235,6 +235,7 @@ function parseKidEvents(events, tasks, reqDateStr) {
         }
       }
     }
+    cleanTitle = cleanTitle.replace(/[,:\s]+$/, '').trim();
 
     let timeStr = item.time || '';
     let hour = 8;

@@ -67,20 +67,21 @@ function writeLocal(data) {
 
 function formatKidTitle(title, author) {
   if (!title) return title;
-  if (title.startsWith('[')) return title;
+  let sanitized = title.replace(/[,:\s]+$/, '').trim();
+  if (sanitized.startsWith('[')) return sanitized;
 
   let kidName = author;
-  if (title.includes('סהר')) kidName = 'סהר';
-  else if (title.includes('סול')) kidName = 'סול';
-  else if (title.includes('פיני')) kidName = 'פיני';
-  else if (title.includes('נדיה')) kidName = 'נדיה';
+  if (sanitized.includes('סהר')) kidName = 'סהר';
+  else if (sanitized.includes('סול')) kidName = 'סול';
+  else if (sanitized.includes('פיני')) kidName = 'פיני';
+  else if (sanitized.includes('נדיה')) kidName = 'נדיה';
 
   if (kidName && (kidName === 'סהר' || kidName === 'סול' || kidName === 'פיני' || kidName === 'נדיה')) {
-    const cleanTitle = title.replace(/^(סהר|סול|פיני|נדיה)\s*[-:]\s*/, '').trim();
+    const cleanTitle = sanitized.replace(/^(סהר|סול|פיני|נדיה)\s*[-:]\s*/, '').replace(/[,:\s]+$/, '').trim();
     return `[${kidName}] ${cleanTitle}`;
   }
 
-  return title;
+  return sanitized;
 }
 
 // Unified Database API
