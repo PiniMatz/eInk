@@ -695,11 +695,57 @@ function generateSvg({ date, events, tasks, weather }) {
                   <text x="${colW / 2}" y="142" class="bold" font-size="11.5" text-anchor="middle" fill="black">אין פעילות</text>
                 </g>`;
     } else {
+      let currentY = 68;
       const list = dayEvents.afternoonActivities.slice(0, 5);
-      list.forEach((item, idx) => {
-        const iy = 68 + idx * 30;
+
+      function splitTextIntoLines(text, maxChars = 16) {
+        if (!text) return [];
+        if (text.length <= maxChars) return [text];
+        const words = text.split(' ');
+        const lines = [];
+        let cur = '';
+        words.forEach(w => {
+          const test = (cur + ' ' + w).trim();
+          if (test.length <= maxChars) {
+            cur = test;
+          } else {
+            if (cur) lines.push(cur);
+            cur = w;
+          }
+        });
+        if (cur) lines.push(cur);
+        if (lines.length > 2) {
+          let line2 = lines.slice(1).join(' ');
+          if (line2.length > maxChars) line2 = line2.substring(0, maxChars - 2) + '..';
+          return [lines[0], line2];
+        }
+        return lines;
+      }
+
+      list.forEach((item) => {
+        if (currentY > 200) return;
+        const cleanTitle = stripNikud(item.title);
         const kidBadge = item.kid ? `[${item.kid}] ` : '';
-        panel += `<text x="${colW - 12}" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${item.time} ${kidBadge}${truncateText(stripNikud(item.title), 12)}\u202C</text>`;
+        const fullPrefix = `${item.time} ${kidBadge}`;
+        const combined = `${fullPrefix}${cleanTitle}`;
+
+        if (combined.length <= 19) {
+          panel += `<text x="${colW - 10}" y="${currentY}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${combined}\u202C</text>`;
+          currentY += 26;
+        } else {
+          const titleLines = splitTextIntoLines(cleanTitle, 16);
+          const l1 = `${fullPrefix}${titleLines[0] || ''}`;
+          const l2 = titleLines[1] || '';
+
+          panel += `<text x="${colW - 10}" y="${currentY}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${l1}\u202C</text>`;
+          currentY += 17;
+          if (l2) {
+            panel += `<text x="${colW - 18}" y="${currentY}" class="regular" font-size="10.5" text-anchor="end" fill="black">\u202B${l2}\u202C</text>`;
+            currentY += 23;
+          } else {
+            currentY += 9;
+          }
+        }
       });
     }
 
