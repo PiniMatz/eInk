@@ -982,12 +982,14 @@ function areTitlesSimilar(t1, t2) {
   return c1 === c2 || c1.includes(c2) || c2.includes(c1);
 }
 
-async function findDuplicateEvent(dateStr, title) {
+async function findDuplicateEvent(dateStr, title, timeStr = '', isTimed = false) {
   if (firestore) {
     try {
-      const snapshot = await firestore.collection('events')
-        .where('date', '==', dateStr)
-        .get();
+      let query = firestore.collection('events').where('date', '==', dateStr);
+      if (isTimed && timeStr) {
+        query = query.where('time', '==', timeStr);
+      }
+      const snapshot = await query.get();
       
       let duplicate = null;
       snapshot.forEach(doc => {
@@ -1003,7 +1005,12 @@ async function findDuplicateEvent(dateStr, title) {
     }
   } else {
     const data = readLocal();
-    const found = (data.events || []).find(e => e.date === dateStr && areTitlesSimilar(e.title, title));
+    const found = (data.events || []).filter(e => e.date === dateStr).find(e => {
+      if (isTimed && timeStr) {
+        if (e.time !== timeStr) return false;
+      }
+      return areTitlesSimilar(e.title, title);
+    });
     return found ? { id: found.id, ...found } : null;
   }
 }

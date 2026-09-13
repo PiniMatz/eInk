@@ -224,14 +224,14 @@ function parseKidEvents(events, tasks, reqDateStr) {
       kidName = bracketMatch[1].trim();
       cleanTitle = bracketMatch[2].trim();
     } else {
-      const colonMatch = rawTitle.match(/^([^:]+):\s*(.*)$/);
-      if (colonMatch) {
-        const potentialKid = colonMatch[1].trim();
+      const prefixMatch = rawTitle.match(/^([^:-]+)\s*[:-]\s*(.*)$/);
+      if (prefixMatch) {
+        const potentialKid = prefixMatch[1].trim();
         if (potentialKid === 'סהר' || potentialKid === 'סול' || potentialKid === 'חוגים') {
           if (potentialKid !== 'חוגים') {
             kidName = potentialKid;
           }
-          cleanTitle = colonMatch[2].trim();
+          cleanTitle = prefixMatch[2].trim();
         }
       }
     }
@@ -247,14 +247,20 @@ function parseKidEvents(events, tasks, reqDateStr) {
     }
     const timeInMinutes = hour * 60 + minute;
 
-    const titleLower = cleanTitle.toLowerCase();
-    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה') || cleanTitle.includes('קט-סל') || cleanTitle.includes('אתלטיקה');
-    const isAfternoon = timeInMinutes >= 930 || isAfternoonKeyword;
+    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה') || cleanTitle.includes('חזרה') || cleanTitle.includes('קט-סל') || cleanTitle.includes('אתלטיקה');
+    
+    const kidNameResolved = kidName || (titleLower.includes('סול') ? 'סול' : (titleLower.includes('סהר') ? 'סהר' : ''));
+    const panelDateObj = new Date(reqDateStr + 'T12:00:00');
+    const dayOfWeek = panelDateObj.getDay();
+    
+    // School ends at 13:30 (Sun-Thu) or 12:00 (Fri). Anything at or after cutoff is Afternoon.
+    const afternoonCutoff = (dayOfWeek === 5) ? 720 : 810; // 12:00 on Fri, 13:30 on Sun-Thu
+    const isAfternoon = isAfternoonKeyword || timeInMinutes >= afternoonCutoff;
 
     const formattedItem = {
       title: cleanTitle,
       time: timeStr,
-      kid: kidName || (titleLower.includes('סול') ? 'סול' : 'סהר'),
+      kid: kidNameResolved || (author ? author : ''),
       rawItem: item
     };
 
@@ -634,12 +640,21 @@ function generateSvg({ date, events, tasks, weather }) {
       return boxHtml;
     };
 
+    function isHolidayTitle(title) {
+      if (!title) return false;
+      const clean = title.toLowerCase();
+      return clean.includes('ראש השנה') || clean.includes('כיפור') || clean.includes('סוכות') || clean.includes('פסח') || clean.includes('חנוכה') || clean.includes('פורים') || clean.includes('חג') || clean.includes('אין לימודים');
+    }
+
+    const holidayName = getSchoolHoliday(panelDate);
+
     // Sahar Column Header & List (x: 404 to 606)
     const saharTimeRange = getSchoolTimeRange(dayEvents.saharSchool);
     const saharHeader = saharTimeRange ? `סהר ${saharTimeRange}` : 'סהר';
     panel += `<text x="${mainW - colW / 2}" y="48" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${saharHeader}\u202C</text>`;
     panel += `<line x1="${mainW - colW}" y1="30" x2="${mainW - colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
-    if (!dayEvents.saharSchool || dayEvents.saharSchool.length === 0) {
+    const isSaharNoSchool = holidayName || !dayEvents.saharSchool || dayEvents.saharSchool.length === 0 || dayEvents.saharSchool.every(e => isHolidayTitle(e.title));
+    if (isSaharNoSchool) {
       panel += renderNoSchoolBox('סהר', mainW - colW / 2, panelDate);
     } else {
       const list = dayEvents.saharSchool.slice(0, 7);
@@ -657,7 +672,8 @@ function generateSvg({ date, events, tasks, weather }) {
     const solHeader = solTimeRange ? `סול ${solTimeRange}` : 'סול';
     panel += `<text x="${colW * 1.5}" y="48" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${solHeader}\u202C</text>`;
     panel += `<line x1="${colW}" y1="30" x2="${colW}" y2="224" stroke="black" stroke-dasharray="2,2" stroke-width="1" />`;
-    if (!dayEvents.solSchool || dayEvents.solSchool.length === 0) {
+    const isSolNoSchool = holidayName || !dayEvents.solSchool || dayEvents.solSchool.length === 0 || dayEvents.solSchool.every(e => isHolidayTitle(e.title));
+    if (isSolNoSchool) {
       panel += renderNoSchoolBox('סול', colW * 1.5, panelDate);
     } else {
       const list = dayEvents.solSchool.slice(0, 7);

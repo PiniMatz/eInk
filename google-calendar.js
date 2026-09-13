@@ -53,7 +53,7 @@ function getJerusalemIsoString(dateStr, timeStr) {
 /**
  * Creates an event in Google Calendar (e.g. hugim.kid@gmail.com).
  */
-async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid, title, date, time, durationMinutes = 45, description = '' }) {
+async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid, title, date, time, durationMinutes = 45, description = '', recurrence = null }) {
   const auth = getAuthClient();
   await auth.authorize();
   const calendar = google.calendar({ version: 'v3', auth });
@@ -83,7 +83,8 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
     summary: fullTitle,
     description: description || `Kid Schedule Item for ${kid || 'Family'}`,
     start: startDateTime,
-    end: endDateTime
+    end: endDateTime,
+    ...(recurrence ? { recurrence } : {})
   };
 
   // Idempotency check: query existing events on the target date to avoid inserting duplicates
@@ -103,6 +104,15 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
       return Math.abs(evMs - targetMs) < 60000;
     });
     if (duplicate) {
+      if (recurrence) {
+        console.log(`Updating existing event "${fullTitle}" (ID: ${duplicate.id}) with recurrence...`);
+        const updated = await calendar.events.patch({
+          calendarId,
+          eventId: duplicate.id,
+          requestBody: { recurrence }
+        });
+        return updated.data;
+      }
       console.log(`Skipping existing Google Calendar event "${fullTitle}" (ID: ${duplicate.id})`);
       return duplicate;
     }

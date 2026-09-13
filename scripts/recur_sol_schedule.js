@@ -39,7 +39,8 @@ const SOL_WEEKLY_TEMPLATE = {
     { title: 'חינוך גופני', time: '10:45', durationMinutes: 30 },
     { title: 'מפתח לרוח', time: '11:15', durationMinutes: 45 },
     { title: 'לשון', time: '12:15', durationMinutes: 45 },
-    { title: 'לימודי העשרה', time: '13:00', durationMinutes: 45 }
+    { title: 'לימודי העשרה', time: '13:00', durationMinutes: 45 },
+    { title: 'חזרה במקהלה', time: '17:45', durationMinutes: 60 }
   ],
   // Thursday (4)
   4: [
