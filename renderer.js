@@ -698,7 +698,7 @@ function generateSvg({ date, events, tasks, weather }) {
       let currentY = 68;
       const list = dayEvents.afternoonActivities.slice(0, 5);
 
-      function splitTextIntoLines(text, maxChars = 16) {
+      function splitTextIntoLines(text, maxChars = 20) {
         if (!text) return [];
         if (text.length <= maxChars) return [text];
         const words = text.split(' ');
@@ -716,7 +716,7 @@ function generateSvg({ date, events, tasks, weather }) {
         if (cur) lines.push(cur);
         if (lines.length > 2) {
           let line2 = lines.slice(1).join(' ');
-          if (line2.length > maxChars) line2 = line2.substring(0, maxChars - 2) + '..';
+          if (line2.length > maxChars + 2) line2 = line2.substring(0, maxChars) + '..';
           return [lines[0], line2];
         }
         return lines;
@@ -724,7 +724,10 @@ function generateSvg({ date, events, tasks, weather }) {
 
       list.forEach((item) => {
         if (currentY > 200) return;
-        const cleanTitle = stripNikud(item.title);
+        let cleanTitle = stripNikud(item.title);
+        // Clean any pre-existing leading [Badge] from title so it isn't duplicated
+        cleanTitle = cleanTitle.replace(/^\[.*?\]\s*/, '').trim();
+
         const kidBadge = item.kid ? `[${item.kid}] ` : '';
         const fullPrefix = `${item.time} ${kidBadge}`;
         const combined = `${fullPrefix}${cleanTitle}`;
@@ -733,7 +736,7 @@ function generateSvg({ date, events, tasks, weather }) {
           panel += `<text x="${colW - 10}" y="${currentY}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${combined}\u202C</text>`;
           currentY += 26;
         } else {
-          const titleLines = splitTextIntoLines(cleanTitle, 16);
+          const titleLines = splitTextIntoLines(cleanTitle, 20);
           const l1 = `${fullPrefix}${titleLines[0] || ''}`;
           const l2 = titleLines[1] || '';
 
