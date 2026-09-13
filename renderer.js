@@ -247,6 +247,7 @@ function parseKidEvents(events, tasks, reqDateStr) {
     }
     const timeInMinutes = hour * 60 + minute;
 
+    const titleLower = cleanTitle.toLowerCase();
     const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה') || cleanTitle.includes('חזרה') || cleanTitle.includes('קט-סל') || cleanTitle.includes('אתלטיקה');
     
     const kidNameResolved = kidName || (titleLower.includes('סול') ? 'סול' : (titleLower.includes('סהר') ? 'סהר' : ''));
