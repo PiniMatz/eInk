@@ -237,6 +237,17 @@ function parseKidEvents(events, tasks, reqDateStr) {
     }
     cleanTitle = cleanTitle.replace(/[,:\s]+$/, '').trim();
 
+    // Strip a trailing author signature some synced calendar events carry
+    // (e.g. "...ים פיני מצנר" where author === "פיני"). Only strips when the
+    // author's name appears near the very end of the title, to avoid
+    // accidentally truncating legitimate text that happens to contain it.
+    if (author) {
+      const idx = cleanTitle.lastIndexOf(author);
+      if (idx !== -1 && idx >= cleanTitle.length - (author.length + 12)) {
+        cleanTitle = cleanTitle.slice(0, idx).replace(/[,:\-\s]+$/, '').trim();
+      }
+    }
+
     let timeStr = item.time || '';
     let hour = 8;
     let minute = 0;
