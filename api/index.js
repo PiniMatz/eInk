@@ -25,6 +25,64 @@ app.get('/', (req, res) => {
 });
 
 // Diagnostic API: Check font files and environment
+// TEMPORARY debug endpoint - inspects raw ICS feed entries near a given date.
+// Safe to remove once the sync investigation is done.
+app.get('/api/debug-ical', async (req, res) => {
+  try {
+    const ical = require('node-ical');
+    const calendars = await db.getCalendars();
+    const targetDate = req.query.date || '2026-09-14';
+    const out = [];
+
+    for (const cal of calendars) {
+      const bustUrl = cal.url.includes('?') ? `${cal.url}&_nocache=${Date.now()}` : `${cal.url}?_nocache=${Date.now()}`;
+      const webEvents = await ical.async.fromURL(bustUrl);
+      for (const k in webEvents) {
+        if (!webEvents.hasOwnProperty(k)) continue;
+        const ev = webEvents[k];
+        if (ev.type !== 'VEVENT') continue;
+
+        const entry = {
+          key: k,
+          uid: ev.uid,
+          summary: ev.summary,
+          start: ev.start ? ev.start.toISOString() : null,
+          end: ev.end ? ev.end.toISOString() : null,
+          hasRrule: !!ev.rrule,
+          recurrenceid: ev.recurrenceid ? ev.recurrenceid.toISOString() : null,
+          exdate: ev.exdate ? Object.keys(ev.exdate) : null,
+          method: ev.method || null
+        };
+
+        if (ev.rrule) {
+          try {
+            const rangeStart = new Date(targetDate + 'T00:00:00Z');
+            const rangeEnd = new Date(targetDate + 'T23:59:59Z');
+            const wideStart = new Date(rangeStart.getTime() - 24*60*60*1000);
+            const wideEnd = new Date(rangeEnd.getTime() + 24*60*60*1000);
+            const occs = ev.rrule.between(wideStart, wideEnd);
+            entry.occurrencesNearTarget = occs.map(d => d.toISOString());
+          } catch (e) {
+            entry.rruleError = e.message;
+          }
+        }
+
+        // Only include entries that are plausibly relevant: summary mentions קט, or start/occurrence near target date
+        const summaryMatch = (ev.summary || '').includes('קט') || (ev.summary || '').includes('כדורסל');
+        const dateMatch = (entry.start && entry.start.startsWith(targetDate)) ||
+          (entry.occurrencesNearTarget && entry.occurrencesNearTarget.some(d => d.startsWith(targetDate)));
+        if (summaryMatch || dateMatch) {
+          out.push(entry);
+        }
+      }
+    }
+
+    res.json({ targetDate, count: out.length, entries: out });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 app.get('/api/diagnose', async (req, res) => {
   try {
     const cwd = process.cwd();
