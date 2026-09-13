@@ -107,6 +107,19 @@ const db = {
     }
     return result;
   },
+  // TEMPORARY debug helper - deletes a tombstone doc so the occurrence can
+  // be recreated on next sync. Safe to remove after investigation.
+  async removeTombstone(uid) {
+    if (firestore) {
+      await firestore.collection('deleted_uids').doc(uid).delete();
+      return 'deleted from firestore';
+    } else {
+      const data = readLocal();
+      data.deleted_uids = (data.deleted_uids || []).filter(u => u !== uid);
+      writeLocal(data);
+      return 'deleted from local db.json';
+    }
+  },
   // --- EVENTS (Calendar) ---
   async getEvents(year, month) {
     const monthStr = String(month).padStart(2, '0');

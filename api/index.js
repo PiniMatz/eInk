@@ -89,6 +89,19 @@ app.get('/api/debug-ical', async (req, res) => {
   }
 });
 
+// TEMPORARY debug endpoint - removes a specific tombstone so the next sync
+// can recreate that occurrence from the calendar. Safe to remove afterward.
+app.post('/api/debug-untombstone', async (req, res) => {
+  try {
+    const uid = req.query.uid;
+    if (!uid) return res.status(400).json({ error: 'uid query param required' });
+    const result = await db.removeTombstone(uid);
+    res.json({ uid, result });
+  } catch (err) {
+    res.status(500).json({ error: err.message, stack: err.stack });
+  }
+});
+
 app.get('/api/diagnose', async (req, res) => {
   try {
     const cwd = process.cwd();
