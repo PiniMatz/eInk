@@ -13,7 +13,12 @@
       "config": {
         "includeFiles": [
           "fonts/**",
-          "db.json"
+          "db.json",
+          "renderer.js",
+          "holidays.js",
+          "weather.js",
+          "db.js",
+          "google-calendar.js"
         ]
       }
     }
