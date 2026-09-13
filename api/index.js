@@ -77,7 +77,13 @@ app.get('/api/debug-ical', async (req, res) => {
       }
     }
 
-    res.json({ targetDate, count: out.length, entries: out });
+    // Check whether specific occurrence UIDs are tombstoned (deleted_uids collection)
+    const checkUids = out
+      .filter(e => e.occurrencesNearTarget || (e.start && e.start.startsWith(targetDate)))
+      .map(e => `${e.uid}_${targetDate}`);
+    const tombstones = await db.checkTombstones(checkUids);
+
+    res.json({ targetDate, count: out.length, entries: out, checkUids, tombstones });
   } catch (err) {
     res.status(500).json({ error: err.message, stack: err.stack });
   }

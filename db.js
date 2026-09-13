@@ -87,6 +87,26 @@ function formatKidTitle(title, author) {
 // Unified Database API
 const db = {
   formatKidTitle,
+  // TEMPORARY debug helper - checks whether given occurrence UIDs are tombstoned
+  // in the deleted_uids collection. Safe to remove after investigation.
+  async checkTombstones(uids) {
+    const result = {};
+    if (firestore) {
+      for (const uid of uids) {
+        try {
+          const doc = await firestore.collection('deleted_uids').doc(uid).get();
+          result[uid] = doc.exists;
+        } catch (err) {
+          result[uid] = 'error: ' + err.message;
+        }
+      }
+    } else {
+      const data = readLocal();
+      const deleted = new Set(data.deleted_uids || []);
+      uids.forEach(uid => { result[uid] = deleted.has(uid); });
+    }
+    return result;
+  },
   // --- EVENTS (Calendar) ---
   async getEvents(year, month) {
     const monthStr = String(month).padStart(2, '0');
