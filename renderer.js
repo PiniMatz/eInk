@@ -236,6 +236,11 @@ function parseKidEvents(events, tasks, reqDateStr) {
       }
     }
     cleanTitle = cleanTitle.replace(/[,:\s]+$/, '').trim();
+    // Strip secondary author/kid prefixes (e.g. "סהר - " inside "[סהר] סהר - אימון קט-סל")
+    cleanTitle = cleanTitle.replace(/^(סהר|סול|פיני|נדיה|אבא|אמא)\s*[:-]\s*/, '').trim();
+    if (cleanTitle.includes('קט-סל') || cleanTitle.includes('כדורסל')) {
+      cleanTitle = cleanTitle.replace(/אימון\s+קט-סל/g, 'קט-סל').replace(/אימון\s+כדורסל/g, 'כדורסל').trim();
+    }
 
     // Strip a trailing author signature some synced calendar events carry
     // (e.g. "...ים פיני מצנר" where author === "פיני"). Only strips when the

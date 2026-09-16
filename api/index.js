@@ -369,12 +369,18 @@ app.get('/api/screen', async (req, res) => {
       });
     }
 
-    // 3. Fetch database data
-    const [events, tasks, weather] = await Promise.all([
+    const tomorrowReqDate = new Date(reqDate);
+    tomorrowReqDate.setDate(reqDate.getDate() + 1);
+    const tomorrowDateStr = `${tomorrowReqDate.getFullYear()}-${String(tomorrowReqDate.getMonth() + 1).padStart(2, '0')}-${String(tomorrowReqDate.getDate()).padStart(2, '0')}`;
+
+    // 3. Fetch database data (both today and tomorrow tasks)
+    const [events, tasksToday, tasksTomorrow, weather] = await Promise.all([
       eventsPromise,
       db.getTasks(dateStr),
+      db.getTasks(tomorrowDateStr),
       getWeather(req.query.location)
     ]);
+    const tasks = [...tasksToday, ...tasksTomorrow];
 
     const battery = req.query.battery || req.query.bat;
 
