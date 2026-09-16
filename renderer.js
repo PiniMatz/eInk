@@ -566,7 +566,7 @@ function splitTextIntoLines(text, maxChars = 18) {
   return lines;
 }
 
-function generateSvg({ date, events, tasks, weather }) {
+function generateSvg({ date, events, tasks, weather, battery }) {
   const todayDate = date;
   const tomorrowDate = new Date(todayDate);
   tomorrowDate.setDate(todayDate.getDate() + 1);
@@ -596,7 +596,7 @@ function generateSvg({ date, events, tasks, weather }) {
   let svg = `<svg width="800" height="480" viewBox="0 0 800 480" xmlns="http://www.w3.org/2000/svg" style="background-color: white; direction: rtl;">`;
   svg += `<style>
     .bold { font-family: 'Rubik', 'Heebo', sans-serif; font-weight: 700; }
-    .regular { font-family: 'Rubik', 'Heebo', sans-serif; font-weight: 400; }
+    .regular { font-family: 'Rubik', 'Heebo', sans-serif; font-weight: 600; }
     .white-text { fill: #ffffff; }
   </style>`;
 
@@ -622,13 +622,13 @@ function generateSvg({ date, events, tasks, weather }) {
     <text x="130" y="125" class="bold" font-size="13" text-anchor="middle" fill="black">\u202B${wCity}: ${wDesc}\u202C</text>
     <text x="130" y="145" class="regular" font-size="11.5" text-anchor="middle" fill="black">\u202Bטווח: ${wMin}° עד ${wMax}°\u202C</text>
 
-    <!-- 4-Day Mini Forecast Bars -->
+    <!-- WEATHER LINE GRAPH -->
     <line x1="25" y1="158" x2="235" y2="158" stroke="black" stroke-width="1" />
-    <text x="130" y="176" class="bold" font-size="11.5" text-anchor="middle" fill="black">תחזית לימים הקרובים</text>
+    <text x="130" y="176" class="bold" font-size="11.5" text-anchor="middle" fill="black">מגמת טמפרטורה יומית</text>
   `;
 
-  // Build 4-Day mini bars
-  const forecastItems = [];
+  // Build 4-Day mini line graph
+  const forecastData = [];
   const forecastStartIdx = (weather && Array.isArray(weather.forecast) && weather.forecast.length >= 5) ? 1 : 0;
   if (weather && Array.isArray(weather.forecast) && weather.forecast.length > forecastStartIdx) {
     for (let i = 0; i < 4; i++) {
@@ -636,32 +636,48 @@ function generateSvg({ date, events, tasks, weather }) {
       fDate.setDate(todayDate.getDate() + i);
       const dayLabel = (i === 0) ? 'היום' : (i === 1) ? 'מחר' : WEEKDAYS_HE_FULL[fDate.getDay()];
       const item = weather.forecast[forecastStartIdx + i] || {};
-      forecastItems.push({
-        label: dayLabel,
-        tempMax: Math.round(item.tempMax || (wMax - i)),
-        tempMin: Math.round(item.tempMin || (wMin - i))
+      forecastData.push({
+        day: dayLabel,
+        temp: Math.round(item.tempMax || (wMax - i))
       });
     }
   } else {
-    forecastItems.push(
-      { label: 'היום', tempMax: wMax, tempMin: wMin },
-      { label: 'מחר', tempMax: wMax, tempMin: wMin },
-      { label: WEEKDAYS_HE_FULL[(todayDate.getDay() + 2) % 7], tempMax: wMax - 1, tempMin: wMin },
-      { label: WEEKDAYS_HE_FULL[(todayDate.getDay() + 3) % 7], tempMax: wMax - 2, tempMin: wMin - 1 }
+    forecastData.push(
+      { day: 'היום', temp: wMax },
+      { day: 'מחר', temp: wMax },
+      { day: WEEKDAYS_HE_FULL[(todayDate.getDay() + 2) % 7], temp: wMax - 1 },
+      { day: WEEKDAYS_HE_FULL[(todayDate.getDay() + 3) % 7], temp: wMax - 2 }
     );
   }
 
-  forecastItems.forEach((f, idx) => {
-    const fy = 200 + idx * 22;
-    const clampedMax = Math.max(18, Math.min(38, f.tempMax));
-    const barWidth = Math.round(30 + ((clampedMax - 18) / 20) * 50);
+  const allTemps = forecastData.map(d => d.temp);
+  const minT = Math.min(...allTemps) - 1;
+  const maxT = Math.max(...allTemps) + 1;
+  const deltaT = maxT - minT || 1;
 
-    svg += `
-      <text x="220" y="${fy}" class="regular" font-size="10.5" text-anchor="end" fill="black">${f.label}</text>
-      <rect x="75" y="${fy - 10}" width="${barWidth}" height="12" fill="black" rx="3" />
-      <text x="45" y="${fy}" class="bold" font-size="10.5" text-anchor="middle" fill="black">${f.tempMax}°</text>
-    `;
+  const graphPoints = forecastData.map((d, i) => {
+    const x = 214 - i * 56;
+    const y = Math.round(244 - ((d.temp - minT) / deltaT) * 38);
+    return { x, y, temp: d.temp, label: d.day };
   });
+
+  const polylinePts = graphPoints.map(p => `${p.x},${p.y}`).join(' ');
+
+  svg += `
+    <!-- Baseline guide -->
+    <line x1="36" y1="254" x2="224" y2="254" stroke="black" stroke-width="0.8" stroke-dasharray="2,2" />
+    
+    <!-- Polyline connecting points -->
+    <polyline points="${polylinePts}" fill="none" stroke="black" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Graph points, temperature text & day labels -->
+    ${graphPoints.map(p => `
+      <text x="${p.x}" y="${p.y - 7}" class="bold" font-size="11" text-anchor="middle" fill="black">${p.temp}°</text>
+      <circle cx="${p.x}" cy="${p.y}" r="3.5" fill="black" />
+      <line x1="${p.x}" y1="${p.y + 4}" x2="${p.x}" y2="254" stroke="black" stroke-width="0.8" stroke-dasharray="1.5,1.5" />
+      <text x="${p.x}" y="270" class="bold" font-size="10.5" text-anchor="middle" fill="black">${p.label}</text>
+    `).join('')}
+  `;
 
   // Upcoming Jewish Holiday Countdown Box
   const todayHoliday = getSchoolHoliday(todayDate);
@@ -695,20 +711,33 @@ function generateSvg({ date, events, tasks, weather }) {
     `;
   }
 
-  // System Footer (Clean status - NO battery voltage as explicitly requested)
+  // System Footer with Battery % and Wi-Fi status
   const syncHour = String(date.getHours()).padStart(2, '0');
   const syncMin = String(date.getMinutes()).padStart(2, '0');
+  const batteryLevel = (battery !== undefined && battery !== null && battery !== '') ? parseInt(battery, 10) : 100;
+  const fillWidth = Math.max(2, Math.min(17, Math.round((batteryLevel / 100) * 17)));
 
   svg += `
     <line x1="25" y1="384" x2="235" y2="384" stroke="black" stroke-width="1" />
     
-    <!-- Wi-Fi vector icon & status centered as a unit at x=130 -->
-    <g transform="translate(91, 408)">
-      <path d="M-10,-4 A14,14 0 0,1 10,-4" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
-      <path d="M-6,0 A8,8 0 0,1 6,0" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
-      <circle cx="0" cy="4" r="1.8" fill="black" />
+    <!-- Wi-Fi group -->
+    <g transform="translate(62, 408)">
+      <path d="M-9,-4 A13,13 0 0,1 9,-4" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+      <path d="M-5,0 A7,7 0 0,1 5,0" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
+      <circle cx="0" cy="3.5" r="1.6" fill="black" />
     </g>
-    <text x="109" y="412" class="bold" font-size="11" text-anchor="start" fill="black">\u202Bמחובר לרשת\u202C</text>
+    <text x="80" y="412" class="bold" font-size="10.5" text-anchor="start" fill="black">מחובר</text>
+
+    <!-- Center dot -->
+    <circle cx="130" cy="408" r="2" fill="black" />
+
+    <!-- Battery percentage indicator (NO voltage) -->
+    <g transform="translate(150, 402)">
+      <rect x="0" y="0" width="22" height="12" rx="2.5" fill="none" stroke="black" stroke-width="1.5" />
+      <rect x="22" y="3.5" width="2" height="5" rx="0.5" fill="black" />
+      <rect x="2.5" y="2.5" width="${fillWidth}" height="7" rx="1.5" fill="black" />
+    </g>
+    <text x="178" y="412" class="bold" font-size="10.5" text-anchor="start" fill="black">${batteryLevel}%</text>
     
     <text x="130" y="434" class="regular" font-size="10" text-anchor="middle" fill="black">\u202Bסנכרון: ${syncHour}:${syncMin} | רענון שעתי\u202C</text>
     <text x="130" y="450" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202B00:00 - 06:00 שינה עמוקה\u202C</text>
@@ -751,7 +780,7 @@ function generateSvg({ date, events, tasks, weather }) {
     // Sahar Column (Right: x: 620 to 790)
     const saharTimeRange = getSchoolTimeRange(dayEvents.saharSchool);
     const saharHeader = saharTimeRange ? `סהר ${saharTimeRange}` : 'סהר (08:00 - 13:30)';
-    panel += `<text x="705" y="${y + 48}" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${saharHeader}\u202C</text>`;
+    panel += `<text x="705" y="${y + 48}" class="bold" font-size="12" text-anchor="middle" fill="black">\u202B${saharHeader}\u202C</text>`;
 
     const isSaharNoSchool = holidayName || !dayEvents.saharSchool || dayEvents.saharSchool.length === 0 || dayEvents.saharSchool.every(e => isHolidayTitle(e.title));
     if (isSaharNoSchool) {
@@ -763,14 +792,14 @@ function generateSvg({ date, events, tasks, weather }) {
       list.forEach((item, idx) => {
         const iy = startY + idx * step;
         const timePrefix = item.time ? `${item.time}  ` : '';
-        panel += `<text x="780" y="${iy}" class="regular" font-size="10.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+        panel += `<text x="780" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
       });
     }
 
     // Sol Column (Center: x: 440 to 620)
     const solTimeRange = getSchoolTimeRange(dayEvents.solSchool);
     const solHeader = solTimeRange ? `סול ${solTimeRange}` : 'סול (08:15 - 13:00)';
-    panel += `<text x="530" y="${y + 48}" class="bold" font-size="11.5" text-anchor="middle" fill="black">\u202B${solHeader}\u202C</text>`;
+    panel += `<text x="530" y="${y + 48}" class="bold" font-size="12" text-anchor="middle" fill="black">\u202B${solHeader}\u202C</text>`;
 
     const isSolNoSchool = holidayName || !dayEvents.solSchool || dayEvents.solSchool.length === 0 || dayEvents.solSchool.every(e => isHolidayTitle(e.title));
     if (isSolNoSchool) {
@@ -782,7 +811,7 @@ function generateSvg({ date, events, tasks, weather }) {
       list.forEach((item, idx) => {
         const iy = startY + idx * step;
         const timePrefix = item.time ? `${item.time}  ` : '';
-        panel += `<text x="608" y="${iy}" class="regular" font-size="10.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+        panel += `<text x="608" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
       });
     }
 
@@ -920,7 +949,7 @@ function renderBmp(data) {
         const b = pixels[pixelIdx * 4 + 2];
         const a = pixels[pixelIdx * 4 + 3];
         
-        const val = (a < 128 || (r + g + b) / 3 > 127) ? 0 : 1;
+        const val = (a < 128 || (r + g + b) / 3 > 150) ? 0 : 1;
         currentByte |= (val << (7 - bitIdx));
       }
       bmpBuffer[destRowOffset + byteIdx] = currentByte;

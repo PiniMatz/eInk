@@ -376,6 +376,8 @@ app.get('/api/screen', async (req, res) => {
       getWeather(req.query.location)
     ]);
 
+    const battery = req.query.battery || req.query.bat;
+
     // 3. Render dashboard
     if (req.query.format === 'svg') {
       const { generateSvg } = require('../renderer');
@@ -384,7 +386,8 @@ app.get('/api/screen', async (req, res) => {
         date: reqDate,
         events,
         tasks,
-        weather
+        weather,
+        battery
       }));
       return;
     }
@@ -393,7 +396,8 @@ app.get('/api/screen', async (req, res) => {
       date: reqDate,
       events,
       tasks,
-      weather
+      weather,
+      battery
     });
 
     // 4. Send image headers and buffer
