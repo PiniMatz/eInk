@@ -89,6 +89,7 @@ The **eInk Dashboard** is a smart household calendar & schedule display system p
 
 | Commit | Description |
 | :--- | :--- |
+| `0d4d175` | **Fix choir event deduplication & restore tombstoned occurrences:** Normalized filler words (`חזרה`, `אימון`, `שיעור`) in `areTitlesSimilar` and cleared tombstoned UIDs for Sol's choir (`סול - מקהלה`) on Sundays and Wednesdays (17:45). |
 | `767882f` | **Fix afternoon activity 2-row line splitting & strip duplicate kid badge:** Increased `maxChars` per line to 20 and cleaned leading `[Badge]` from titles. |
 | `58fff16` | **Support 2-row layout for long afternoon activities text:** Added 2-line rendering support for long afternoon titles. |
 | `0cada63` | **Update vercel.json:** Included all required backend files (`renderer.js`, `holidays.js`, `weather.js`, `db.js`, `google-calendar.js`) in Vercel Serverless Function bundle. |
