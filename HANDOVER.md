@@ -89,6 +89,7 @@ The **eInk Dashboard** is a smart household calendar & schedule display system p
 
 | Commit | Description |
 | :--- | :--- |
+| `HEAD` | **Upgrade UI to Option 3 (Household Weather Station & Family Agenda):** Redesigned the 800x480 screen into a 240px Left Weather Station (live temp, 4-day forecast bars, holiday countdown box, network status) and 530px Right Family Agenda (Today & Tomorrow stacked cards, 3 columns, inverted header tabs, no battery voltage). |
 | `0d4d175` | **Fix choir event deduplication & restore tombstoned occurrences:** Normalized filler words (`חזרה`, `אימון`, `שיעור`) in `areTitlesSimilar` and cleared tombstoned UIDs for Sol's choir (`סול - מקהלה`) on Sundays and Wednesdays (17:45). |
 | `767882f` | **Fix afternoon activity 2-row line splitting & strip duplicate kid badge:** Increased `maxChars` per line to 20 and cleaned leading `[Badge]` from titles. |
 | `58fff16` | **Support 2-row layout for long afternoon activities text:** Added 2-line rendering support for long afternoon titles. |

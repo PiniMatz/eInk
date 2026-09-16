@@ -97,4 +97,30 @@ function getSchoolHoliday(dateInput) {
   }
 }
 
-module.exports = { getJewishHolidays, getSchoolHoliday };
+/**
+ * Returns the next upcoming school holiday within maxDays from the given date.
+ */
+function getNextUpcomingHoliday(startDate, maxDays = 30) {
+  try {
+    const base = new Date(startDate);
+    for (let i = 1; i <= maxDays; i++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const hol = getSchoolHoliday(d);
+      if (hol) {
+        return {
+          name: hol,
+          date: d,
+          daysAway: i
+        };
+      }
+    }
+    return null;
+  } catch (err) {
+    console.error('getNextUpcomingHoliday error:', err);
+    return null;
+  }
+}
+
+module.exports = { getJewishHolidays, getSchoolHoliday, getNextUpcomingHoliday };
+
