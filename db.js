@@ -976,9 +976,15 @@ function getEventOrganizerName(ev, defaultName) {
 
 function areTitlesSimilar(t1, t2) {
   if (!t1 || !t2) return false;
-  const clean = (s) => s.toLowerCase().replace(/[\s\-_]/g, '');
-  const c1 = clean(t1);
-  const c2 = clean(t2);
+  const normalize = (s) => s.toLowerCase()
+    .replace(/^\[.*?\]\s*/, '')
+    .replace(/^(סול|סהר|אמא|אבא|פיני)\s*[:-]\s*/, '')
+    .replace(/\b(חזרה|אימון|שיעור|חוג)\b/g, '')
+    .replace(/[^\u0590-\u05FFa-z0-9]/g, '')
+    .trim();
+  const c1 = normalize(t1);
+  const c2 = normalize(t2);
+  if (!c1 || !c2) return false;
   return c1 === c2 || c1.includes(c2) || c2.includes(c1);
 }
 
