@@ -702,16 +702,16 @@ function generateSvg({ date, events, tasks, weather }) {
   svg += `
     <line x1="25" y1="384" x2="235" y2="384" stroke="black" stroke-width="1" />
     
-    <!-- Wi-Fi vector icon -->
-    <g transform="translate(42, 408)">
+    <!-- Wi-Fi vector icon & status centered as a unit at x=130 -->
+    <g transform="translate(91, 408)">
       <path d="M-10,-4 A14,14 0 0,1 10,-4" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
       <path d="M-6,0 A8,8 0 0,1 6,0" fill="none" stroke="black" stroke-width="1.8" stroke-linecap="round" />
       <circle cx="0" cy="4" r="1.8" fill="black" />
     </g>
-    <text x="65" y="412" class="bold" font-size="11" text-anchor="start" fill="black">מחובר לרשת</text>
+    <text x="109" y="412" class="bold" font-size="11" text-anchor="start" fill="black">\u202Bמחובר לרשת\u202C</text>
     
-    <text x="130" y="434" class="regular" font-size="10" text-anchor="middle" fill="black">סנכרון: ${syncHour}:${syncMin} | רענון שעתי</text>
-    <text x="130" y="450" class="regular" font-size="9.5" text-anchor="middle" fill="black">00:00 - 06:00 שינה עמוקה</text>
+    <text x="130" y="434" class="regular" font-size="10" text-anchor="middle" fill="black">\u202Bסנכרון: ${syncHour}:${syncMin} | רענון שעתי\u202C</text>
+    <text x="130" y="450" class="regular" font-size="9.5" text-anchor="middle" fill="black">\u202B00:00 - 06:00 שינה עמוקה\u202C</text>
   `;
 
   // ==========================================
