@@ -76,8 +76,20 @@ function formatKidTitle(title, author) {
   else if (sanitized.includes('פיני')) kidName = 'פיני';
   else if (sanitized.includes('נדיה')) kidName = 'נדיה';
 
-  if (kidName && (kidName === 'סהר' || kidName === 'סול' || kidName === 'פיני' || kidName === 'נדיה')) {
-    const cleanTitle = sanitized.replace(/^(סהר|סול|פיני|נדיה)\s*[-:]\s*/, '').replace(/[,:\s]+$/, '').trim();
+  // If no kid name, check known activities or assign to both
+  if (!kidName || kidName === 'חוגים' || kidName === 'אבא' || kidName === 'אמא' || kidName === 'פיני' || kidName === 'נדיה') {
+    if (sanitized.includes('קט-סל') || sanitized.includes('קט סל') || sanitized.includes('כדורסל') || sanitized.includes('אתלטיקה')) {
+      kidName = 'סהר';
+    } else if (sanitized.includes('מקהלה')) {
+      kidName = 'סול';
+    } else {
+      // Activity with no kid name and not a known issue -> both kids!
+      kidName = 'סהר וסול';
+    }
+  }
+
+  if (kidName) {
+    const cleanTitle = sanitized.replace(/^(סהר|סול|פיני|נדיה|אבא|אמא)\s*[-:]\s*/, '').replace(/[,:\s]+$/, '').trim();
     return `[${kidName}] ${cleanTitle}`;
   }
 
@@ -477,61 +489,110 @@ const db = {
       try {
         console.log(`Syncing calendar for ${cal.name}: ${cal.url}`);
         
-        // 2. Fetch and parse iCal with cache-busting
-        const bustUrl = cal.url.includes('?') ? `${cal.url}&_nocache=${Date.now()}` : `${cal.url}?_nocache=${Date.now()}`;
-        const webEvents = await ical.async.fromURL(bustUrl, {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-        
-        for (const k in webEvents) {
-          if (!webEvents.hasOwnProperty(k)) continue;
-          const ev = webEvents[k];
-          if (ev.type !== 'VEVENT') continue;
+        let allOccurrences = [];
+        const isGoogleAccount = cal.url.includes('hugim.kid') || cal.name === 'אבא';
+        if (isGoogleAccount) {
+          try {
+            const googleCalendar = require('./google-calendar');
+            const gcalEvents = await googleCalendar.listGoogleCalendarEvents({
+              calendarId: 'hugim.kid@gmail.com',
+              timeMin: rangeStart.toISOString(),
+              timeMax: rangeEnd.toISOString()
+            });
+            for (const ge of gcalEvents) {
+              if (ge.attendees && ge.attendees.length > 0) {
+                const selfAtt = ge.attendees.find(a => a.email === 'hugim.kid@gmail.com' || a.self);
+                if (selfAtt && selfAtt.responseStatus !== 'accepted') {
+                  await googleCalendar.updateGoogleCalendarEvent({
+                    calendarId: 'hugim.kid@gmail.com',
+                    eventId: ge.id
+                  }).catch(() => {});
+                }
+              }
 
-          // Filter out yearly birthday events for "אבא"
-          const isYearly = ev.rrule && (
-            ev.rrule.options.freq === 0 || 
-            ev.rrule.options.freq === 'YEARLY' || 
-            (typeof ev.rrule.toString === 'function' && ev.rrule.toString().includes('FREQ=YEARLY'))
-          );
-          const startsWithBirthday = ev.summary && (
-            ev.summary.trim().startsWith('יומולדת') || 
-            ev.summary.trim().startsWith('יום הולדת')
-          );
-          if (cal.name === 'אבא' && isYearly && startsWithBirthday) {
-            continue;
+              const isAllDay = !ge.start?.dateTime;
+              const startD = new Date(ge.start?.dateTime || ge.start?.date);
+              const endD = new Date(ge.end?.dateTime || ge.end?.date || startD);
+              allOccurrences.push({
+                summary: ge.summary,
+                start: startD,
+                end: endD,
+                datetype: isAllDay ? 'date' : undefined,
+                organizer: ge.organizer,
+                creator: ge.creator,
+                uid: ge.id
+              });
+            }
+          } catch (gcalErr) {
+            console.error('Direct GCal fetch failed, falling back to ical:', gcalErr.message);
           }
+        }
 
-          // Collect occurrences
-          const occurrences = [];
-          if (ev.rrule) {
-            try {
-              const dates = ev.rrule.between(rangeStart, rangeEnd);
-              dates.forEach(d => {
-                occurrences.push({
+        if (allOccurrences.length === 0) {
+          // 2. Fetch and parse iCal with cache-busting
+          const bustUrl = cal.url.includes('?') ? `${cal.url}&_nocache=${Date.now()}` : `${cal.url}?_nocache=${Date.now()}`;
+          const webEvents = await ical.async.fromURL(bustUrl, {
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          });
+          
+          for (const k in webEvents) {
+            if (!webEvents.hasOwnProperty(k)) continue;
+            const ev = webEvents[k];
+            if (ev.type !== 'VEVENT') continue;
+
+            // Filter out yearly birthday events for "אבא"
+            const isYearly = ev.rrule && (
+              ev.rrule.options.freq === 0 || 
+              ev.rrule.options.freq === 'YEARLY' || 
+              (typeof ev.rrule.toString === 'function' && ev.rrule.toString().includes('FREQ=YEARLY'))
+            );
+            const startsWithBirthday = ev.summary && (
+              ev.summary.trim().startsWith('יומולדת') || 
+              ev.summary.trim().startsWith('יום הולדת')
+            );
+            if (cal.name === 'אבא' && isYearly && startsWithBirthday) {
+              continue;
+            }
+
+            if (ev.rrule) {
+              try {
+                const dates = ev.rrule.between(rangeStart, rangeEnd);
+                dates.forEach(d => {
+                  allOccurrences.push({
+                    summary: ev.summary,
+                    start: d,
+                    end: ev.end ? new Date(d.getTime() + (ev.end.getTime() - ev.start.getTime())) : d,
+                    datetype: ev.datetype,
+                    organizer: ev.organizer,
+                    creator: ev.creator,
+                    uid: ev.uid
+                  });
+                });
+              } catch (rruleErr) {
+                console.error('Failed expanding rrule:', rruleErr.message);
+              }
+            } else {
+              if (ev.start >= rangeStart && ev.start <= rangeEnd) {
+                allOccurrences.push({
                   summary: ev.summary,
-                  start: d,
-                  end: ev.end ? new Date(d.getTime() + (ev.end.getTime() - ev.start.getTime())) : d,
+                  start: ev.start,
+                  end: ev.end || ev.start,
                   datetype: ev.datetype,
                   organizer: ev.organizer,
-                  creator: ev.creator
+                  creator: ev.creator,
+                  uid: ev.uid
                 });
-              });
-            } catch (rruleErr) {
-              console.error('Failed expanding rrule:', rruleErr.message);
-            }
-          } else {
-            if (ev.start >= rangeStart && ev.start <= rangeEnd) {
-              occurrences.push(ev);
+              }
             }
           }
+        }
 
-          // Process occurrences
-          for (const occ of occurrences) {
+        // Process occurrences
+        for (const occ of allOccurrences) {
             const occStart = occ.start;
             let dateStr;
             if (occ.datetype === 'date') {
@@ -550,7 +611,7 @@ const db = {
             }
 
             // Build unique occurrence ID and check if tombstoned
-            const occUid = ev.uid ? `${ev.uid}_${dateStr}` : `${occ.summary || 'event'}_${dateStr}_${occStart.getTime()}_${cal.id}`;
+            const occUid = occ.uid ? `${occ.uid}_${dateStr}` : `${occ.summary || 'event'}_${dateStr}_${occStart.getTime()}_${cal.id}`;
             if (deletedUids.has(occUid)) {
               console.log(`Skipping deleted event occurrence: ${occUid}`);
               continue;
@@ -769,7 +830,6 @@ const db = {
               }
             }
           }
-        }
       } catch (err) {
         console.error(`Failed to sync calendar ${cal.name}:`, err.message);
       }

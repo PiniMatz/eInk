@@ -89,7 +89,8 @@ The **eInk Dashboard** is a smart household calendar & schedule display system p
 
 | Commit | Description |
 | :--- | :--- |
-| `HEAD` | **Fix Kat-Sal afternoon activity sync and fetch tomorrow tasks in screen endpoint:** Restored tombstoned recurrence UID for Sahar's Kat-Sal on Thursday 17.9 (`4u8gqhhvtveik95bo7lrifid0o@google.com_2026-09-17`); updated `/api/screen` to fetch daily tasks for both today and tomorrow (`db.getTasks(dateStr)` + `db.getTasks(tomorrowDateStr)`); cleaned secondary author prefixes and normalized `אימון קט-סל` to `קט-סל`. |
+| `HEAD` | **Auto-accept invites, reconcile holiday schedule until Oct 4, assign untagged activities to both kids:** Auto-accepted all pending invitations on `hugim.kid@gmail.com`; direct GCal API integration with `singleEvents: true` to prevent recurring RRULE ghost events; assigned unknown untagged activities (e.g. `סיור בפארק הצפרות`) to both kids (`[סהר וסול]`); isolated holiday markers from afternoon box so holiday banners remain purely in school panels; untombstoned all active event instances. |
+| `6f9c9b1` | **Fix Kat-Sal afternoon activity sync and fetch tomorrow tasks in screen endpoint:** Restored tombstoned recurrence UID for Sahar's Kat-Sal on Thursday 17.9 (`4u8gqhhvtveik95bo7lrifid0o@google.com_2026-09-17`); updated `/api/screen` to fetch daily tasks for both today and tomorrow (`db.getTasks(dateStr)` + `db.getTasks(tomorrowDateStr)`); cleaned secondary author prefixes and normalized `אימון קט-סל` to `קט-סל`. |
 | `0fd0f0c` | **Weather line graph, battery percentage, and font legibility enhancement:** Replaced horizontal forecast bars with a 4-day temperature line graph (polyline with dots, temperatures, and dashed guides); replaced voltage with battery percentage level indicator (`XX%`); boosted Hebrew font readability using `font-weight: 600`, 11.5pt font size, and raised 1-bit BMP threshold to 150. |
 | `fe25cb7` | **Upgrade UI to Option 3 (Household Weather Station & Family Agenda):** Redesigned the 800x480 screen into a 240px Left Weather Station (live temp, 4-day forecast bars, holiday countdown box, network status) and 530px Right Family Agenda (Today & Tomorrow stacked cards, 3 columns, inverted header tabs, no battery voltage). |
 | `0d4d175` | **Fix choir event deduplication & restore tombstoned occurrences:** Normalized filler words (`חזרה`, `אימון`, `שיעור`) in `areTitlesSimilar` and cleared tombstoned UIDs for Sol's choir (`סול - מקהלה`) on Sundays and Wednesdays (17:45). |
@@ -98,6 +99,16 @@ The **eInk Dashboard** is a smart household calendar & schedule display system p
 | `0cada63` | **Update vercel.json:** Included all required backend files (`renderer.js`, `holidays.js`, `weather.js`, `db.js`, `google-calendar.js`) in Vercel Serverless Function bundle. |
 | `d1b998f` | **Fix ReferenceError:** Resolved `titleLower` scope issue in `renderer.js`. |
 | `a4f735d` | **Sahar threshold & Kat-sal update:** Set Sahar afternoon cutoff to 13:30, updated Kat-sal event titles, fixed holiday banner text centering. |
+
+---
+
+## 6. Multi-Kid & Unassigned Activity Rules
+- When an event does not have an explicit kid assigned:
+  - If title contains `קט-סל`, `כדורסל`, `אתלטיקה` -> mapped to **סהר** (`[סהר]`).
+  - If title contains `מקהלה` -> mapped to **סול** (`[סול]`).
+  - Otherwise, mapped to **both kids** (`[סהר וסול]`), ensuring family/shared outings (e.g. `סיור בפארק הצפרות`) appear for both kids without omission.
+- Invitations received by `hugim.kid@gmail.com` are auto-accepted during `syncCalendars`.
+
 
 ---
 

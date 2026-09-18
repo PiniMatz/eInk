@@ -264,20 +264,38 @@ function parseKidEvents(events, tasks, reqDateStr) {
     const timeInMinutes = hour * 60 + minute;
 
     const titleLower = cleanTitle.toLowerCase();
-    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה') || cleanTitle.includes('חזרה') || cleanTitle.includes('קט-סל') || cleanTitle.includes('אתלטיקה');
+    const isAfternoonKeyword = cleanTitle.includes('חוג') || cleanTitle.includes('אימון') || cleanTitle.includes('נגינה') || cleanTitle.includes('ג\'ודו') || cleanTitle.includes('קרמיקה') || cleanTitle.includes('שחייה') || cleanTitle.includes('כדורסל') || cleanTitle.includes('מחול') || cleanTitle.includes('מקהלה') || cleanTitle.includes('חזרה') || cleanTitle.includes('קט-סל') || cleanTitle.includes('אתלטיקה') || cleanTitle.includes('סיור') || cleanTitle.includes('טיול') || cleanTitle.includes('ביקור') || cleanTitle.includes('הצגה') || cleanTitle.includes('סרט') || cleanTitle.includes('סדנה');
     
-    const kidNameResolved = kidName || (titleLower.includes('סול') ? 'סול' : (titleLower.includes('סהר') ? 'סהר' : ''));
+    let kidNameResolved = kidName;
+    if (!kidNameResolved || kidNameResolved === 'חוגים' || kidNameResolved === 'אבא' || kidNameResolved === 'אמא' || kidNameResolved === 'פיני' || kidNameResolved === 'נדיה') {
+      if (titleLower.includes('קט-סל') || titleLower.includes('קט סל') || titleLower.includes('כדורסל') || titleLower.includes('אתלטיקה') || titleLower.includes('סהר')) {
+        kidNameResolved = 'סהר';
+      } else if (titleLower.includes('מקהלה') || titleLower.includes('סול')) {
+        kidNameResolved = 'סול';
+      } else {
+        kidNameResolved = 'סהר וסול';
+      }
+    }
+
+    function isHolidayEvent(title) {
+      if (!title) return false;
+      const clean = title.toLowerCase();
+      return clean.includes('ראש השנה') || clean.includes('כיפור') || clean.includes('סוכות') || clean.includes('פסח') || clean.includes('חנוכה') || clean.includes('פורים') || clean.includes('אין לימודים');
+    }
+
     const panelDateObj = new Date(reqDateStr + 'T12:00:00');
     const dayOfWeek = panelDateObj.getDay();
+    const isHoliday = !!getSchoolHoliday(panelDateObj) || isHolidayEvent(cleanTitle);
+    const isHolidayOrWeekend = (isHoliday || dayOfWeek === 6) && (timeStr !== '');
     
-    // School ends at 13:30 (Sun-Thu) or 12:00 (Fri). Anything at or after cutoff is Afternoon.
+    // School ends at 13:30 (Sun-Thu) or 12:00 (Fri). Anything at or after cutoff or on holiday/weekend is Afternoon.
     const afternoonCutoff = (dayOfWeek === 5) ? 720 : 810; // 12:00 on Fri, 13:30 on Sun-Thu
-    const isAfternoon = isAfternoonKeyword || timeInMinutes >= afternoonCutoff;
+    const isAfternoon = !isHolidayEvent(cleanTitle) && (isHolidayOrWeekend || isAfternoonKeyword || timeInMinutes >= afternoonCutoff);
 
     const formattedItem = {
       title: cleanTitle,
       time: timeStr,
-      kid: kidNameResolved || (author ? author : ''),
+      kid: kidNameResolved,
       rawItem: item
     };
 
@@ -286,8 +304,12 @@ function parseKidEvents(events, tasks, reqDateStr) {
     } else {
       if (formattedItem.kid === 'סול') {
         solSchool.push(formattedItem);
-      } else {
+      } else if (formattedItem.kid === 'סהר') {
         saharSchool.push(formattedItem);
+      } else {
+        // Both kids!
+        solSchool.push({ ...formattedItem, kid: 'סול' });
+        saharSchool.push({ ...formattedItem, kid: 'סהר' });
       }
     }
   });
