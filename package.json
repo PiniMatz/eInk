@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "test": "node scripts/run_automated_tests.js",
-    "download-fonts": "node scripts/download-fonts.js"
+    "download-fonts": "node scripts/download-fonts.js",
+    "sync:canva": "node scripts/sync_sol_school_calendar.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",

@@ -89,7 +89,8 @@ The **eInk Dashboard** is a smart household calendar & schedule display system p
 
 | Commit | Description |
 | :--- | :--- |
-| `HEAD` | **Auto-accept invites, reconcile holiday schedule until Oct 4, assign untagged activities to both kids:** Auto-accepted all pending invitations on `hugim.kid@gmail.com`; direct GCal API integration with `singleEvents: true` to prevent recurring RRULE ghost events; assigned unknown untagged activities (e.g. `סיור בפארק הצפרות`) to both kids (`[סהר וסול]`); isolated holiday markers from afternoon box so holiday banners remain purely in school panels; untombstoned all active event instances. |
+| `HEAD` | **Sol Canva School Calendar Sync & Daily School Event Titles:** Automated weekly cron sync for Sol's Canva school calendar (`scripts/sync_sol_school_calendar.js`); filtered for general events or Grade 7 (`שכבת ז`) only, ignoring other grades; added events moving forward to Firestore & Google Calendar; enhanced `renderer.js` to display untimed daily school events as bold titles above the daily hourly breakdown with a subtle dashed separator line; set up GitHub Actions weekly cron workflow. |
+| `4106610` | **Auto-accept invites, reconcile holiday schedule until Oct 4, assign untagged activities to both kids:** Auto-accepted all pending invitations on `hugim.kid@gmail.com`; direct GCal API integration with `singleEvents: true` to prevent recurring RRULE ghost events; assigned unknown untagged activities (e.g. `סיור בפארק הצפרות`) to both kids (`[סהר וסול]`); isolated holiday markers from afternoon box so holiday banners remain purely in school panels; untombstoned all active event instances. |
 | `6f9c9b1` | **Fix Kat-Sal afternoon activity sync and fetch tomorrow tasks in screen endpoint:** Restored tombstoned recurrence UID for Sahar's Kat-Sal on Thursday 17.9 (`4u8gqhhvtveik95bo7lrifid0o@google.com_2026-09-17`); updated `/api/screen` to fetch daily tasks for both today and tomorrow (`db.getTasks(dateStr)` + `db.getTasks(tomorrowDateStr)`); cleaned secondary author prefixes and normalized `אימון קט-סל` to `קט-סל`. |
 | `0fd0f0c` | **Weather line graph, battery percentage, and font legibility enhancement:** Replaced horizontal forecast bars with a 4-day temperature line graph (polyline with dots, temperatures, and dashed guides); replaced voltage with battery percentage level indicator (`XX%`); boosted Hebrew font readability using `font-weight: 600`, 11.5pt font size, and raised 1-bit BMP threshold to 150. |
 | `fe25cb7` | **Upgrade UI to Option 3 (Household Weather Station & Family Agenda):** Redesigned the 800x480 screen into a 240px Left Weather Station (live temp, 4-day forecast bars, holiday countdown box, network status) and 530px Right Family Agenda (Today & Tomorrow stacked cards, 3 columns, inverted header tabs, no battery voltage). |
@@ -102,17 +103,34 @@ The **eInk Dashboard** is a smart household calendar & schedule display system p
 
 ---
 
-## 6. Multi-Kid & Unassigned Activity Rules
+## 6. Sol Canva School Calendar Ingestion & Daily Event Titles
+
+### Canva Presentation Extraction (`scripts/sync_sol_school_calendar.js`)
+- **Source Link:** Canva online design share (`DAHKmRqjYbc`).
+- **Headless Chrome Navigation:** Iterates through presentation pages (monthly calendar grids + exam tables).
+- **Filtering Rules:**
+  - **Moving Forward Only:** Events prior to current date (`date < today`) are discarded.
+  - **Age Group Filtering:**
+    - Events targeting other grades (`שכבת ח`, `שכבת ט`) are strictly ignored.
+    - Events targeting Sol's grade (`שכבת ז`) or general school events (no age group indicated, e.g. `טקס שבעה באוקטובר`, `יום השנה לרצח יצחק רבין`, `יום הבחירות לכנסת`, `יום גיבוש שכבת ז'`) are ingested.
+- **Display Above Daily Hours Breakdown:**
+  - Untimed daily events during school time (`time: ""`) render at the top of the school column in **bold** font (up to 20 characters), followed by a dashed line divider (`stroke-dasharray="2,2"`), directly above the hourly class schedule.
+- **Automation / Weekly Cron:**
+  - **GitHub Actions Workflow:** `.github/workflows/sync_school_calendar.yml` triggers every Sunday at 04:00 UTC (07:00 IST).
+  - **Manual Trigger:** `npm run sync:canva`.
+
+---
+
+## 7. Multi-Kid & Unassigned Activity Rules
 - When an event does not have an explicit kid assigned:
   - If title contains `קט-סל`, `כדורסל`, `אתלטיקה` -> mapped to **סהר** (`[סהר]`).
   - If title contains `מקהלה` -> mapped to **סול** (`[סול]`).
   - Otherwise, mapped to **both kids** (`[סהר וסול]`), ensuring family/shared outings (e.g. `סיור בפארק הצפרות`) appear for both kids without omission.
 - Invitations received by `hugim.kid@gmail.com` are auto-accepted during `syncCalendars`.
 
-
 ---
 
-## 6. Verification & Endpoints
+## 8. Verification & Endpoints
 
 - **Live Screen Image (BMP for eInk hardware):**  
   `GET https://e-ink-pini.vercel.app/api/screen`

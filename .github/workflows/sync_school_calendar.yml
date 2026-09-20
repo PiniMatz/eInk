@@ -1,0 +1,32 @@
+name: Sync Sol School Calendar from Canva
+
+on:
+  schedule:
+    # Run every Sunday at 04:00 UTC (07:00 IST)
+    - cron: '0 4 * * 0'
+  workflow_dispatch:
+
+jobs:
+  sync-canva:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Canva School Calendar Sync
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GOOGLE_CALENDAR_ID: ${{ secrets.GOOGLE_CALENDAR_ID || 'hugim.kid@gmail.com' }}
+        run: node scripts/sync_sol_school_calendar.js

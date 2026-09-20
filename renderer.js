@@ -818,8 +818,17 @@ function generateSvg({ date, events, tasks, weather, battery }) {
       const startY = y + 68;
       list.forEach((item, idx) => {
         const iy = startY + idx * step;
+        const isDailyTitle = !item.time;
+        const fontClass = isDailyTitle ? 'bold' : 'regular';
         const timePrefix = item.time ? `${item.time}  ` : '';
-        panel += `<text x="780" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+        const maxLen = item.time ? 14 : 20;
+        panel += `<text x="780" y="${iy}" class="${fontClass}" font-size="11.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), maxLen)}\u202C</text>`;
+        
+        // If this is a daily title and the next item has hourly time, draw subtle separator line
+        if (isDailyTitle && list[idx + 1] && list[idx + 1].time) {
+          const sepY = iy + Math.round(step / 2) - 1;
+          panel += `<line x1="630" y1="${sepY}" x2="780" y2="${sepY}" stroke="black" stroke-dasharray="2,2" stroke-width="0.8" />`;
+        }
       });
     }
 
@@ -837,8 +846,17 @@ function generateSvg({ date, events, tasks, weather, battery }) {
       const startY = y + 68;
       list.forEach((item, idx) => {
         const iy = startY + idx * step;
+        const isDailyTitle = !item.time;
+        const fontClass = isDailyTitle ? 'bold' : 'regular';
         const timePrefix = item.time ? `${item.time}  ` : '';
-        panel += `<text x="608" y="${iy}" class="regular" font-size="11.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), 14)}\u202C</text>`;
+        const maxLen = item.time ? 14 : 20;
+        panel += `<text x="608" y="${iy}" class="${fontClass}" font-size="11.5" text-anchor="end" fill="black">\u202B${timePrefix}${truncateText(stripNikud(item.title), maxLen)}\u202C</text>`;
+        
+        // If this is a daily title and the next item has hourly time, draw subtle separator line
+        if (isDailyTitle && list[idx + 1] && list[idx + 1].time) {
+          const sepY = iy + Math.round(step / 2) - 1;
+          panel += `<line x1="450" y1="${sepY}" x2="608" y2="${sepY}" stroke="black" stroke-dasharray="2,2" stroke-width="0.8" />`;
+        }
       });
     }
 
