@@ -10,7 +10,16 @@ function getAuthClient() {
   if (cachedAuth) return cachedAuth;
 
   let credentials;
-  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+  if (rawServiceAccount) {
+    try {
+      const parsed = typeof rawServiceAccount === 'string' ? JSON.parse(rawServiceAccount) : rawServiceAccount;
+      credentials = {
+        client_email: parsed.client_email,
+        private_key: (parsed.private_key || '').replace(/\\n/g, '\n'),
+      };
+    } catch (e) {}
+  } else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
     credentials = {
       client_email: process.env.FIREBASE_CLIENT_EMAIL,
       private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),

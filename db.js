@@ -7,7 +7,17 @@ const LOCAL_DB_PATH = path.join(__dirname, 'db.json');
 // Initialize Firebase Admin if environment variables are set
 let firestore = null;
 
-let hasEnvKeys = process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY;
+let rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
+let parsedServiceAccount = null;
+if (rawServiceAccount) {
+  try {
+    parsedServiceAccount = typeof rawServiceAccount === 'string' ? JSON.parse(rawServiceAccount) : rawServiceAccount;
+  } catch (e) {
+    console.error('Failed parsing FIREBASE_SERVICE_ACCOUNT JSON:', e.message);
+  }
+}
+
+let hasEnvKeys = (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) || !!parsedServiceAccount;
 let keyFile = path.join(__dirname, 'Firebase_Key.json');
 let hasKeyFile = fs.existsSync(keyFile);
 
@@ -18,7 +28,13 @@ if (hasEnvKeys || hasKeyFile) {
     // Prevent double initialization if serverless function hot-reloads
     if (admin.apps.length === 0) {
       let config;
-      if (hasEnvKeys) {
+      if (parsedServiceAccount) {
+        config = {
+          projectId: parsedServiceAccount.project_id,
+          clientEmail: parsedServiceAccount.client_email,
+          privateKey: (parsedServiceAccount.private_key || '').replace(/\\n/g, '\n'),
+        };
+      } else if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
         config = {
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
