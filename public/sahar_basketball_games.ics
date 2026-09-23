@@ -1,0 +1,164 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sahar Basketball League//IL
+CALSCALE:GREGORIAN
+METHOD:REQUEST
+X-WR-CALNAME:משחקי ליגה - סהר קט-סל
+X-WR-TIMEZONE:Asia/Jerusalem
+BEGIN:VEVENT
+UID:basketball-game-802337@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20261020T163000
+DTEND;TZID=Asia/Jerusalem:20261020T180000
+SUMMARY:[סהר] משחק קט-סל: נגד הפועל ל.ח. חוף השרון (בית)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 1\nיריבה: הפועל ל.ח. חוף השרון\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802341@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20261110T163000
+DTEND;TZID=Asia/Jerusalem:20261110T180000
+SUMMARY:[סהר] משחק קט-סל: נגד הפועל מ.ק. פרדסיה רימון (דרבי חוץ)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 2\nיריבה: הפועל מ.ק. פרדסיה רימון\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802344@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20261124T163000
+DTEND;TZID=Asia/Jerusalem:20261124T180000
+SUMMARY:[סהר] משחק קט-סל: נגד מ.ס. אבן יהודה אננס (בית)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 3\nיריבה: מ.ס. אבן יהודה אננס\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802348@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20261215T170000
+DTEND;TZID=Asia/Jerusalem:20261215T183000
+SUMMARY:[סהר] משחק קט-סל: נגד מכבי קדימה צורן (חוץ)
+LOCATION:רח' הדקלים, קדימה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 4\nיריבה: מכבי קדימה צורן\nמיקום: רח' הדקלים, קדימה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802357@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270112T163000
+DTEND;TZID=Asia/Jerusalem:20270112T180000
+SUMMARY:[סהר] משחק קט-סל: נגד הפועל לב השרון דרור (בית)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 6\nיריבה: הפועל לב השרון דרור\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802360@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270126T170000
+DTEND;TZID=Asia/Jerusalem:20270126T183000
+SUMMARY:[סהר] משחק קט-סל: נגד מ.ס. אבן יהודה תות (חוץ)
+LOCATION:אולם רלף קליין, רח' השרון, אבן יהודה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 7\nיריבה: מ.ס. אבן יהודה תות\nמיקום: אולם רלף קליין, רח' השרון, אבן יהודה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802365@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270212T163000
+DTEND;TZID=Asia/Jerusalem:20270212T180000
+SUMMARY:[סהר] משחק קט-סל: נגד הפועל ל.ח. חוף השרון (חוץ)
+LOCATION:מושב בית יהושע
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 8\nיריבה: הפועל ל.ח. חוף השרון\nמיקום: מושב בית יהושע\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802369@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270223T163000
+DTEND;TZID=Asia/Jerusalem:20270223T180000
+SUMMARY:[סהר] משחק קט-סל: נגד הפועל מ.ק. פרדסיה רימון (דרבי בית)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 9\nיריבה: הפועל מ.ק. פרדסיה רימון\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802372@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270309T170000
+DTEND;TZID=Asia/Jerusalem:20270309T183000
+SUMMARY:[סהר] משחק קט-סל: נגד מ.ס. אבן יהודה אננס (חוץ)
+LOCATION:אולם ביה"ס ראשונים, אבן יהודה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 10\nיריבה: מ.ס. אבן יהודה אננס\nמיקום: אולם ביה"ס ראשונים, אבן יהודה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802376@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270330T163000
+DTEND;TZID=Asia/Jerusalem:20270330T180000
+SUMMARY:[סהר] משחק קט-סל: נגד מכבי קדימה צורן (בית)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 11\nיריבה: מכבי קדימה צורן\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802385@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270521T163000
+DTEND;TZID=Asia/Jerusalem:20270521T180000
+SUMMARY:[סהר] משחק קט-סל: נגד הפועל לב השרון דרור (חוץ)
+LOCATION:לב הפרדס, מושב גאולים
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 13\nיריבה: הפועל לב השרון דרור\nמיקום: לב הפרדס, מושב גאולים\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+UID:basketball-game-802388@eink-dashboard
+DTSTAMP:20260923T070000Z
+DTSTART;TZID=Asia/Jerusalem:20270608T163000
+DTEND;TZID=Asia/Jerusalem:20270608T180000
+SUMMARY:[סהר] משחק קט-סל: נגד מ.ס. אבן יהודה תות (בית)
+LOCATION:ביה"ס תפוז, רח' רמב"ם, פרדסיה
+DESCRIPTION:משחק ליגה קט-סל ב מחזור 14\nיריבה: מ.ס. אבן יהודה תות\nמיקום: ביה"ס תפוז, רח' רמב"ם, פרדסיה\nאורך: שעה וחצי
+ORGANIZER;CN=חוגים סהר וסול:mailto:hugim.kid@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Pini:mailto:matzner.pini@gmail.com
+ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=ACCEPTED;CN=Nadia:mailto:nadialip5@gmail.com
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

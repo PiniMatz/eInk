@@ -24,6 +24,18 @@ app.get('/', (req, res) => {
   }
 });
 
+// Serve direct ICS calendar invitation file for Sahar's basketball games
+app.get('/sahar_basketball_games.ics', (req, res) => {
+  try {
+    const icsPath = path.join(__dirname, '..', 'public', 'sahar_basketball_games.ics');
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="sahar_basketball_games.ics"');
+    res.sendFile(icsPath);
+  } catch (err) {
+    res.status(500).send('Error loading ics: ' + err.message);
+  }
+});
+
 // Diagnostic API: Check font files and environment
 app.get('/api/diagnose', async (req, res) => {
   try {
