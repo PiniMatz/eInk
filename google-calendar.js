@@ -62,7 +62,7 @@ function getJerusalemIsoString(dateStr, timeStr) {
 /**
  * Creates an event in Google Calendar (e.g. hugim.kid@gmail.com).
  */
-async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid, title, date, time, durationMinutes = 45, description = '', recurrence = null }) {
+async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid, title, date, time, durationMinutes = 45, description = '', location = '', recurrence = null }) {
   const auth = getAuthClient();
   await auth.authorize();
   const calendar = google.calendar({ version: 'v3', auth });
@@ -91,6 +91,7 @@ async function addGoogleCalendarEvent({ calendarId = 'hugim.kid@gmail.com', kid,
   const eventResource = {
     summary: fullTitle,
     description: description || `Kid Schedule Item for ${kid || 'Family'}`,
+    ...(location ? { location } : {}),
     start: startDateTime,
     end: endDateTime,
     ...(recurrence ? { recurrence } : {})

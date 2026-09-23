@@ -156,6 +156,9 @@ const db = {
           author: event.author || '',
           isTimed: event.isTimed || false,
           time: event.time || '',
+          durationMinutes: event.durationMinutes || 90,
+          location: event.location || '',
+          description: event.description || '',
           source: event.source || ''
         });
         return { id: docRef.id, ...event };
@@ -167,6 +170,9 @@ const db = {
       event.id = Math.random().toString(36).substring(2, 9);
       event.isTimed = event.isTimed || false;
       event.time = event.time || '';
+      event.durationMinutes = event.durationMinutes || 90;
+      event.location = event.location || '';
+      event.description = event.description || '';
       event.source = event.source || '';
       const data = readLocal();
       data.events.push(event);
